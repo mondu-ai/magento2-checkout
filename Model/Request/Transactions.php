@@ -79,15 +79,10 @@ class Transactions extends CommonRequest implements RequestInterface
         $discountAmount = $quoteTotals->getDiscountAmount();
 
         return [
-//            'currency' => $quote->getBaseCurrencyCode(),
-            'currency' => 'EUR',
+            'currency' => $quote->getBaseCurrencyCode(),
             'total_discount_cents' => abs($discountAmount) * 100,
             'buyer' => $this->getBuyerParams($quote),
             'external_reference_id' => $this->getExternalReferenceId($quote),
-            // 'plan' => [
-            //     'plan_type' => 'invoice',
-            //     'charge_date' => date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s"). "+1 minutes"))
-            // ],
             'lines' => $this->getLinesParams($quote),
             'billing_address' => $this->getBillingAddressParams($quote),
             'shipping_address' => $this->getShippingAddressParams($quote)
@@ -102,7 +97,6 @@ class Transactions extends CommonRequest implements RequestInterface
                 'company_name' => $billing->getCompany(),
                 'first_name' => $billing->getFirstname(),
                 'last_name' => $billing->getLastname(),
-//                'business_name' => $billing->getCompany(),
                 'phone' => $billing->getTelephone(),
             ];
         }
