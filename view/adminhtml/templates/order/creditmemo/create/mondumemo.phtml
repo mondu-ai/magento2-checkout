@@ -1,0 +1,24 @@
+<?php
+/** @var \Mondu\Mondu\Block\Memo $block */
+    $invoices = $block->invoices();
+    $mapping = $block->getInvoiceMappings();
+    // var_dump($mapping);die;
+?>
+
+<?php if ($block->render()): ?>
+<div class="field choice admin__field">
+    <?= $block->getPaymentMethod() ?>
+    <div class="admin__field">
+        <label for="history_status" class="admin__field-label">Invoice to memo</label>
+        <div class="admin__field-control">
+            <select name="creditmemo[creditmemo_mondu_id]" id="history_status" class="admin__control-select">
+                <?php $i = 0; foreach ($mapping as $key => $item): ?>
+                    <option value="<?= $item['uuid'] ?>">
+                        INVOICE: <?= $key ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+</div>
+<?php endif; ?>

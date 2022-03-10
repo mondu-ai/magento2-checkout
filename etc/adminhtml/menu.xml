@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Mondu_Mondu::log" title="Mondu Payment" module="Mondu_Mondu" sortOrder="20" dependsOnModule="Mondu_Mondu" action="mondu/log/index" resource="Mondu_Mondu::log"/>
+    </menu>
+</config>

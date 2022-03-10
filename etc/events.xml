@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_place_before">
+        <observer name="sales_order_place_before_mondu" instance="Mondu\Mondu\Observer\CreateOrder"/>
+    </event>
+
+    <event name="order_cancel_after">
+        <observer name="mondu_order_cancel_after"
+                  instance="Mondu\Mondu\Observer\CancelOrder" />
+    </event>
+</config>
