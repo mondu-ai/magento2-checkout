@@ -11,9 +11,6 @@ use Magento\Framework\Filesystem;
  */
 class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
 {
-    /**
-     * @var \PHPCuong\BannerSlider\Model\ResourceModel\Banner\Collection
-     */
     protected $collection;
 
     /**
@@ -25,11 +22,6 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
      * @var array
      */
     protected $loadedData;
-
-    /**
-     * @var Filesystem
-     */
-    private $fileInfo;
 
     /**
      * Constructor
@@ -67,20 +59,9 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
             return $this->loadedData;
         }
         $items = $this->collection->getItems();
-        foreach ($items as $banner) {
-            $this->loadedData[$banner->getId()] = $banner->getData();
+        foreach ($items as $item) {
+            $this->loadedData[$item->getId()] = $item->getData();
         }
-
-        // Used from the Save action
-//        $data = $this->dataPersistor->get('banners_slider');
-//        if (!empty($data)) {
-//            $banner = $this->collection->getNewEmptyItem();
-//            $banner->setData($data);
-//            $this->loadedData[$banner->getId()] = $banner->getData();
-//            $this->dataPersistor->clear('banners_slider');
-//        }
-//        $this->loadedData[38]['net_price_cents'] = 300000;
-//        $this->loadedData[38]['tax_cents'] = 300000;
 
         return $this->loadedData;
     }

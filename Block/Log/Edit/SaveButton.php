@@ -15,7 +15,6 @@ class SaveButton extends GenericButton implements ButtonProviderInterface
      */
     public function getButtonData()
     {
-//        $data = [];
         $data = [
             'label' => __('Adjust'),
             'class' => 'save primary',

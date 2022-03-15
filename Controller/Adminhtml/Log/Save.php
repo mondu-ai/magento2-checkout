@@ -12,6 +12,7 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class Save extends \Magento\Backend\App\Action
 {
+    const ADMIN_RESOURCE = 'Mondu_Mondu::log';
     /**
      * @var DataPersistorInterface
      */
@@ -85,6 +86,6 @@ class Save extends \Magento\Backend\App\Action
      */
     protected function _isAllowed()
     {
-        return $this->_authorization->isAllowed('PHPCuong_BannerSlider::banner_update') || $this->_authorization->isAllowed('PHPCuong_BannerSlider::banner_create');
+        return $this->_authorization->isAllowed(static::ADMIN_RESOURCE);
     }
 }
