@@ -32,20 +32,61 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         }
         $invoiceIds = $order->getInvoiceCollection()->getAllIds();
 
-        if($order->getShipmentsCollection()->count() > 1) {
-            return;
+        $monduLog = $this->_monduLogger->getLogCollection($order->getData('mondu_reference_id'));
+        $arr = [];
+        if($monduLog->getAddons() && $monduLog->getAddons() !== 'null') {
+            $invoices = json_decode($monduLog->getAddons(), true);
+            $arr = array_values(array_map(function ($a) {
+                return $a['local_id'];
+            }, $invoices));
         }
 
-        if($invoiceIds && !$order->canInvoice()) {
+        $shipSkuQtyArray = [];
+        $invoiceSkuQtyArray = [];
+        foreach($shipment->getItems() as $item) {
+            $shipSkuQtyArray[$item->getSku()] = $item->getQty();
+        }
+        foreach($order->getInvoiceCollection()->getItems() as $invoice) {
+            if (in_array($invoice->getEntityId(), $arr)) {
+                continue;
+            }
+            foreach($invoice->getAllItems() as $i) {
+                $price = (float) $i->getBasePrice();
+                if (!$price) {
+                    continue;
+                }
+
+                if(!@$invoiceSkuQtyArray[$i->getSku()]) {
+                    $invoiceSkuQtyArray[$i->getSku()] = 0;
+                }
+
+                $invoiceSkuQtyArray[$i->getSku()] += (int) $i->getQty();
+            }
+        }
+
+        foreach($shipSkuQtyArray as $key => $shipSkuQty) {
+            if(@$invoiceSkuQtyArray[$key] !== $shipSkuQty) {
+                throw new LocalizedException(__('Invalid shipment amount'));
+            }
+        }
+        foreach($invoiceSkuQtyArray as $key => $invoiceSkuQty) {
+            if(@$shipSkuQtyArray[$key] !== $invoiceSkuQty) {
+                throw new LocalizedException(__('Invalid shipment amount'));
+            }
+        }
+
+        if($invoiceIds) {
             $monduId = $order->getData('mondu_reference_id');
             $invoiceCollection = $order->getInvoiceCollection();
 
             if(!$this->_monduLogger->canShipOrder($monduId)) {
-                throw new LocalizedException(__('Order is not confirmed yet.'));
+                throw new LocalizedException(__('Can\'t ship order: Mondu order state must be confirmed or partially_shipped'));
             }
 
             foreach($invoiceCollection as $invoiceItem) {
-                // TODO too many requests(?)
+                if (in_array($invoiceItem->getEntityId(), $arr)) {
+                    continue;
+                }
                 $this->createInvoiceForItem($invoiceItem, $monduId, $shipment);
             }
 
@@ -101,7 +142,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         }
 
         if(@$shipOrderData['errors']) {
-            throw new LocalizedException(__('Unknown error'));
+            throw new LocalizedException(__($shipOrderData['errors'][0]['name']. ' '. $shipOrderData['errors'][0]['details']));
         }
 
         $invoiceMapping = [];
@@ -110,6 +151,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $invoiceMapping[$invoiceItem->getIncrementId()] = [
             'uuid' => $invoiceData['uuid'],
             'state' => $invoiceData['state'],
+            'local_id' => $invoiceItem->getId()
 //            'dueDate' => $invoiceData['due_date'],
 //            'grossAmountCents' => $invoiceData['gross_amount_cents']
         ];

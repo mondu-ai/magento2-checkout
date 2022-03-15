@@ -13,6 +13,7 @@ class Factory
     const MEMO = 'memo';
     const WEBHOOKS_KEYS_REQUEST_METHOD = 'webhooks/keys';
     const WEBHOOKS_REQUEST_METHOD = 'webhooks';
+    const ADJUST_ORDER = 'adjust';
 
     private $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
@@ -22,6 +23,7 @@ class Factory
         self::MEMO => \Mondu\Mondu\Model\Request\Memo::class,
         self::WEBHOOKS_KEYS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks\Keys::class,
         self::WEBHOOKS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks::class,
+        self::ADJUST_ORDER => \Mondu\Mondu\Model\Request\Adjust::class
     ];
 
     private $objectManager;

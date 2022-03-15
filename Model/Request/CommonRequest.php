@@ -4,7 +4,7 @@ namespace Mondu\Mondu\Model\Request;
 
 abstract class CommonRequest {
     public function getHeaders($apiToken) {
-        return ['Content-Type' => 'application/json', 'Api-Token' => $apiToken, 'x-mondu-trace-id' => $this->getUUIDV4(), 'x-mondu-parent-span-id' => $this->getUUIDV4()];
+        return ['Content-Type' => 'application/json', 'api_token' => $apiToken, 'x-mondu-trace-id' => $this->getUUIDV4(), 'x-mondu-parent-span-id' => $this->getUUIDV4()];
     }
 
     private function getUUIDV4(): string
