@@ -26,7 +26,7 @@ class Log extends AbstractHelper
         $this->_requestFactory = $requestFactory;
     }
 
-    private function getLogCollection($orderUid)
+    public function getLogCollection($orderUid)
     {
         $monduLogger = $this->_logger->create();
 

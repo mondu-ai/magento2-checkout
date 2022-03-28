@@ -31,7 +31,7 @@
             <settings>
                 <filter>textRange</filter>
                 <label translate="true">ID</label>
-                <sorting>asc</sorting>
+                <sorting>desc</sorting>
             </settings>
         </column>
         <column name="reference_id">
@@ -70,18 +70,23 @@
                 <label translate="true">State</label>
             </settings>
         </column>
-        <column name="invoice_iban">
+<!--        <column name="invoice_iban">-->
+<!--            <settings>-->
+<!--                <filter>text</filter>-->
+<!--                <editor>-->
+<!--                    <validation>-->
+<!--                        <rule name="required-entry" xsi:type="boolean">true</rule>-->
+<!--                    </validation>-->
+<!--                    <editorType>text</editorType>-->
+<!--                </editor>-->
+<!--                <label translate="true">Iban</label>-->
+<!--            </settings>-->
+<!--        </column>-->
+        <actionsColumn name="actions" class="Mondu\Mondu\Ui\Component\Actions">
             <settings>
-                <filter>text</filter>
-                <editor>
-                    <validation>
-                        <rule name="required-entry" xsi:type="boolean">true</rule>
-                    </validation>
-                    <editorType>text</editorType>
-                </editor>
-                <label translate="true">Iban</label>
+                <label translate="true">Actions</label>
             </settings>
-        </column>
+        </actionsColumn>
         <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date">
             <settings>
                 <filter>dateRange</filter>
