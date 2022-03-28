@@ -38,7 +38,7 @@ class Token implements \Magento\Framework\App\ActionInterface {
         $response = [
             'error' => $result['error'],
             'message' => $result['message'],
-            'token' => @$result['body']['order']['uuid']
+            'token' => @$result['body']['order']['token']
         ];
 
         if(!$response['error']) {

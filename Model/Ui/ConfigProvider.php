@@ -83,6 +83,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                         ClientMock::FAILURE => __('Fraud'),
                     ],
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
+                    'description' => $this->scopeConfig->getValue('payment/mondu/description')
                 ]
             ]
         ];
