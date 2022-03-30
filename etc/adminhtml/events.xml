@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_shipment_save_after">
+        <observer name="mondu_shipment_after"
+                  instance="Mondu\Mondu\Observer\ShipOrder" />
+    </event>
+    <event name="sales_order_invoice_register">
+        <observer name="Mondu_Mondu_Invoice" instance="Mondu\Mondu\Observer\InvoiceOrder" />
+    </event>
+    <event name="sales_order_creditmemo_save_after">
+        <observer name="mondu_sales_order_payment_refund"
+                  instance="Mondu\Mondu\Observer\UpdateOrder" />
+    </event>
+    <event name="admin_system_config_changed_section_payment">
+        <observer name="mondu_admin_system_config_changed_section_payment" instance="Mondu\Mondu\Observer\Config\Save" />
+    </event>
+</config>
