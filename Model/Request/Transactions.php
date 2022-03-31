@@ -106,7 +106,9 @@ class Transactions extends CommonRequest implements RequestInterface
 
     private function getLinesParams(Quote $quote) {
         $shippingTotal = $this->_cartTotalRepository->get($quote->getId())->getBaseShippingAmount();
+        $totalTax = $quote->getShippingAddress()->getBaseTaxAmount();
         $lineItems = [];
+
         foreach ($quote->getAllVisibleItems() as $quoteItem) {
             $variationId = $quoteItem->getProductId();
 
@@ -127,12 +129,10 @@ class Transactions extends CommonRequest implements RequestInterface
 
             $lineItems[] = [
                 'title' => $quoteItem->getName(),
-                // 'net_amount_cents' => $quoteItem->getBaseRowTotal() * 100,
                 'net_price_per_item_cents' => $price * 100,
                 'variation_id' => $variationId,
                 'item_type' => $quoteItem->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
                 'external_reference_id' => $variationId,
-                'tax_cents' => $quoteItem->getBaseTaxAmount() * 100,
                 'quantity' => $quoteItem->getQty(),
                 'product_sku' => $quoteItem->getSku(),
                 'product_id' => $quoteItem->getProductId()
@@ -142,6 +142,7 @@ class Transactions extends CommonRequest implements RequestInterface
         return [
             [
                 'shipping_price_cents' => $shippingTotal * 100,
+                'tax_cents' => $totalTax * 100,
                 'line_items' => $lineItems
             ]
         ];

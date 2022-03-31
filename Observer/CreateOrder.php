@@ -43,7 +43,6 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $orderData = $orderData['order'];
             $order->setData('mondu_reference_id', $orderUid);
             $order->addStatusHistoryComment(__('Mondu: payment accepted for %1', $orderUid));
-
             $shippingAddress = $order->getShippingaddress();
             $billingAddress = $order->getBillingaddress();
 
@@ -56,7 +55,6 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $billingAddress->setData('city', $orderData['billing_address']['city']);
             $billingAddress->setData('postcode', $orderData['billing_address']['zip_code']);
             $billingAddress->setData('street', $orderData['billing_address']['address_line1'] . ' ' . $orderData['billing_address']['address_line2']);
-
             $order->save();
             $this->_monduLogger->logTransaction($order, $orderData, null);
         } catch (Exception $e) {
