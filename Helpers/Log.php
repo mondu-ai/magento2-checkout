@@ -70,6 +70,18 @@ class Log extends AbstractHelper
         return $log;
     }
 
+    public function getTransactionByIncrementId($incrementId)
+    {
+        $monduLogger = $this->_logger->create();
+
+        $logCollection = $monduLogger->getCollection()
+            ->addFieldToFilter('order_id', ['eq' => $incrementId])
+            ->load();
+
+        $log = $logCollection->getFirstItem()->getData();
+        return $log;
+    }
+
     public function updateLogInvoice($orderUid, $addons)
     {
         $log = $this->getLogCollection($orderUid);

@@ -5,6 +5,8 @@ use Error;
 use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Quote\Model\QuoteFactory;
+use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder implements \Magento\Framework\Event\ObserverInterface
@@ -14,12 +16,21 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
     private $_checkoutSession;
     private $_requestFactory;
     private $_monduLogger;
+    private $quoteFactory;
 
-    public function __construct(CheckoutSession $checkoutSession, RequestFactory $requestFactory, \Mondu\Mondu\Helpers\Log $logger)
+    public function __construct(
+        CheckoutSession $checkoutSession,
+        RequestFactory $requestFactory,
+        \Mondu\Mondu\Helpers\Log $logger,
+        QuoteFactory $quoteFactory,
+        OrderHelper $orderHelper
+    )
     {
         $this->_checkoutSession = $checkoutSession;
         $this->_requestFactory = $requestFactory;
         $this->_monduLogger = $logger;
+        $this->quoteFactory = $quoteFactory;
+        $this->orderHelper = $orderHelper;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -32,6 +43,18 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         }
 
         if ($order->getRelationParentRealId() || $order->getRelationParentId()) {
+            $prevOrderId = $order->getRelationParentId();
+            $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
+            $orderUid = $log['reference_id'];
+            $quote = $this->quoteFactory->create()->load($order->getQuoteId());
+
+            $quote->collectTotals();
+            $lines = $this->orderHelper->getLinesFromOrder($order);
+
+            $result =  [
+                'currency' => $quote->getBaseCurrencyCode(),
+                'lines' => $lines
+            ];
             throw new LocalizedException(__('Mondu currently doesnt support order editing'));
         }
 
