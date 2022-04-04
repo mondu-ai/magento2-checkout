@@ -97,6 +97,9 @@ class Index extends Action implements ActionInterface {
         if(!$externalReferenceId || !$monduId) {
             throw new \Exception('Required params missing');
         }
+        if(!$order) {
+            return [['message' => 'Not Found', 'error' => 1], 404];
+        }
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
         $order->setStatus(Order::STATE_PROCESSING)->save();
 
