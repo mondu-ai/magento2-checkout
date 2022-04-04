@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+    web:
+        image: webdevops/php-apache-dev:7.1
+        container_name: magento_2210
+        user: root
+        environment:
+          - WEB_ALIAS_DOMAIN=magento.local
+          - WEB_DOCUMENT_ROOT=/app/pub
+          - PHP_DATE_TIMEZONE=EST
+          - PHP_DISPLAY_ERRORS=1
+          - PHP_MEMORY_LIMIT=2048M
+          - PHP_MAX_EXECUTION_TIME=300
+          - PHP_POST_MAX_SIZE=500M
+          - PHP_UPLOAD_MAX_FILESIZE=1024M
+        volumes:
+          - ./:/app:cached
+        ports:
+          - "8080:80"
+          - "1025:443"
+          - "32823:22"
+        links:
+          - mysql
+        extra_hosts:
+          - "host.docker.internal:host-gateway"
+          - "checkout-sandbox.mondu.local:host-gateway"
+        depends_on:
+          - mysql
+    mysql:
+        image: mariadb:10
+        container_name: magento_2210_mysql
+        ports:
+          - "3366:3306"
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=magento
+        volumes:
+          - magento_2210_db:/var/lib/mysql
+    phpmyadmin:
+        container_name: magento_2210_phpmyadmin
+        image: phpmyadmin/phpmyadmin:latest
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - PMA_USER=root
+          - PMA_PASSWORD=root
+        ports:
+          - "8888:80"
+        links:
+          - mysql:db
+        depends_on:
+          - mysql
+volumes:
+    magento_2210_db:
+        external: false
