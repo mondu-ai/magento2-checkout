@@ -11,8 +11,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     const CODE = 'mondu';
 
-    const API_URL = 'https://api.stage.mondu.ai/api/v1';
-    const SDK_URL = 'https://checkout.stage.mondu.ai/widget.js';
+    const API_URL = 'https://api.mondu.ai/api/v1';
+    const SDK_URL = 'https://checkout.mondu.ai/widget.js';
 
     const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
     const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.ai/widget.js';

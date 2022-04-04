@@ -12,7 +12,7 @@
                 <order_status>pending</order_status>
                 <payment_action>authorize</payment_action>
                 <title>Mondu checkout</title>
-                <description>The Mondu plugin makes it possible for merchants to offer a BNPL (Buy now, pay later) service to B2B customers. The Mondu BNPL option will be offered at checkout.</description>
+                <description>Buy now Pay later</description>
                 <currency>USD</currency>
                 <can_authorize>1</can_authorize>
                 <can_capture>1</can_capture>

@@ -29,9 +29,11 @@ class Keys extends CommonRequest implements RequestInterface
         $this->curl->setHeaders($headers);
         $this->curl->get($url);
         $resultJson = $this->curl->getBody();
+
         if($resultJson) {
             $result = json_decode($resultJson, true);
         }
+
         $this->_webhookSecret = @$result['webhook_secret'];
         $this->_responseStatus = $this->curl->getStatus();
 
