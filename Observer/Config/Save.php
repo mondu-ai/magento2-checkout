@@ -36,9 +36,15 @@ class Save implements ObserverInterface {
                        ->process()
                        ->checkSuccess()
                        ->update();
+
                    $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/confirmed')
+                       ->process();
+
+                   $this->_requestFactory
+                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
+                       ->setTopic('order/pending')
                        ->process();
 
                    $this->_requestFactory
