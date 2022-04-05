@@ -1,7 +1,6 @@
 <?php
 namespace Mondu\Mondu\Observer;
 
-use Error;
 use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
@@ -33,29 +32,22 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->orderHelper = $orderHelper;
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $orderUid = $this->_checkoutSession->getMonduid();
         $order = $observer->getEvent()->getOrder();
         $payment = $order->getPayment();
+
         if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
             return;
         }
 
         if ($order->getRelationParentRealId() || $order->getRelationParentId()) {
-            $prevOrderId = $order->getRelationParentId();
-            $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
-            $orderUid = $log['reference_id'];
-            $quote = $this->quoteFactory->create()->load($order->getQuoteId());
-
-            $quote->collectTotals();
-            $lines = $this->orderHelper->getLinesFromOrder($order);
-
-            $result =  [
-                'currency' => $quote->getBaseCurrencyCode(),
-                'lines' => $lines
-            ];
-            throw new LocalizedException(__('Mondu currently doesnt support order editing'));
+            $this->handleOrderAdjustment($order);
+            return;
         }
 
         try {
@@ -82,6 +74,38 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
 
             $order->save();
             $this->_monduLogger->logTransaction($order, $orderData, null);
+        } catch (Exception $e) {
+            throw new LocalizedException(__($e->getMessage()));
+        }
+    }
+
+    public function handleOrderAdjustment($order) {
+        $prevOrderId = $order->getRelationParentId();
+        $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
+
+        if(!$log || !$log['reference_id']) {
+            throw new LocalizedException(__('This order was not placed with mondu'));
+        }
+        $orderUid = $log['reference_id'];
+        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
+        $quote->collectTotals();
+        $lines = $this->orderHelper->getLinesFromOrder($order);
+
+        $adjustment =  [
+            'currency' => $quote->getBaseCurrencyCode(),
+            'external_reference_id' => $order->getIncrementId(),
+            'lines' => $lines
+        ];
+        try {
+            $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
+                ->setOrderUid($orderUid)
+                ->process($adjustment);
+            //TODO additional order changes like mondu status ...
+            $order->setData('mondu_reference_id', $orderUid);
+            $order->addStatusHistoryComment(__('Mondu: payment adjusted for %1', $orderUid));
+            $order->save();
+
+            $this->_monduLogger->updateLogMonduData($orderUid, null, null, null, $order->getId());
         } catch (Exception $e) {
             throw new LocalizedException(__($e->getMessage()));
         }

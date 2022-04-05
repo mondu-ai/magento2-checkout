@@ -16,6 +16,8 @@ class OrderHelper
     {            
         $quote = $this->quoteFactory->create()->load($order->getQuoteId());
         $quote->collectTotals();
+
+        $totalTax = $quote->getShippingAddress()->getBaseTaxAmount();
         $shippingTotal = $quote->getShippingAddress()->getShippingAmount() * 100;
         $lineItems = [];
 
@@ -43,7 +45,6 @@ class OrderHelper
                 'variation_id' => $variationId,
                 'item_type' => $quoteItem->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
                 'external_reference_id' => $variationId,
-                'tax_cents' => $quoteItem->getBaseTaxAmount() * 100,
                 'quantity' => $quoteItem->getQty(),
                 'product_sku' => $quoteItem->getSku(),
                 'product_id' => $quoteItem->getProductId()
@@ -51,6 +52,7 @@ class OrderHelper
         }
         return [
             [
+                'tax_cents' => $totalTax * 100,
                 'shipping_price_cents' => $shippingTotal,
                 'line_items' => $lineItems
             ]

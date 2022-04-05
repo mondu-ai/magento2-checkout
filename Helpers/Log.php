@@ -93,7 +93,7 @@ class Log extends AbstractHelper
         $log->save();
     }
 
-    public function updateLogMonduData($orderUid, $monduState = null, $viban = null, $addons = null)
+    public function updateLogMonduData($orderUid, $monduState = null, $viban = null, $addons = null, $orderId = null)
     {
         $log = $this->getLogCollection($orderUid);
 
@@ -110,6 +110,10 @@ class Log extends AbstractHelper
 
         if($addons) {
             $data['addons'] = json_encode($addons);
+        }
+
+        if($orderUid) {
+            $data['order_id'] = $orderId;
         }
 
         $log->addData($data);
