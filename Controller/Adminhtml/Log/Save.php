@@ -53,11 +53,7 @@ class Save extends \Magento\Backend\App\Action
         $data = $this->getRequest()->getPostValue();
         $requestObject = [
             'orderUid' => $data['reference_id'],
-            'state' => $data['mondu_state'],
-            'amount' => [
-                'net_price_cents' => (float) $data['net_price_cents'],
-                'tax_cents' => (float) $data['tax_cents']
-            ]
+            'state' => $data['mondu_state']
         ];
 
         $response = $this->requestFactory->create(RequestFactory::ADJUST_ORDER)

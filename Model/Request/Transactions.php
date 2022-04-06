@@ -77,7 +77,6 @@ class Transactions extends CommonRequest implements RequestInterface
 
         $quoteTotals = $this->_cartTotalRepository->get($quote->getId());
         $discountAmount = $quoteTotals->getDiscountAmount();
-
         return [
             'currency' => $quote->getBaseCurrencyCode(),
             'total_discount_cents' => abs($discountAmount) * 100,
@@ -93,14 +92,14 @@ class Transactions extends CommonRequest implements RequestInterface
         $params = [];
         if (($billing = $quote->getBillingAddress()) !== null) {
             $params = [
+                'is_registered' => !$quote->getCustomerIsGuest(),
                 'email' => $billing->getEmail() ?? $quote->getShippingAddress()->getEmail() ?? $quote->getCustomerEmail() ?? $this->fallbackEmail,
                 'company_name' => $billing->getCompany(),
                 'first_name' => $billing->getFirstname(),
                 'last_name' => $billing->getLastname(),
-                'phone' => $billing->getTelephone(),
+                'phone' => $billing->getTelephone()
             ];
         }
-
         return $params;
     }
 
