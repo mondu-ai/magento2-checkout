@@ -58,6 +58,10 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $order->save();
             $this->_monduLogger->logTransaction($order, $orderData, null);
         } catch (Exception $e) {
+            $orderPayment = $order->getPayment();
+            $orderPayment->deny(false);
+            $order->setStatus(Order::STATE_CANCELED);
+            $order->save();
             throw new LocalizedException(__($e->getMessage()));
         }
     }
