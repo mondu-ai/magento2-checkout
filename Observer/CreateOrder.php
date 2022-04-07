@@ -5,6 +5,7 @@ use Error;
 use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder implements \Magento\Framework\Event\ObserverInterface
