@@ -73,59 +73,32 @@ define(
             },
 
             openCheckout: function(token) {
-                // self.getPlaceOrderDeferredObject().fail(
-                //     function() {
-                //         self.isPlaceOrderActionAllowed(true);
-                //         $('body').trigger('processStop');
-                //     }
-                // ).done(
-                //     function() {
-                //         self.afterPlaceOrder();
-                //         if (self.redirectAfterPlaceOrder) {
-                //             redirectOnSuccessAction.execute();
-                //         }
-                //     }
-                // );
-                // return;
                 $('<div id="mondu-checkout-widget" style="position: fixed; top: 0;right: 0;left: 0;bottom: 0; z-index: 99999999;"/>').appendTo('body');
                 window.monduCheckout.render({
                     token,
                     onCancel: () => {
                         $('#mondu-checkout-widget').remove();
+                        self.isPlaceOrderActionAllowed(true);
+                        $('body').trigger('processStop');
                     },
                     onSuccess: () => {
-                        // self.getPlaceOrderDeferredObject().fail(
-                        //     function() {
-                        //         self.isPlaceOrderActionAllowed(true);
-                        //         $('body').trigger('processStop');
-                        //     }
-                        // ).done(
-                        //     function() {
-                        //         self.afterPlaceOrder();
-                        //         if (self.redirectAfterPlaceOrder) {
-                        //             redirectOnSuccessAction.execute();
-                        //         }
-                        //     }
-                        // );
-                        //
-                        // $('#mondu-checkout-widget').remove();
+                        self.getPlaceOrderDeferredObject().fail(
+                            function() {
+                                self.isPlaceOrderActionAllowed(true);
+                                $('body').trigger('processStop');
+                            }
+                          ).done(
+                            function() {
+                                self.afterPlaceOrder();
+                                if (self.redirectAfterPlaceOrder) {
+                                    redirectOnSuccessAction.execute();
+                                }
+                            }
+                          );
+                          $('#mondu-checkout-widget').remove();
+                          $('body').trigger('processStop');
                     },
                     onClose: () => {
-                        self.getPlaceOrderDeferredObject().fail(
-                          function() {
-                              self.isPlaceOrderActionAllowed(true);
-                              $('body').trigger('processStop');
-                          }
-                        ).done(
-                          function() {
-                              self.afterPlaceOrder();
-                              if (self.redirectAfterPlaceOrder) {
-                                  redirectOnSuccessAction.execute();
-                              }
-                          }
-                        );
-                        $('#mondu-checkout-widget').remove();
-                        $('body').trigger('processStop');
                     }
                 });
             },
