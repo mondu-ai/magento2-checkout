@@ -92,7 +92,7 @@ class Transactions extends CommonRequest implements RequestInterface
         $params = [];
         if (($billing = $quote->getBillingAddress()) !== null) {
             $params = [
-                'is_registered' => !$quote->getCustomerIsGuest(),
+                'is_registered' => $quote->getCustomer()->getId() ? true : false,
                 'email' => $billing->getEmail() ?? $quote->getShippingAddress()->getEmail() ?? $quote->getCustomerEmail() ?? $this->fallbackEmail,
                 'company_name' => $billing->getCompany(),
                 'first_name' => $billing->getFirstname(),

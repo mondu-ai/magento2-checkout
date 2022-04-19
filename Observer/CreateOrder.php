@@ -6,6 +6,7 @@ use \Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\QuoteFactory;
 use Mondu\Mondu\Helpers\OrderHelper;
+use Magento\Sales\Model\Order;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder implements \Magento\Framework\Event\ObserverInterface
@@ -122,6 +123,10 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $order->setData('mondu_reference_id', $orderUid);
             $order->addStatusHistoryComment(__('Mondu: payment adjusted for %1', $orderUid));
         } catch (Exception $e) {
+            $orderPayment = $order->getPayment();
+            $orderPayment->deny(false);
+            $order->setStatus(Order::STATE_CANCELED);
+            $order->save();
             throw new LocalizedException(__($e->getMessage()));
         }
     }

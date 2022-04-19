@@ -112,7 +112,7 @@ class Index extends Action implements ActionInterface {
      */
     public function handleConfirmed($params): array
     {
-        $viban = @$params['viban'];
+        $viban = @$params['bank_account']['iban'];
         $monduId = @$params['order_uuid'];
         $externalReferenceId = @$params['external_reference_id'];
         $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
