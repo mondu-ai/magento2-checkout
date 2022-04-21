@@ -29,12 +29,12 @@ class CancelOrder implements ObserverInterface
         }
 
         try {
-            $cancelData = $this->_requestFactory->create(RequestFactory::CANCEL)
-                ->process(['orderUid' => $monduId]);
-            $order->addStatusHistoryComment(__('Mondu:  The transaction with the id %1 was successfully canceled.', $monduId));
-            $order->save();
-            // TODO update db log
-
+            if(!$order->getRelationChildId()) {
+                $cancelData = $this->_requestFactory->create(RequestFactory::CANCEL)
+                    ->process(['orderUid' => $monduId]);
+                $order->addStatusHistoryComment(__('Mondu:  The transaction with the id %1 was successfully canceled.', $monduId));
+                $order->save();
+            }
         } catch (Exception $error) {
             throw new LocalizedException(__($error->getMessage()));
         }

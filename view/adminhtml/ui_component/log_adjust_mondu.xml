@@ -70,33 +70,33 @@
                 </select>
             </formElements>
         </field>
-        <field name="net_price_cents">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">price</item>
-                    <item name="label" xsi:type="string" translate="true">Net price in cents</item>
-                    <item name="formElement" xsi:type="string">input</item>
-                    <item name="source" xsi:type="string">log</item>
-                    <item name="dataScope" xsi:type="string">net_price_cents</item>
-                    <item name="validation" xsi:type="array">
-                        <item name="required-entry" xsi:type="boolean">true</item>
-                    </item>
-                </item>
-            </argument>
-        </field>
-        <field name="tax_cent">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">price</item>
-                    <item name="label" xsi:type="string" translate="true">Tax in cents</item>
-                    <item name="formElement" xsi:type="string">input</item>
-                    <item name="source" xsi:type="string">log</item>
-                    <item name="dataScope" xsi:type="string">tax_cents</item>
-                    <item name="validation" xsi:type="array">
-                        <item name="required-entry" xsi:type="boolean">true</item>
-                    </item>
-                </item>
-            </argument>
-        </field>
+<!--        <field name="net_price_cents">-->
+<!--            <argument name="data" xsi:type="array">-->
+<!--                <item name="config" xsi:type="array">-->
+<!--                    <item name="dataType" xsi:type="string">price</item>-->
+<!--                    <item name="label" xsi:type="string" translate="true">Net price in cents</item>-->
+<!--                    <item name="formElement" xsi:type="string">input</item>-->
+<!--                    <item name="source" xsi:type="string">log</item>-->
+<!--                    <item name="dataScope" xsi:type="string">net_price_cents</item>-->
+<!--                    <item name="validation" xsi:type="array">-->
+<!--                        <item name="required-entry" xsi:type="boolean">true</item>-->
+<!--                    </item>-->
+<!--                </item>-->
+<!--            </argument>-->
+<!--        </field>-->
+<!--        <field name="tax_cent">-->
+<!--            <argument name="data" xsi:type="array">-->
+<!--                <item name="config" xsi:type="array">-->
+<!--                    <item name="dataType" xsi:type="string">price</item>-->
+<!--                    <item name="label" xsi:type="string" translate="true">Tax in cents</item>-->
+<!--                    <item name="formElement" xsi:type="string">input</item>-->
+<!--                    <item name="source" xsi:type="string">log</item>-->
+<!--                    <item name="dataScope" xsi:type="string">tax_cents</item>-->
+<!--                    <item name="validation" xsi:type="array">-->
+<!--                        <item name="required-entry" xsi:type="boolean">true</item>-->
+<!--                    </item>-->
+<!--                </item>-->
+<!--            </argument>-->
+<!--        </field>-->
     </fieldset>
 </form>

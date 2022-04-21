@@ -70,6 +70,18 @@ class Log extends AbstractHelper
         return $log;
     }
 
+    public function getTransactionByIncrementId($incrementId)
+    {
+        $monduLogger = $this->_logger->create();
+
+        $logCollection = $monduLogger->getCollection()
+            ->addFieldToFilter('order_id', ['eq' => $incrementId])
+            ->load();
+
+        $log = $logCollection->getFirstItem()->getData();
+        return $log;
+    }
+
     public function updateLogInvoice($orderUid, $addons)
     {
         $log = $this->getLogCollection($orderUid);
@@ -81,7 +93,7 @@ class Log extends AbstractHelper
         $log->save();
     }
 
-    public function updateLogMonduData($orderUid, $monduState = null, $viban = null, $addons = null)
+    public function updateLogMonduData($orderUid, $monduState = null, $viban = null, $addons = null, $orderId = null)
     {
         $log = $this->getLogCollection($orderUid);
 
@@ -98,6 +110,10 @@ class Log extends AbstractHelper
 
         if($addons) {
             $data['addons'] = json_encode($addons);
+        }
+
+        if($orderUid) {
+            $data['order_id'] = $orderId;
         }
 
         $log->addData($data);
