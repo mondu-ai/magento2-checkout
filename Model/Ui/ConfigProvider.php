@@ -74,6 +74,10 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function getConfig()
     {
+        $string = $this->scopeConfig->getValue('payment/mondu/description');
+        $pieces = explode(' ', $string);
+        $last_word = array_pop($pieces);
+        $description = implode(' ', $pieces);
         return [
             'payment' => [
                 self::CODE => [
@@ -83,7 +87,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                         ClientMock::FAILURE => __('Fraud'),
                     ],
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => $this->scopeConfig->getValue('payment/mondu/description')
+                    'description' => $description,
+                    'descriptionLink' => $last_word
                 ]
             ]
         ];
