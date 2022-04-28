@@ -1,7 +1,8 @@
 label[for=mondu] {
-    background: url(../images/mondu.png) no-repeat scroll 0px 10px;
-    padding: 8px 20px;
-    background-size: 16px;
+    background: url(../images/mondu_big.svg) no-repeat scroll 0px 10px;
+    background-size: 60px;
+    background-position-x: 2px;
+    padding: 8px 71px;
     font-weight: bold;
 }
 .payment-method-description-mondu {
