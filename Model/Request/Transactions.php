@@ -40,7 +40,9 @@ class Transactions extends CommonRequest implements RequestInterface
             $params = json_encode($this->getRequestParams());
             $api_token = $this->_scopeConfigInterface->getValue('payment/mondu/mondu_key');
             $url = $this->_configProvider->getApiUrl('orders');
+
             $headers = $this->getHeaders($api_token);
+            $headers['X-Mondu-User-Agent'] = $_params['user-agent'];
 
             $this->curl->setHeaders($headers);
             $this->curl->post($url, $params);
