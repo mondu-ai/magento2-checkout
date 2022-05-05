@@ -32,9 +32,12 @@ class Token implements \Magento\Framework\App\ActionInterface {
     }
 
     public function execute() {
+        $userAgent = @$this->request->getHeaders()->toArray()['User-Agent'];
+
         $result = $this->requestFactory
             ->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD)
-            ->process(['email' => $this->request->getParam('email')]);
+            ->process(['email' => $this->request->getParam('email'), 'user-agent' => $userAgent]);
+
         $response = [
             'error' => $result['error'],
             'message' => $result['message'],
