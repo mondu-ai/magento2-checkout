@@ -44,7 +44,11 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $shipSkuQtyArray = [];
         $invoiceSkuQtyArray = [];
         foreach($shipment->getItems() as $item) {
-            $shipSkuQtyArray[$item->getSku()] = $item->getQty();
+            if($item->getQty()) {
+                $shipSkuQtyArray[$item->getSku()] = $item->getQty();
+            } elseif(!@$shipSkuQtyArray[$item->getSku()]) {
+                $shipSkuQtyArray[$item->getSku()] = $item->getQty();
+            }
         }
         foreach($order->getInvoiceCollection()->getItems() as $invoice) {
             if (in_array($invoice->getEntityId(), $arr)) {
