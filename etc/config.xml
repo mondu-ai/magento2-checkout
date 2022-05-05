@@ -12,7 +12,7 @@
                 <order_status>pending</order_status>
                 <payment_action>authorize</payment_action>
                 <title>Rechnungskauf - jetzt kaufen, später bezahlen</title>
-                <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondi Gmbh finden Sie hier</description>
+                <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu Gmbh finden Sie hier</description>
                 <sandbox>1</sandbox>
                 <allowspecific>1</allowspecific>
                 <specificcountry>DE</specificcountry>
