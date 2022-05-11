@@ -71,13 +71,13 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $shippingAddress->setData('country_id', $orderData['shipping_address']['country_code']);
             $shippingAddress->setData('city', $orderData['shipping_address']['city']);
             $shippingAddress->setData('postcode', $orderData['shipping_address']['zip_code']);
-            $shippingAddress->setData('street', $orderData['shipping_address']['address_line1'] . ' ' . $orderData['shipping_address']['address_line2']);
+            //$shippingAddress->setData('street', $orderData['shipping_address']['address_line1'] . ' ' . $orderData['shipping_address']['address_line2']);
             $shippingAddress->setData('company', $orderData['buyer']['company_name']);
 
             $billingAddress->setData('country_id', $orderData['billing_address']['country_code']);
             $billingAddress->setData('city', $orderData['billing_address']['city']);
             $billingAddress->setData('postcode', $orderData['billing_address']['zip_code']);
-            $billingAddress->setData('street', $orderData['billing_address']['address_line1'] . ' ' . $orderData['billing_address']['address_line2']);
+            //$billingAddress->setData('street', $orderData['billing_address']['address_line1'] . ' ' . $orderData['billing_address']['address_line2']);
             $billingAddress->setData('company', $orderData['buyer']['company_name']);
             $order->save();
 

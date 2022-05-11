@@ -152,7 +152,10 @@ define([
               self.getData()
             ).then(() => {
                 initCheckout();
-            });
+            }).fail(() => {
+                self.isPlaceOrderActionAllowed(true);
+                $("body").trigger("processStop");
+            })
         },
     });
 });
