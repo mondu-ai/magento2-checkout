@@ -92,42 +92,10 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         }
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function handleOrderAdjustment($order) {
-        $prevOrderId = $order->getRelationParentId();
-        $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
-
-        if(!$log || !$log['reference_id']) {
-            throw new LocalizedException(__('This order was not placed with mondu'));
-        }
-        $orderUid = $log['reference_id'];
-        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
-        $quote->collectTotals();
-        $lines = $this->orderHelper->getLinesFromOrder($order);
-        $netPrice = $quote->getGrandTotal() - $quote->getShippingAddress()->getBaseTaxAmount();
-
-        $adjustment =  [
-            'currency' => $quote->getBaseCurrencyCode(),
-            'external_reference_id' => $order->getIncrementId(),
-            'amount' => [
-                'net_price_cents' => $netPrice * 100,
-                'tax_cents' => $quote->getShippingAddress()->getBaseTaxAmount() * 100
-            ],
-            'lines' => $lines
-        ];
-        try {
-            $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
-                ->setOrderUid($orderUid)
-                ->process($adjustment);
-
-            //TODO change 2 api calls for 1 on edit order
-            $order->setData('mondu_reference_id', $orderUid);
-            $order->addStatusHistoryComment(__('Mondu: payment adjusted for %1', $orderUid));
-        } catch (Exception $e) {
-            $orderPayment = $order->getPayment();
-            $orderPayment->deny(false);
-            $order->setStatus(Order::STATE_CANCELED);
-            $order->save();
-            throw new LocalizedException(__($e->getMessage()));
-        }
+        $this->orderHelper->handleOrderAdjustment($order);
     }
 }
