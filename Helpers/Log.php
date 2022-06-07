@@ -44,7 +44,7 @@ class Log extends AbstractHelper
         $monduLogger = $this->_logger->create();
         $logData = array(
             'store_id' => $order->getStoreId(),
-            'order_id' => $order->getId(),
+            'order_id' => $order->getId() ? $order->getId() : $order->getEntityId(),
             'reference_id' => $order->getMonduReferenceId(),
             // 'transaction_tstamp' => date('Y-m-d H:i:s',time()),
             'created_at' => $order->getCreatedAt(),
@@ -112,7 +112,7 @@ class Log extends AbstractHelper
             $data['addons'] = json_encode($addons);
         }
 
-        if($orderUid) {
+        if($orderId) {
             $data['order_id'] = $orderId;
         }
 

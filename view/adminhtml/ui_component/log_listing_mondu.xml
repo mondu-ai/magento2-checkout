@@ -34,6 +34,11 @@
                 <sorting>desc</sorting>
             </settings>
         </column>
+        <actionsColumn name="order" class="Mondu\Mondu\Ui\Component\OrderIdButton">
+            <settings>
+                <label translate="true">Order ID</label>
+            </settings>
+        </actionsColumn>
         <column name="reference_id">
             <settings>
                 <filter>text</filter>

@@ -107,7 +107,9 @@ class Transactions extends CommonRequest implements RequestInterface
 
     private function getLinesParams(Quote $quote) {
         $shippingTotal = $this->_cartTotalRepository->get($quote->getId())->getBaseShippingAmount();
-        $totalTax = $quote->getShippingAddress()->getBaseTaxAmount();
+        $totalTax = round($quote->getShippingAddress()->getBaseTaxAmount(), 2);
+        $taxCompensation = $quote->getShippingAddress()->getBaseDiscountTaxCompensationAmount() ?? 0;
+        $totalTax = round($totalTax + $taxCompensation, 2);
         $lineItems = [];
 
         foreach ($quote->getAllVisibleItems() as $quoteItem) {
@@ -154,12 +156,17 @@ class Transactions extends CommonRequest implements RequestInterface
 
         if (($billing = $quote->getBillingAddress()) !== null) {
             $address = (array) $billing->getStreet();
+            $line1 = (string) array_shift($address);
+            if($billing->getStreetNumber()) {
+                $line1 .= ', '. $billing->getStreetNumber();
+            }
+            $line2 = (string) implode(' ', $address);
             $params = [
                 'country_code' => $billing->getCountryId(),
                 'city' => $billing->getCity(),
                 'zip_code' => $billing->getPostcode(),
-                'address_line1' => (string) array_shift($address),
-                'address_line2' => (string) implode(' ', $address),
+                'address_line1' => $line1,
+                'address_line2' => $line2,
             ];
             if($billing->getRegion()) {
                 $params['state'] = (string) $billing->getRegion();
@@ -174,12 +181,17 @@ class Transactions extends CommonRequest implements RequestInterface
 
         if (($shipping = $quote->getShippingAddress()) !== null) {
             $address = (array) $shipping->getStreet();
+            $line1 = (string) array_shift($address);
+            if($shipping->getStreetNumber()) {
+                $line1 .= ', '. $shipping->getStreetNumber();
+            }
+            $line2 = (string) implode(' ', $address);
             $params = [
                 'country_code' => $shipping->getCountryId(),
                 'city' => $shipping->getCity(),
                 'zip_code' => $shipping->getPostcode(),
-                'address_line1' => (string) array_shift($address),
-                'address_line2' => (string) implode(' ', $address),
+                'address_line1' => $line1,
+                'address_line2' => $line2,
             ];
 
             if($shipping->getRegion()) {

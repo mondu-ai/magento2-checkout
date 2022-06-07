@@ -60,6 +60,7 @@ class Save extends \Magento\Backend\App\Action
             ->process($requestObject);
         if(@$response['status'] === 422) {
             $this->messageManager->addError($response['errors'][0]['name']. ' '. $response['errors'][0]['details']);
+            $this->_monduLogger->syncOrder($data['reference_id']);
             return $resultRedirect->setPath('*/*/adjust', ['entity_id' => $this->getRequest()->getParam('entity_id')]);
         }
         if(@$response['order']['state'] === 'canceled') {

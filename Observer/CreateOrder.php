@@ -71,13 +71,13 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $shippingAddress->setData('country_id', $orderData['shipping_address']['country_code']);
             $shippingAddress->setData('city', $orderData['shipping_address']['city']);
             $shippingAddress->setData('postcode', $orderData['shipping_address']['zip_code']);
-            $shippingAddress->setData('street', $orderData['shipping_address']['address_line1'] . ' ' . $orderData['shipping_address']['address_line2']);
+            //$shippingAddress->setData('street', $orderData['shipping_address']['address_line1'] . ' ' . $orderData['shipping_address']['address_line2']);
             $shippingAddress->setData('company', $orderData['buyer']['company_name']);
 
             $billingAddress->setData('country_id', $orderData['billing_address']['country_code']);
             $billingAddress->setData('city', $orderData['billing_address']['city']);
             $billingAddress->setData('postcode', $orderData['billing_address']['zip_code']);
-            $billingAddress->setData('street', $orderData['billing_address']['address_line1'] . ' ' . $orderData['billing_address']['address_line2']);
+            //$billingAddress->setData('street', $orderData['billing_address']['address_line1'] . ' ' . $orderData['billing_address']['address_line2']);
             $billingAddress->setData('company', $orderData['buyer']['company_name']);
             $order->save();
 
@@ -92,42 +92,10 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         }
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function handleOrderAdjustment($order) {
-        $prevOrderId = $order->getRelationParentId();
-        $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
-
-        if(!$log || !$log['reference_id']) {
-            throw new LocalizedException(__('This order was not placed with mondu'));
-        }
-        $orderUid = $log['reference_id'];
-        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
-        $quote->collectTotals();
-        $lines = $this->orderHelper->getLinesFromOrder($order);
-        $netPrice = $quote->getGrandTotal() - $quote->getShippingAddress()->getBaseTaxAmount();
-
-        $adjustment =  [
-            'currency' => $quote->getBaseCurrencyCode(),
-            'external_reference_id' => $order->getIncrementId(),
-            'amount' => [
-                'net_price_cents' => $netPrice * 100,
-                'tax_cents' => $quote->getShippingAddress()->getBaseTaxAmount() * 100
-            ],
-            'lines' => $lines
-        ];
-        try {
-            $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
-                ->setOrderUid($orderUid)
-                ->process($adjustment);
-
-            //TODO change 2 api calls for 1 on edit order
-            $order->setData('mondu_reference_id', $orderUid);
-            $order->addStatusHistoryComment(__('Mondu: payment adjusted for %1', $orderUid));
-        } catch (Exception $e) {
-            $orderPayment = $order->getPayment();
-            $orderPayment->deny(false);
-            $order->setStatus(Order::STATE_CANCELED);
-            $order->save();
-            throw new LocalizedException(__($e->getMessage()));
-        }
+        $this->orderHelper->handleOrderAdjustment($order);
     }
 }
