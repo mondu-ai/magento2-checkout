@@ -48,6 +48,6 @@ class Memo extends \Magento\Framework\View\Element\Template
         $monduId = $this->getOrderMonduId();
         $log = $this->_monduLogger->getTransactionByOrderUid($monduId);
 
-        return $log['addons'] ? json_decode($log['addons'], true) : [];
+        return $log['addons'] ? (json_decode($log['addons'], true) ?? []) : [];
     }
 }
