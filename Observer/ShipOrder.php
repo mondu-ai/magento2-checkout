@@ -38,9 +38,13 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 
         $monduLog = $this->_monduLogger->getLogCollection($order->getData('mondu_reference_id'));
         $arr = [];
+
+        if($monduLog->getSkipShipObserver()) {
+            return;
+        }
+
         if($monduLog->getAddons() && $monduLog->getAddons() !== 'null') {
             $invoices = json_decode($monduLog->getAddons(), true);
-            if($invoices['skip_observer']) return;
             $arr = array_values(array_map(function ($a) {
                 return $a['local_id'];
             }, $invoices));

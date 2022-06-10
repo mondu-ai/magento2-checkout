@@ -142,9 +142,7 @@ class BulkActions {
                 'local_id' => $invoiceItem->getId()
             ];
 
-            $addons['skip_observer'] = true;
-
-            $this->monduLogs->updateLogInvoice($monduLogData['reference_id'], $addons);
+            $this->monduLogs->updateLogInvoice($monduLogData['reference_id'], $addons, true);
             $success[] = $shipOrderData;
         }
 

@@ -82,13 +82,19 @@ class Log extends AbstractHelper
         return $log;
     }
 
-    public function updateLogInvoice($orderUid, $addons)
+    public function updateLogInvoice($orderUid, $addons, $skipObserver = false)
     {
         $log = $this->getLogCollection($orderUid);
 
         $log->addData([
             'addons' => json_encode($addons)
         ]);
+
+        if($skipObserver) {
+            $log->addData([
+                'skip_ship_observer' => true
+            ]);
+        }
 
         $log->save();
     }
