@@ -96,14 +96,14 @@ class BulkActions {
             $quoteItems = $invoiceItem->getAllItems();
 
             $lineItems = [];
+            $mapping = $this->getConfigurableItemIdMap($quoteItems);
 
             foreach($quoteItems as $i) {
                 $price = (float) $i->getBasePrice();
                 if (!$price) {
                     continue;
                 }
-
-                $variationId = $i->getProductId();
+                $variationId = isset($mapping[$i->getProductId()]) ? $mapping[$i->getProductId()] : $i->getProductId();
 
                 $lineItems[] = [
                     'quantity' => (int) $i->getQty(),
@@ -155,5 +155,16 @@ class BulkActions {
         }
 
         return [ $errors, $success ];
+    }
+
+    private function getConfigurableItemIdMap($items) {
+        $mapping = [];
+        foreach($items as $i) {
+            $parent = $i->getOrderItem()->getParentItem();
+            if($parent) {
+                $mapping[$parent->getProductId()] = $i->getProductId();
+            }
+        }
+        return $mapping;
     }
 }
