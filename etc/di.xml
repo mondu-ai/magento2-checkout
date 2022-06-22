@@ -137,4 +137,7 @@
             <argument name="resourceModel" xsi:type="string">Mondu\Mondu\Model\ResourceModel\Log</argument>
         </arguments>
     </virtualType>
+<!--    <type name="Magento\Payment\Helper\Data">-->
+<!--        <plugin sortOrder="10" name="monduPaymentData" type="Mondu\Mondu\Helpers\DataPlugin"/>-->
+<!--    </type>-->
 </config>

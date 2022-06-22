@@ -33,10 +33,10 @@ class Token implements \Magento\Framework\App\ActionInterface {
 
     public function execute() {
         $userAgent = @$this->request->getHeaders()->toArray()['User-Agent'];
-
+        $paymentMethod = @$this->request->getParam('payment_method');
         $result = $this->requestFactory
             ->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD)
-            ->process(['email' => $this->request->getParam('email'), 'user-agent' => $userAgent]);
+            ->process(['email' => $this->request->getParam('email'), 'user-agent' => $userAgent, 'payment_method' => $paymentMethod]);
 
         $response = [
             'error' => $result['error'],

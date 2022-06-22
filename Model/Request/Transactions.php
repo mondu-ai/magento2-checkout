@@ -37,7 +37,14 @@ class Transactions extends CommonRequest implements RequestInterface
             if(@$_params['email']) {
                 $this->fallbackEmail = $_params['email'];
             }
-            $params = json_encode($this->getRequestParams());
+            $params = $this->getRequestParams();
+
+            if($_params['payment_method'] === 'direct_debit') {
+                $params['payment_method'] = $_params['payment_method'];
+            }
+
+            $params = json_encode($params);
+
             $api_token = $this->_scopeConfigInterface->getValue('payment/mondu/mondu_key');
             $url = $this->_configProvider->getApiUrl('orders');
 

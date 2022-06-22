@@ -1,0 +1,38 @@
+<?php
+
+namespace Mondu\Mondu\Model\Payment;
+
+use Magento\Payment\Model\InfoInterface;
+
+class MonduSepa extends \Magento\Payment\Model\Method\AbstractMethod
+{
+    const PAYMENT_METHOD_MONDU_CODE = 'mondu-sepa';
+
+    protected $_code = 'mondu-sepa';
+
+    public function authorize(InfoInterface $payment, $amount)
+    {
+        return $this;
+    }
+
+    public function setCode($code) {
+        $this->_code = $code;
+        return $this;
+    }
+
+    public function canUseForCountry($country) {
+        $storeId = $this->getStore();
+
+        $path = 'payment/' . 'mondu' . '/' . 'specificcountry';
+        $availableCountries = $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $allowSpecific = $this->_scopeConfig->getValue('payment/mondu/allowspecific', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+
+        if ($allowSpecific == 1) {
+            $availableCountries = explode(',', $availableCountries);
+            if (!in_array($country, $availableCountries)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
