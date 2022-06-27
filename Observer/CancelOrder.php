@@ -21,7 +21,7 @@ class CancelOrder implements ObserverInterface
     public function execute(Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
-        $payment = $order->getPayment()->getMethodInstance();
+        $payment = $order->getPayment();
         $monduId = $order->getData('mondu_reference_id');
 
         if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
