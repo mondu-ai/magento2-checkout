@@ -28,7 +28,7 @@ class BulkActions {
         $this->logger = $logger;
     }
 
-    public function bulkShip($orderIds) {
+    public function bulkShip($orderIds, $withLineItems = false) {
         $orderCollection = $this->orderCollectionFactory->create();
 
         $orderCollection->addFieldToFilter('entity_id', ['in' => $orderIds]);
@@ -50,7 +50,7 @@ class BulkActions {
                 if(empty($monduLogData)) {
                     throw new \Exception($order->getIncrementId());
                 }
-                if($monduInvoice = $this->shipOrder($monduLogData, $order)) {
+                if($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
                     $successattempts[] = $order->getIncrementId();
                     continue;
                 }
@@ -62,7 +62,7 @@ class BulkActions {
         return [$successattempts, $notMonduOrders, $failedAttempts];
     }
 
-    public function shipOrder($monduLogData, $order) {
+    public function shipOrder($monduLogData, $order, $withLineItems) {
         if(!$this->monduLogs->canShipOrder($monduLogData['reference_id'])) {
             $this->logger->debug('Mondu: VALIDATION ERROR: Order number '. $order->getIncrementId(). ' cant be shipped because mondu state is not CONFIRMED or PARTiALLY_SHIPPED');
             return false;
@@ -116,8 +116,11 @@ class BulkActions {
                 'external_reference_id' => $invoiceItem->getIncrementId(),
                 'gross_amount_cents' => $gross_amount_cents,
                 'invoice_url' => $this->configProvider->getPdfUrl($monduLogData['reference_id'], $invoiceItem->getIncrementId()),
-                'line_items' => $lineItems
             ];
+
+            if($withLineItems) {
+                $invoiceBody['line_items'] = $lineItems;
+            }
 
             $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
                 ->process($invoiceBody);
