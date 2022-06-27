@@ -28,7 +28,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
     {
         $shipment = $observer->getEvent()->getShipment();
         $order = $shipment->getOrder();
-        $payment = $order->getPayment()->getMethodInstance();
+        $payment = $order->getPayment();
 
         if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
             return;
