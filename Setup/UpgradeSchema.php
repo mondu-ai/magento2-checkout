@@ -59,6 +59,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $installer->getConnection()->createTable($table);
         }
 
+        if ($installer->getConnection()->tableColumnExists($tableName, 'skip_ship_observer') === false) {
+            $installer->getConnection()->addColumn($tableName, 'skip_ship_observer', array(
+                'type'      => \Magento\Framework\DB\Ddl\Table::TYPE_BOOLEAN,
+                'nullable'  => true,
+                'comment'   => 'Skip ship observer'
+            ));
+        }
+
 
         $installer->endSetup();
     }

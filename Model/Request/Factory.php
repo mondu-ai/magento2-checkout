@@ -3,6 +3,7 @@ namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class Factory
 {
@@ -15,6 +16,8 @@ class Factory
     const WEBHOOKS_REQUEST_METHOD = 'webhooks';
     const ADJUST_ORDER = 'adjust';
     const EDIT_ORDER = 'edit';
+
+    private $logger;
 
     private $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
@@ -30,9 +33,10 @@ class Factory
 
     private $objectManager;
 
-    public function __construct(ObjectManagerInterface $objectManager)
+    public function __construct(ObjectManagerInterface $objectManager, LoggerInterface $logger)
     {
         $this->objectManager = $objectManager;
+        $this->logger = $logger;
     }
 
     public function create($method)
@@ -47,6 +51,7 @@ class Factory
             );
         }
 
+        $this->logger->debug('Mondu: Request to Mondu api: '. $method);
         $model = $this->objectManager->create($className);
 
         return $model;
