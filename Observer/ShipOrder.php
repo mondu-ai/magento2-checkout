@@ -5,6 +5,7 @@ use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Psr\Log\LoggerInterface;
 
 class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 {
@@ -13,12 +14,14 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
     protected $_monduLogger;
     private $_requestFactory;
     private $_config;
+    private $debugger;
 
-    public function __construct(RequestFactory $requestFactory, ConfigProvider $config, Log $logger)
+    public function __construct(RequestFactory $requestFactory, ConfigProvider $config, Log $logger, LoggerInterface $debugger)
     {
         $this->_requestFactory = $requestFactory;
         $this->_config = $config;
         $this->_monduLogger = $logger;
+        $this->debugger = $debugger;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -30,10 +33,16 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
             return;
         }
+        $this->debugger->debug('Mondu: ShipOrder Observer: Order '.$order->getIncrementId());
         $invoiceIds = $order->getInvoiceCollection()->getAllIds();
 
         $monduLog = $this->_monduLogger->getLogCollection($order->getData('mondu_reference_id'));
         $arr = [];
+
+        if($monduLog->getSkipShipObserver()) {
+            return;
+        }
+
         if($monduLog->getAddons() && $monduLog->getAddons() !== 'null') {
             $invoices = json_decode($monduLog->getAddons(), true);
             $arr = array_values(array_map(function ($a) {
@@ -92,6 +101,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
                     continue;
                 }
                 $this->createInvoiceForItem($invoiceItem, $monduId, $shipment);
+                $this->debugger->debug('Mondu: ShipOrder Observer: Invoice sent to mondu '.$invoiceItem->getEntityId() . '. Order: ' . $order->getIncrementId());
             }
 
             $this->_monduLogger->syncOrder($monduId);
@@ -156,8 +166,6 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
             'uuid' => $invoiceData['uuid'],
             'state' => $invoiceData['state'],
             'local_id' => $invoiceItem->getId()
-//            'dueDate' => $invoiceData['due_date'],
-//            'grossAmountCents' => $invoiceData['gross_amount_cents']
         ];
 
         $this->_monduLogger->updateLogInvoice($monduId, $invoiceMapping);
