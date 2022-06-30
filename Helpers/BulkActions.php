@@ -13,22 +13,25 @@ class BulkActions {
     private $monduLogs;
     private $requestFactory;
     private $configProvider;
-    private $logger;
+    private $monduFileLogger;
+
     public function __construct(
         OrderCollectionFactory $orderCollectionFactory,
         MonduLogs $monduLogs,
         RequestFactory $requestFactory,
         ConfigProvider $configProvider,
-        LoggerInterface $logger
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger
     ) {
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->monduLogs = $monduLogs;
         $this->requestFactory = $requestFactory;
         $this->configProvider = $configProvider;
-        $this->logger = $logger;
+        $this->monduFileLogger = $monduFileLogger;
     }
 
     public function bulkShip($orderIds, $withLineItems = false) {
+        $this->monduFileLogger->info('Entered bulkShip function. context: ', ['orderIds' => $orderIds, 'withLineItems' => $withLineItems]);
+
         $orderCollection = $this->orderCollectionFactory->create();
 
         $orderCollection->addFieldToFilter('entity_id', ['in' => $orderIds]);
@@ -37,8 +40,11 @@ class BulkActions {
         $failedAttempts = [];
         $successattempts = [];
 
+        $this->monduFileLogger->info('Found '. count($orderCollection). ' Orders where entity_id in orderIds');
+
         foreach ($orderCollection as $order) {
             if(!$order->getMonduReferenceId()) {
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' is not a Mondu order, skipping');
                 $notMonduOrders[] = $order->getIncrementId();
                 continue;
             }
@@ -48,10 +54,15 @@ class BulkActions {
                 $monduLogData = $monduLog->getData();
 
                 if(empty($monduLogData)) {
+                    $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' no record found in mondu_transactions, skipping');
                     throw new \Exception($order->getIncrementId());
                 }
+
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Trying to create invoice, entering shipOrder');
+
                 if($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
                     $successattempts[] = $order->getIncrementId();
+                    $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Successfully created invoice', ['monduInvoice' => $monduInvoice]);
                     continue;
                 }
                 throw new \Exception($order->getIncrementId());
@@ -63,8 +74,9 @@ class BulkActions {
     }
 
     public function shipOrder($monduLogData, $order, $withLineItems) {
+        $this->monduFileLogger->info('Entered shipOrder function. context: ', ['monduLogData' => $monduLogData, 'order_number' => $order->getIncrementId(), 'withLineItems' => $withLineItems]);
         if(!$this->monduLogs->canShipOrder($monduLogData['reference_id'])) {
-            $this->logger->debug('Mondu: VALIDATION ERROR: Order number '. $order->getIncrementId(). ' cant be shipped because mondu state is not CONFIRMED or PARTiALLY_SHIPPED');
+            $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': Validation Error cant be shipped because mondu state is not CONFIRMED or PARTiALLY_SHIPPED');
             return false;
         }
 
@@ -72,7 +84,7 @@ class BulkActions {
         $invoiceCollectionData = $invoiceCollection->getData();
 
         if(empty($invoiceCollectionData)) {
-            $this->logger->debug('Mondu: VALIDATION ERROR: Order number '. $order->getIncrementId(). ' cant be shipped because it does not have an invoice');
+            $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': Validation Error cant be shipped because it does not have an invoice');
             return false;
         }
 
@@ -88,10 +100,9 @@ class BulkActions {
 
         foreach ($order->getInvoiceCollection() as $invoiceItem) {
             if (in_array($invoiceItem->getEntityId(), $skipInvoices)) {
-                $this->logger->debug('Mondu: SKIPIING INVOICE: Order number '. $order->getIncrementId(). ' item already sent to mondu');
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': SKIPIING INVOICE item already sent to mondu');
                 continue;
             }
-
             $gross_amount_cents = $invoiceItem->getGrandTotal() * 100;
             $quoteItems = $invoiceItem->getAllItems();
 
@@ -127,12 +138,13 @@ class BulkActions {
 
             if (@$shipOrderData['errors']) {
                 $errors[] = $order->getIncrementId();
-                $this->logger->debug('Mondu: API ERROR: Order number '. $order->getIncrementId(). ' Error creating invoice '. $invoiceItem->getIncrementId(), $shipOrderData['errors']);
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': API ERROR Error creating invoice '. $invoiceItem->getIncrementId(), $shipOrderData['errors']);
                 continue;
             }
 
             $invoiceData = $shipOrderData['invoice'];
-            $this->logger->debug('Mondu: CREATED INVOICE: Order number '. $order->getIncrementId(), $shipOrderData);
+            $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': CREATED INVOICE: ', $shipOrderData);
+
             if($monduLogData['addons'] !== 'null') {
                 $addons = json_decode($monduLogData['addons'], true);
             } else {
@@ -146,6 +158,7 @@ class BulkActions {
             ];
 
             $this->monduLogs->updateLogInvoice($monduLogData['reference_id'], $addons, true);
+
             $success[] = $shipOrderData;
         }
 
