@@ -20,6 +20,7 @@ class Ship extends Action
      */
     protected $orderCollectionFactory;
 
+    private $monduFileLogger;
     /**
      * ChangeColor constructor.
      * @param Action\Context $context
@@ -29,10 +30,12 @@ class Ship extends Action
     public function __construct(
         Action\Context $context,
         OrderCollectionFactory $orderCollectionFactory,
-        BulkActions $bulkActions
+        BulkActions $bulkActions,
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger
     ) {
         $this->bulkActions = $bulkActions;
         $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->monduFileLogger = $monduFileLogger;
         parent::__construct($context);
     }
 
@@ -41,6 +44,7 @@ class Ship extends Action
         $request = $this->getRequest();
 
         $orderIds = $request->getPost('selected', []);
+        $this->monduFileLogger->info('Invoice orders action. Got order ids from post param selected', ['orderIds' => $orderIds]);
 
         [$success, $incorrect, $failed] = $this->bulkActions->bulkShip($orderIds);
 

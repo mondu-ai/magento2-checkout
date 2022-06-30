@@ -33,10 +33,10 @@ class Factory
 
     private $objectManager;
 
-    public function __construct(ObjectManagerInterface $objectManager, LoggerInterface $logger)
+    public function __construct(ObjectManagerInterface $objectManager, \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger)
     {
         $this->objectManager = $objectManager;
-        $this->logger = $logger;
+        $this->monduFileLogger = $monduFileLogger;
     }
 
     public function create($method)
@@ -51,7 +51,7 @@ class Factory
             );
         }
 
-        $this->logger->debug('Mondu: Request to Mondu api: '. $method);
+        $this->monduFileLogger->info('Sending a request to mondu api, action: '. $method);
         $model = $this->objectManager->create($className);
 
         return $model;
