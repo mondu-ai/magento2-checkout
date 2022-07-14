@@ -10,15 +10,17 @@ class DataPlugin {
     }
 
     public function afterGetPaymentMethods(\Magento\Payment\Helper\Data $subject, $result) {
-        $result['mondu-sepa'] = $result['mondu'];
-        return $result;
+        return $this->paymentMethodList->filterMonduPaymentMethods($result);
     }
+
     public function aroundGetMethodInstance(\Magento\Payment\Helper\Data $subject, callable $proceed, $code)
     {
-        if (false === strpos($code, 'mondu-')) {
-            return $proceed($code);
-        }
-
-        return $this->paymentMethodList->getPaymentMethod($code);
+        return $proceed($code);
+//        if (false === strpos($code, 'mondu')) {
+//            return $proceed($code);
+//        }
+//
+//        return $proceed($code);
+//        return $this->paymentMethodList->getPaymentMethod($code);
     }
 }

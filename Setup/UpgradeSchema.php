@@ -67,6 +67,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ));
         }
 
+        if ($installer->getConnection()->tableColumnExists($tableName, 'payment_method') === false) {
+            $installer->getConnection()->addColumn($tableName, 'payment_method', array(
+                'type'      => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'nullable'  => true,
+                'comment'   => 'Mondu payment method'
+            ));
+        }
+
 
         $installer->endSetup();
     }

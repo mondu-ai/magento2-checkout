@@ -31,7 +31,7 @@
                                                                                   xsi:type="boolean">true
                                                                             </item>
                                                                         </item>
-                                                                        <item name="mondu-sepa" xsi:type="array">
+                                                                        <item name="mondusepa" xsi:type="array">
                                                                             <item name="isBillingAddressRequired"
                                                                                   xsi:type="boolean">true
                                                                             </item>

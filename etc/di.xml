@@ -4,6 +4,19 @@
     <type name="Magento\Framework\App\Request\CsrfValidator">
         <plugin name="csrf_validator_skip" type="Mondu\Mondu\Helpers\CsrfValidatorSkip" />
     </type>
+    <type name="Mondu\Mondu\Helpers\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Mondu\Mondu\Helpers\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">MONDU</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">Mondu\Mondu\Helpers\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
     <!-- Payment Method Facade configuration -->
     <virtualType name="CustomPaymentGatewayFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
@@ -137,7 +150,7 @@
             <argument name="resourceModel" xsi:type="string">Mondu\Mondu\Model\ResourceModel\Log</argument>
         </arguments>
     </virtualType>
-<!--    <type name="Magento\Payment\Helper\Data">-->
-<!--        <plugin sortOrder="10" name="monduPaymentData" type="Mondu\Mondu\Helpers\DataPlugin"/>-->
-<!--    </type>-->
+    <type name="Magento\Payment\Helper\Data">
+        <plugin sortOrder="10" name="monduPaymentData" type="Mondu\Mondu\Helpers\DataPlugin"/>
+    </type>
 </config>

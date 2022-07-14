@@ -6,9 +6,9 @@ use Magento\Payment\Model\InfoInterface;
 
 class MonduSepa extends \Magento\Payment\Model\Method\AbstractMethod
 {
-    const PAYMENT_METHOD_MONDU_CODE = 'mondu-sepa';
+    const PAYMENT_METHOD_MONDU_CODE = 'mondusepa';
 
-    protected $_code = 'mondu-sepa';
+    protected $_code = 'mondusepa';
 
     public function authorize(InfoInterface $payment, $amount)
     {
@@ -18,6 +18,19 @@ class MonduSepa extends \Magento\Payment\Model\Method\AbstractMethod
     public function setCode($code) {
         $this->_code = $code;
         return $this;
+    }
+
+    public function isActive($storeId = null)
+    {
+        if ('order_place_redirect_url' === 'active') {
+            return $this->getOrderPlaceRedirectUrl();
+        }
+        if (null === $storeId) {
+            $storeId = $this->getStore();
+        }
+
+        $path = 'payment/mondu/active';
+        return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     public function canUseForCountry($country) {

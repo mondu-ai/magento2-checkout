@@ -136,7 +136,7 @@ define([
                     method: "get",
                     data: {
                         email: self.getCustomerEmail(),
-                        payment_method: self.getCode() === 'mondu-sepa' ? 'direct_debit' : 'bank_transfer'
+                        payment_method: self.getCode() === 'mondusepa' ? 'direct_debit' : 'bank_transfer'
                     },
                 }).always(function (res) {
                     if (res && res.token && !res.error) {

@@ -26,16 +26,14 @@
                 <privateInfoKeys>FRAUD_MSG_LIST</privateInfoKeys>
                 <sort_order>1</sort_order>
             </mondu>
-            <mondu-sepa>
+            <mondusepa>
                 <sort_order>2</sort_order>
                 <debug>1</debug>
-                <active>0</active>
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
-                <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
                 <title>SEPA-Lastschrift - jetz kaufen, später per Bankeinzug bezahlen</title>
-            </mondu-sepa>
+            </mondusepa>
         </payment>
     </default>
 </config>

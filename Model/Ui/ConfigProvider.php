@@ -53,6 +53,10 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return $this->scopeConfig->getValue('payment/mondu/sandbox') ? 'sandbox' : 'live';
     }
 
+    public function getDebug() {
+        return (bool)$this->scopeConfig->getValue('payment/mondu/debug');
+    }
+
     public function getWebhookUrl(): string
     {
         return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index';
@@ -90,7 +94,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                     'description' => $description,
                     'descriptionLink' => $last_word
                 ],
-                'mondu-sepa' => [
+                'mondusepa' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $description,

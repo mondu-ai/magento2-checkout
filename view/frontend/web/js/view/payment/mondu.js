@@ -16,7 +16,7 @@ define(
         );
         rendererList.push(
             {
-                type: 'mondu-sepa',
+                type: 'mondusepa',
                 component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
             }
         );

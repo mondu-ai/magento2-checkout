@@ -119,7 +119,7 @@ class Payment extends Fieldset
      */
     protected function _isCollapseState($element)
     {
-        return false;
+        return true;
     }
 
     /**
@@ -133,7 +133,20 @@ class Payment extends Fieldset
     {
         $script = "require(['jquery', 'prototype'], function(jQuery){
             window.monduToggleSolution = function (id, url) {
+                var doScroll = false;
                 Fieldset.toggleCollapse(id, url);
+                if ($(this).hasClassName(\"open\")) {
+                    \$$(\".with-button button.button\").each(function(anotherButton) {
+                        if (anotherButton != this && $(anotherButton).hasClassName(\"open\")) {
+                            $(anotherButton).click();
+                            doScroll = true;
+                        }
+                    }.bind(this));
+                }
+                if (doScroll) {
+                    var pos = Element.cumulativeOffset($(this));
+                    window.scrollTo(pos[0], pos[1] - 45);
+                }
             }
         });";
 
