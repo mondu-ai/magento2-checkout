@@ -16,6 +16,7 @@ class Factory
     const WEBHOOKS_REQUEST_METHOD = 'webhooks';
     const ADJUST_ORDER = 'adjust';
     const EDIT_ORDER = 'edit';
+    const PAYMENT_METHODS = 'payment_methods';
 
     private $logger;
 
@@ -28,7 +29,8 @@ class Factory
         self::WEBHOOKS_KEYS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks\Keys::class,
         self::WEBHOOKS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks::class,
         self::ADJUST_ORDER => \Mondu\Mondu\Model\Request\Adjust::class,
-        self::EDIT_ORDER => \Mondu\Mondu\Model\Request\Edit::class
+        self::EDIT_ORDER => \Mondu\Mondu\Model\Request\Edit::class,
+        self::PAYMENT_METHODS => \Mondu\Mondu\Model\Request\PaymentMethods::class
     ];
 
     private $objectManager;

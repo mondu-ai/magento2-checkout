@@ -8,17 +8,17 @@ use Magento\Quote\Model\QuoteFactory;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Magento\Sales\Model\Order;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder implements \Magento\Framework\Event\ObserverInterface
 {
-    const CODE = 'mondu';
-
     private $_checkoutSession;
     private $_requestFactory;
     private $_monduLogger;
     private $quoteFactory;
     private $monduFileLogger;
+    private $paymentMethodHelper;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -26,7 +26,8 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         \Mondu\Mondu\Helpers\Log $logger,
         QuoteFactory $quoteFactory,
         OrderHelper $orderHelper,
-        MonduFileLogger $monduFileLogger
+        MonduFileLogger $monduFileLogger,
+        PaymentMethod $paymentMethodHelper
     )
     {
         $this->_checkoutSession = $checkoutSession;
@@ -35,6 +36,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->quoteFactory = $quoteFactory;
         $this->orderHelper = $orderHelper;
         $this->monduFileLogger = $monduFileLogger;
+        $this->paymentMethodHelper = $paymentMethodHelper;
     }
 
     /**
@@ -49,7 +51,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
 
         $this->monduFileLogger->info('Entered CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
-        if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
+        if (!$this->paymentMethodHelper->isMondu($payment)) {
             $this->monduFileLogger->info('Not a Mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }
@@ -92,7 +94,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
 
             if($createMonduDatabaseRecord) {
-                $this->_monduLogger->logTransaction($order, $orderData, null);
+                $this->_monduLogger->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($payment));
             } else {
                 $this->_monduLogger->updateLogMonduData($orderUid, null, null, null, $order->getId());
             }

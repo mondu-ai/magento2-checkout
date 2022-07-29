@@ -6,24 +6,36 @@ use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 {
-    const CODE = 'mondu';
-
     private $_checkoutSession;
     private $_requestFactory;
     protected $_monduLogger;
     private $monduFileLogger;
 
-    public function __construct(CheckoutSession $checkoutSession, RequestFactory $requestFactory, \Magento\Framework\App\RequestInterface $request, \Mondu\Mondu\Helpers\Log $logger, MonduFileLogger $monduFileLogger)
+    /**
+     * @var PaymentMethod
+     */
+    private $paymentMethodHelper;
+
+    public function __construct(
+        CheckoutSession $checkoutSession,
+        RequestFactory $requestFactory,
+        \Magento\Framework\App\RequestInterface $request,
+        \Mondu\Mondu\Helpers\Log $logger,
+        MonduFileLogger $monduFileLogger,
+        PaymentMethod $paymentMethodHelper
+    )
     {
         $this->_checkoutSession = $checkoutSession;
         $this->_requestFactory = $requestFactory;
         $this->_request = $request;
         $this->_monduLogger = $logger;
         $this->monduFileLogger = $monduFileLogger;
+        $this->paymentMethodHelper = $paymentMethodHelper;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -35,7 +47,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         $monduId = $order->getData('mondu_reference_id');
         $this->monduFileLogger->info('Entered UpdateOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
-        if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
+        if ($this->paymentMethodHelper->isMondu($payment)) {
             $this->monduFileLogger->info('Not a Mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }

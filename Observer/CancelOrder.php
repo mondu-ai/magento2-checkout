@@ -6,20 +6,26 @@ use Magento\Framework\Event\ObserverInterface;
 use Exception;
 use \Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CancelOrder implements ObserverInterface
 {
-    const CODE = 'mondu';
-
     private $_requestFactory;
 
     private $monduFileLogger;
 
-    public function __construct(RequestFactory $requestFactory, MonduFileLogger $monduFileLogger)
+    private $paymentMethodHelper;
+
+    public function __construct(
+        RequestFactory $requestFactory,
+        MonduFileLogger $monduFileLogger,
+        PaymentMethod $paymentMethodHelper
+    )
     {
         $this->_requestFactory = $requestFactory;
         $this->monduFileLogger = $monduFileLogger;
+        $this->paymentMethodHelper = $paymentMethodHelper;
     }
 
     public function execute(Observer $observer)
@@ -30,7 +36,7 @@ class CancelOrder implements ObserverInterface
 
         $this->monduFileLogger->info('Entered CancelOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
-        if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
+        if (!$this->paymentMethodHelper->isMondu($payment)) {
             $this->monduFileLogger->info('Not a mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }

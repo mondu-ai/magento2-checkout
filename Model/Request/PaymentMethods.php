@@ -7,9 +7,18 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class Cancel extends CommonRequest implements RequestInterface {
+class PaymentMethods extends CommonRequest implements RequestInterface {
+    /**
+     * @var Curl
+     */
     private $curl;
+    /**
+     * @var ConfigProvider
+     */
     private $_configProvider;
+    /**
+     * @var ScopeConfigInterface
+     */
     private $_scopeConfigInterface;
 
     public function __construct(Curl $curl, ConfigProvider $configProvider, ScopeConfigInterface $scopeConfigInterface) {
@@ -18,22 +27,24 @@ class Cancel extends CommonRequest implements RequestInterface {
         $this->curl = $curl;
     }
 
-    public function process($params) {
+    public function process($_params = null) {
         $api_token = $this->_scopeConfigInterface->getValue('payment/mondu/mondu_key');
-        $url = $this->_configProvider->getApiUrl('orders').'/'.$params['orderUid'].'/cancel';
+        $url = $this->_configProvider->getApiUrl('payment_methods');
         $headers = $this->getHeaders($api_token);
 
-        unset($params['orderUid']);
 
         $this->curl->setHeaders($headers);
-        $this->curl->post($url, json_encode([]));
+        $this->curl->get($url);
 
         $resultJson = $this->curl->getBody();
 
         if($resultJson) {
             $result = json_decode($resultJson, true);
+            $result = @$result['payment_methods'];
+        } else {
+            throw new LocalizedException(__('something went wrong'));
         }
 
-        return $result;
+        return @$result;
     }
 }

@@ -9,8 +9,6 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class InvoiceOrder implements \Magento\Framework\Event\ObserverInterface
 {
-    const CODE = 'mondu';
-
     private $_checkoutSession;
     private $_requestFactory;
 

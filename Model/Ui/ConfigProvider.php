@@ -93,6 +93,12 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $description,
                     'descriptionLink' => $last_word
+                ],
+                'mondusepa' => [
+                    'sdkUrl' => $this->getSdkUrl(),
+                    'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
+                    'description' => $description,
+                    'descriptionLink' => $last_word
                 ]
             ]
         ];

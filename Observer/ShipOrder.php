@@ -3,25 +3,33 @@ namespace Mondu\Mondu\Observer;
 
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 {
-    const CODE = 'mondu';
-
     protected $_monduLogger;
     private $_requestFactory;
     private $_config;
     private $monduFileLogger;
+    private $paymentMethodHelper;
 
-    public function __construct(RequestFactory $requestFactory, ConfigProvider $config, Log $logger, MonduFileLogger $monduFileLogger)
+    public function __construct(
+        RequestFactory $requestFactory,
+        ConfigProvider $config,
+        Log $logger,
+        MonduFileLogger $monduFileLogger,
+        PaymentMethod $paymentMethodHelper
+
+    )
     {
         $this->_requestFactory = $requestFactory;
         $this->_config = $config;
         $this->_monduLogger = $logger;
         $this->monduFileLogger = $monduFileLogger;
+        $this->paymentMethodHelper = $paymentMethodHelper;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -29,10 +37,9 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $shipment = $observer->getEvent()->getShipment();
         $order = $shipment->getOrder();
         $payment = $order->getPayment();
-
         $this->monduFileLogger->info('Entered ShipOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
-        if ($payment->getCode() != self::CODE && $payment->getMethod() != self::CODE) {
+        if (!$this->paymentMethodHelper->isMondu($payment)) {
             $this->monduFileLogger->info('Not a mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }

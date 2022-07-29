@@ -34,19 +34,20 @@ define([
             ) {
                 self.isBillingSameAsShipping = isSame;
             });
-            var monduSkd = document.createElement("script");
-            monduSkd.onload = function () {
-                self.monduSdkLoaded = true;
-            };
-            monduSkd.src = self.getMonduSdkUrl();
-            document.head.appendChild(monduSkd);
+
+            if(!window.monduLoading) {
+                window.monduLoading = true;
+                var monduSkd = document.createElement("script");
+                monduSkd.onload = function () {
+                    self.monduSdkLoaded = true;
+                };
+                monduSkd.src = self.getMonduSdkUrl();
+                document.head.appendChild(monduSkd);
+            }
+
             this.messageContainer = new Messages();
 
             return self;
-        },
-
-        getCode: function () {
-            return "mondu";
         },
 
         getData: function () {
@@ -59,8 +60,9 @@ define([
         },
 
         getTransactionResults: function () {
+            var self = this;
             return _.map(
-              window.checkoutConfig.payment.mondu.transactionResults,
+              window.checkoutConfig.payment[self.getCode()].transactionResults,
               function (value, key) {
                   return {
                       value: key,
@@ -118,6 +120,7 @@ define([
         },
 
         placeOrder: function (data, event) {
+            var self = this;
             if (!additionalValidators.validate()) return;
             if (event) {
                 event.preventDefault();
@@ -133,6 +136,7 @@ define([
                     method: "get",
                     data: {
                         email: self.getCustomerEmail(),
+                        payment_method: self.getCode() === 'mondusepa' ? 'direct_debit' : 'invoice'
                     },
                 }).always(function (res) {
                     if (res && res.token && !res.error) {

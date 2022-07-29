@@ -39,7 +39,7 @@ class Log extends AbstractHelper
         return $log;
     }
 
-    public function logTransaction($order, $response, $addons = null)
+    public function logTransaction($order, $response, $addons = null, $paymentMethod = 'mondu')
     {
         $monduLogger = $this->_logger->create();
         $logData = array(
@@ -52,7 +52,8 @@ class Log extends AbstractHelper
             'mondu_state' => $response['state'] ?? null,
             // 'mode' => $this->helper->getMode() ? 'sandbox' : 'live',
             'mode' => $this->_configProvider->getMode(),
-            'addons' => json_encode($addons)
+            'addons' => json_encode($addons),
+            'payment_method' => $paymentMethod
         );
         $monduLogger->addData($logData);
         $monduLogger->save();

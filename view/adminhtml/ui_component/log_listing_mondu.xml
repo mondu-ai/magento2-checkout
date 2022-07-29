@@ -39,6 +39,11 @@
                 <label translate="true">Order ID</label>
             </settings>
         </actionsColumn>
+        <column name="payment_method" class="Mondu\Mondu\Ui\Component\PaymentMethod">
+            <settings>
+                <label translate="true">Payment Method</label>
+            </settings>
+        </column>
         <column name="reference_id">
             <settings>
                 <filter>text</filter>
