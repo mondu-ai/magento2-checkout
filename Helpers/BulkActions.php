@@ -2,11 +2,11 @@
 
 namespace Mondu\Mondu\Helpers;
 
+use Exception;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Mondu\Mondu\Helpers\Log as MonduLogs;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
-use Psr\Log\LoggerInterface;
 
 class BulkActions {
     private $orderCollectionFactory;
@@ -29,18 +29,13 @@ class BulkActions {
         $this->monduFileLogger = $monduFileLogger;
     }
 
-    public function bulkShip($orderIds, $withLineItems = false) {
-        $this->monduFileLogger->info('Entered bulkShip function. context: ', ['orderIds' => $orderIds, 'withLineItems' => $withLineItems]);
-
+    private function prepareData($orderIds) {
         $orderCollection = $this->orderCollectionFactory->create();
-
         $orderCollection->addFieldToFilter('entity_id', ['in' => $orderIds]);
-
-        $notMonduOrders = [];
-        $failedAttempts = [];
-        $successattempts = [];
-
         $this->monduFileLogger->info('Found '. count($orderCollection). ' Orders where entity_id in orderIds');
+
+        $monduOrders = [];
+        $notMonduOrders = [];
 
         foreach ($orderCollection as $order) {
             if(!$order->getMonduReferenceId()) {
@@ -48,31 +43,52 @@ class BulkActions {
                 $notMonduOrders[] = $order->getIncrementId();
                 continue;
             }
+            $monduOrders[] = $order;
+        }
 
+        return [$monduOrders, $notMonduOrders];
+    }
+
+    public function execute($orderIds, $method, $additionalData = null) {
+        [ $monduOrders, $notMonduOrders ] = $this->prepareData($orderIds);
+        $failedAttempts = [];
+        $successAttempts = [];
+
+        foreach ($monduOrders as $order) {
             try {
-                $monduLog = $this->monduLogs->getLogCollection($order->getMonduReferenceId());
-                $monduLogData = $monduLog->getData();
-
-                if(empty($monduLogData)) {
-                    $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' no record found in mondu_transactions, skipping');
-                    throw new \Exception($order->getIncrementId());
-                }
-
-                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Trying to create invoice, entering shipOrder');
-
-                if($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
-                    $successattempts[] = $order->getIncrementId();
-                    $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Successfully created invoice', ['monduInvoice' => $monduInvoice]);
-                    continue;
-                }
-                throw new \Exception($order->getIncrementId());
-            } catch (\Exception $e) {
+                $successAttempts[] = $this->{$method}($order, $additionalData);
+            } catch (Exception $e) {
                 $failedAttempts[] = $order->getIncrementId();
             }
         }
-        return [$successattempts, $notMonduOrders, $failedAttempts];
+
+        return [$successAttempts, $notMonduOrders, $failedAttempts];
     }
 
+    private function bulkSyncAction($order, $_additionalData) {
+        $this->monduLogs->syncOrder($order->getMonduReferenceId());
+        $this->monduLogs->syncOrderInvoices($order->getMonduReferenceId());
+        $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': Successfully synced order');
+        return $order->getIncrementId();
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function bulkShipAction($order, $additionalData) {
+        $withLineItems = $additionalData['withLineItems'];
+        $monduLogData = $this->getMonduLogData($order);
+        $this->monduFileLogger->info('Order ' . $order->getIncrementId() . ' Trying to create invoice, entering shipOrder');
+
+        if($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
+            $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Successfully created invoice', ['monduInvoice' => $monduInvoice]);
+            return $order->getIncrementId();
+        }
+
+        throw new Exception($order->getIncrementId());
+    }
+
+    //TODO refactor
     public function shipOrder($monduLogData, $order, $withLineItems) {
         $this->monduFileLogger->info('Entered shipOrder function. context: ', ['monduLogData' => $monduLogData, 'order_number' => $order->getIncrementId(), 'withLineItems' => $withLineItems]);
         if(!$this->monduLogs->canShipOrder($monduLogData['reference_id'])) {
@@ -173,6 +189,48 @@ class BulkActions {
         return [ $errors, $success ];
     }
 
+    /**
+     * @deprecated
+     * @deprecated No longer used by internal code and not recommended.
+     */
+    public function bulkShip($orderIds, $withLineItems = false) {
+        $this->monduFileLogger->info('Entered bulkShip function. context: ', ['orderIds' => $orderIds, 'withLineItems' => $withLineItems]);
+
+        $orderCollection = $this->orderCollectionFactory->create();
+
+        $orderCollection->addFieldToFilter('entity_id', ['in' => $orderIds]);
+
+        $notMonduOrders = [];
+        $failedAttempts = [];
+        $successattempts = [];
+
+        $this->monduFileLogger->info('Found '. count($orderCollection). ' Orders where entity_id in orderIds');
+
+        foreach ($orderCollection as $order) {
+            if(!$order->getMonduReferenceId()) {
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' is not a Mondu order, skipping');
+                $notMonduOrders[] = $order->getIncrementId();
+                continue;
+            }
+
+            try {
+                $monduLogData = $this->getMonduLogData($order);
+
+                $this->monduFileLogger->info('Order ' . $order->getIncrementId() . ' Trying to create invoice, entering shipOrder');
+
+                if($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
+                    $successattempts[] = $order->getIncrementId();
+                    $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Successfully created invoice', ['monduInvoice' => $monduInvoice]);
+                    continue;
+                }
+                throw new Exception($order->getIncrementId());
+            } catch (Exception $e) {
+                $failedAttempts[] = $order->getIncrementId();
+            }
+        }
+        return [$successattempts, $notMonduOrders, $failedAttempts];
+    }
+
     private function getConfigurableItemIdMap($items) {
         $mapping = [];
         foreach($items as $i) {
@@ -182,5 +240,23 @@ class BulkActions {
             }
         }
         return $mapping;
+    }
+
+    /**
+     * @param $order
+     * @return array|mixed
+     * @throws Exception
+     */
+    private function getMonduLogData($order)
+    {
+        $monduLog = $this->monduLogs->getLogCollection($order->getMonduReferenceId());
+        $monduLogData = $monduLog->getData();
+
+        if (empty($monduLogData)) {
+            $this->monduFileLogger->info('Order ' . $order->getIncrementId() . ' no record found in mondu_transactions, skipping');
+            throw new Exception($order->getIncrementId());
+        }
+
+        return $monduLogData;
     }
 }

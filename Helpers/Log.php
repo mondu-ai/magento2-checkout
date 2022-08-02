@@ -14,16 +14,21 @@ class Log extends AbstractHelper
     protected $_logger;
     private $_configProvider;
     private $_requestFactory;
+    private $searchCriteriaBuilder;
+    private $orderRepository;
 
     public function __construct(
         LogFactory $monduLogger,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ConfigProvider $configProvider,
-        Factory $requestFactory
+        Factory $requestFactory,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->_logger = $monduLogger;
         $this->_configProvider = $configProvider;
         $this->_requestFactory = $requestFactory;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->orderRepository = $orderRepository;
     }
 
     public function getLogCollection($orderUid)
@@ -53,7 +58,8 @@ class Log extends AbstractHelper
             // 'mode' => $this->helper->getMode() ? 'sandbox' : 'live',
             'mode' => $this->_configProvider->getMode(),
             'addons' => json_encode($addons),
-            'payment_method' => $paymentMethod
+            'payment_method' => $paymentMethod,
+            'invoice_iban' => @$response['merchant']['viban'] ?? null
         );
         $monduLogger->addData($logData);
         $monduLogger->save();
@@ -100,7 +106,7 @@ class Log extends AbstractHelper
         $log->save();
     }
 
-    public function updateLogMonduData($orderUid, $monduState = null, $viban = null, $addons = null, $orderId = null)
+    public function updateLogMonduData($orderUid, $monduState = null, $viban = null, $addons = null, $orderId = null, $paymentMethod = null)
     {
         $log = $this->getLogCollection($orderUid);
 
@@ -121,6 +127,10 @@ class Log extends AbstractHelper
 
         if($orderId) {
             $data['order_id'] = $orderId;
+        }
+
+        if($paymentMethod) {
+            $data['payment_method'] = $paymentMethod;
         }
 
         $log->addData($data);
@@ -149,6 +159,40 @@ class Log extends AbstractHelper
         $data = $this->_requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD)
             ->setValidate(false)
             ->process(['orderUid' => $orderUid]);
-        $this->updateLogMonduData($orderUid, $data['order']['state'], @$data['order']['buyer']['viban']);
+        $this->updateLogMonduData($orderUid, $data['order']['state'], @$data['order']['merchant']['viban']);
+    }
+
+    public function syncOrderInvoices($orderUid)
+    {
+        $data = $this->_requestFactory->create(Factory::ORDER_INVOICES)
+            ->process(['order_uuid' => $orderUid]);
+
+        if(!count($data)) return;
+
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter(
+            'mondu_reference_id',
+            $orderUid
+        )->create();
+
+        $result = $this->orderRepository->getList($searchCriteria);
+        $orders = $result->getItems();
+        $order = reset($orders);
+        $invoiceNumberIdMap = [];
+
+        foreach($order->getInvoiceCollection() as $i) {
+            $invoiceNumberIdMap[$i->getIncrementId()] = $i->getId();
+        }
+
+        $addons = [];
+
+        foreach($data as $monduInvoice) {
+            $addons[$monduInvoice['invoice_number']] = [
+                'local_id' => @$invoiceNumberIdMap[$monduInvoice['invoice_number']] ?? null,
+                'state' => $monduInvoice['state'],
+                'uuid' => $monduInvoice['uuid']
+            ];
+        }
+
+        $this->updateLogMonduData($orderUid, null, null, $addons);
     }
 }
