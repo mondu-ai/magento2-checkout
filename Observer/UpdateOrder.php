@@ -47,7 +47,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         $monduId = $order->getData('mondu_reference_id');
         $this->monduFileLogger->info('Entered UpdateOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
-        if ($this->paymentMethodHelper->isMondu($payment)) {
+        if (!$this->paymentMethodHelper->isMondu($payment)) {
             $this->monduFileLogger->info('Not a Mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }
