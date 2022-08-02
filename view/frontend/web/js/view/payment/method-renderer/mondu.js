@@ -90,6 +90,7 @@ define([
         },
 
         openCheckout: function (token) {
+            var self = this;
             $(
               '<div id="mondu-checkout-widget" style="position: fixed; top: 0;right: 0;left: 0;bottom: 0; z-index: 99999999;"/>'
             ).appendTo("body");

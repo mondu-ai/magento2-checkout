@@ -92,10 +92,17 @@ class BulkActions {
         $success = [];
 
         $skipInvoices = [];
+
         if($monduLogData['addons'] && $monduLogData['addons'] !== 'null') {
-            $skipInvoices = array_values(array_map(function ($a) {
-                return $a['local_id'];
+            $skipInvoices = array_values(array_map(function ($item) {
+                return $item['local_id'];
             }, json_decode($monduLogData['addons'], true)));
+        }
+
+        if($monduLogData['addons'] && $monduLogData['addons'] !== 'null') {
+            $addons = json_decode($monduLogData['addons'], true);
+        } else {
+            $addons = [];
         }
 
         foreach ($order->getInvoiceCollection() as $invoiceItem) {
@@ -145,19 +152,11 @@ class BulkActions {
             $invoiceData = $shipOrderData['invoice'];
             $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': CREATED INVOICE: ', $shipOrderData);
 
-            if($monduLogData['addons'] !== 'null') {
-                $addons = json_decode($monduLogData['addons'], true);
-            } else {
-                $addons = [];
-            }
-
             $addons[$invoiceItem->getIncrementId()] = [
                 'uuid' => $invoiceData['uuid'],
                 'state' => $invoiceData['state'],
                 'local_id' => $invoiceItem->getId()
             ];
-
-            $this->monduLogs->updateLogInvoice($monduLogData['reference_id'], $addons, true);
 
             $success[] = $shipOrderData;
         }
@@ -167,6 +166,7 @@ class BulkActions {
         }
 
         if (!empty($success)) {
+            $this->monduLogs->updateLogInvoice($monduLogData['reference_id'], $addons, true);
             $this->monduLogs->syncOrder($monduLogData['reference_id']);
         }
 
