@@ -17,8 +17,9 @@ class Factory
     const ADJUST_ORDER = 'adjust';
     const EDIT_ORDER = 'edit';
     const PAYMENT_METHODS = 'payment_methods';
+    const ORDER_INVOICES = 'order_invoices';
 
-    private $logger;
+    private $monduFileLogger;
 
     private $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
@@ -30,7 +31,8 @@ class Factory
         self::WEBHOOKS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks::class,
         self::ADJUST_ORDER => \Mondu\Mondu\Model\Request\Adjust::class,
         self::EDIT_ORDER => \Mondu\Mondu\Model\Request\Edit::class,
-        self::PAYMENT_METHODS => \Mondu\Mondu\Model\Request\PaymentMethods::class
+        self::PAYMENT_METHODS => \Mondu\Mondu\Model\Request\PaymentMethods::class,
+        self::ORDER_INVOICES => \Mondu\Mondu\Model\Request\OrderInvoices::class,
     ];
 
     private $objectManager;

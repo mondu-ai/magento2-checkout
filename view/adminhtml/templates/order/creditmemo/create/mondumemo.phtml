@@ -12,8 +12,8 @@
         <div class="admin__field-control">
             <select name="creditmemo[creditmemo_mondu_id]" id="history_status" class="admin__control-select">
                 <?php $i = 0; foreach ($mapping as $key => $item): ?>
-                    <option value="<?= $item['uuid'] ?>">
-                        INVOICE: <?= $key ?>
+                    <option value="<?= $item['uuid'] ?>" <?php @$item['state'] === 'complete' ? printf('disabled') : '' ?>>
+                        INVOICE: <?= $key ?> State: <?= $item['state'] ?>
                     </option>
                 <?php endforeach; ?>
             </select>

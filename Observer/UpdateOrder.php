@@ -38,6 +38,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->paymentMethodHelper = $paymentMethodHelper;
     }
 
+    //TODO refactor
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $creditMemo = $observer->getEvent()->getCreditmemo();
@@ -65,11 +66,20 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 
                     $memoData = $this->_requestFactory->create(RequestFactory::MEMO)
                         ->process($data);
+
+                    if(@$memoData['errors']) {
+                        throw new LocalizedException(__($memoData['errors'][0]['details']));
+                    }
+
                     $this->_monduLogger->syncOrder($monduId);
                     $this->monduFileLogger->info('Created credit memo', ['orderNumber' => $order->getIncrementId()]);
                 } else {
                     $this->monduFileLogger->info('Cant create a credit memo: no Mondu invoice id provided', ['orderNumber' => $order->getIncrementId()]);
-                    throw new LocalizedException(__('You cant partially refund order before Shipment'));
+                    $logData = $this->_monduLogger->getTransactionByOrderUid($monduId);
+                    if($logData['mondu_state']  !== 'shipped' && $logData['mondu_state'] !== 'partially_shipped' && $logData['mondu_state'] !== 'partially_complete') {
+                        throw new LocalizedException(__('You cant partially refund order before Shipment'));
+                    }
+                    throw new LocalizedException(__('Something went wrong, try using "Mondu: sync order" action and try again'));
                 }
 
                 return;
