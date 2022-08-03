@@ -32,7 +32,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
                 <order_status>pending</order_status>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
-                <title>SEPA-Lastschrift - jetz kaufen, später per Bankeinzug bezahlen</title>
+                <title>SEPA-Lastschrift - jetzt kaufen, später per Bankeinzug bezahlen</title>
             </mondusepa>
         </payment>
     </default>
