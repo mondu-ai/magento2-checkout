@@ -31,7 +31,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
     }
-
+    //TODO refactor
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $shipment = $observer->getEvent()->getShipment();
@@ -100,6 +100,12 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         }
 
         if($invoiceIds) {
+            if($monduLog->getAddons() && $monduLog->getAddons() !== 'null') {
+                $invoiceMapping = json_decode($monduLog->getAddons(), true);
+            } else {
+                $invoiceMapping = [];
+            }
+
             $monduId = $order->getData('mondu_reference_id');
             $invoiceCollection = $order->getInvoiceCollection();
 
@@ -111,7 +117,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
                 if (in_array($invoiceItem->getEntityId(), $arr)) {
                     continue;
                 }
-                $this->createInvoiceForItem($invoiceItem, $monduId, $shipment);
+                $this->createInvoiceForItem($invoiceItem, $monduId, $shipment, $invoiceMapping);
                 $this->monduFileLogger->info('ShipOrder Observer: Invoice sent to mondu '.$invoiceItem->getEntityId() . '. Order: ' . $order->getIncrementId());
             }
 
@@ -128,7 +134,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
     /**
      * @throws LocalizedException
      */
-    private function createInvoiceForItem($invoiceItem, $monduId, $shipment) {
+    private function createInvoiceForItem($invoiceItem, $monduId, $shipment, &$invoiceMapping) {
         $gross_amount_cents = $invoiceItem->getGrandTotal() * 100;
 
         $invoice_url = $this->getInvoiceUrl($monduId, $invoiceItem->getIncrementId());
@@ -170,9 +176,8 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
             throw new LocalizedException(__($shipOrderData['errors'][0]['name']. ' '. $shipOrderData['errors'][0]['details']));
         }
 
-        $invoiceMapping = [];
-
         $invoiceData = $shipOrderData['invoice'];
+
         $invoiceMapping[$invoiceItem->getIncrementId()] = [
             'uuid' => $invoiceData['uuid'],
             'state' => $invoiceData['state'],

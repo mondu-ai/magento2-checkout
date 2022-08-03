@@ -38,6 +38,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->paymentMethodHelper = $paymentMethodHelper;
     }
 
+    //TODO refactor
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $creditMemo = $observer->getEvent()->getCreditmemo();

@@ -9,6 +9,9 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class BulkActions {
+    const BULK_SHIP_ACTION = 'bulkShipAction';
+    const BULK_SYNC_ACTION = 'bulkSyncAction';
+
     private $orderCollectionFactory;
     private $monduLogs;
     private $requestFactory;
@@ -76,7 +79,7 @@ class BulkActions {
      * @throws Exception
      */
     private function bulkShipAction($order, $additionalData) {
-        $withLineItems = $additionalData['withLineItems'];
+        $withLineItems = @$additionalData['withLineItems'] ?? false;
         $monduLogData = $this->getMonduLogData($order);
         $this->monduFileLogger->info('Order ' . $order->getIncrementId() . ' Trying to create invoice, entering shipOrder');
 
@@ -193,7 +196,8 @@ class BulkActions {
      * @deprecated
      * @deprecated No longer used by internal code and not recommended.
      */
-    public function bulkShip($orderIds, $withLineItems = false) {
+    public function bulkShip($orderIds, $withLineItems = false): array
+    {
         $this->monduFileLogger->info('Entered bulkShip function. context: ', ['orderIds' => $orderIds, 'withLineItems' => $withLineItems]);
 
         $orderCollection = $this->orderCollectionFactory->create();

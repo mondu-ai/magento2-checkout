@@ -6,7 +6,7 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="type" xsi:type="string">mass_custom_action</item>
-                    <item name="label" xsi:type="string" translate="true">Mondu: invoice orders</item>
+                    <item name="label" xsi:type="string" translate="true">Mondu: Invoice orders</item>
                     <item name="url" xsi:type="url" path="mondu/bulk/ship"/>
                 </item>
             </argument>
@@ -15,7 +15,7 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="type" xsi:type="string">mass_order_sync_mondu</item>
-                    <item name="label" xsi:type="string" translate="true">Mondu: sync orders</item>
+                    <item name="label" xsi:type="string" translate="true">Mondu: Sync orders</item>
                     <item name="url" xsi:type="url" path="mondu/bulk/sync"/>
                 </item>
             </argument>

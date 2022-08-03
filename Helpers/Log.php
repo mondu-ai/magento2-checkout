@@ -147,7 +147,7 @@ class Log extends AbstractHelper
 
         $log = $logCollection->getFirstItem()->getData();
 
-        if(@$log['mondu_state'] && (@$log['mondu_state'] === 'confirmed' || @$log['mondu_state'] === 'partially_shipped')) {
+        if(@$log['mondu_state'] && (@$log['mondu_state'] === 'confirmed' || @$log['mondu_state'] === 'partially_shipped' || @$log['mondu_state'] === 'partially_complete')) {
             return true;
         }
 
