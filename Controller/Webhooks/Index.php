@@ -68,6 +68,9 @@ class Index extends Action implements ActionInterface {
                 case 'order/declined':
                     [$resBody, $resStatus] = $this->handleDeclinedOrCanceled($params);
                     break;
+                case 'invoice/paid':
+                    [$resBody, $resStatus] = $this->handleInvoicePaid($params);
+                    break;
                 default:
                     throw new \Exception('Unregistered topic');
             }
@@ -155,6 +158,20 @@ class Index extends Action implements ActionInterface {
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function handleInvoicePaid($params): array {
+        $invoiceUid = @$params['invoice_uuid'];
+        $externalReferenceId = @$params['external_reference_id'];
+
+        if(!$invoiceUid || !$externalReferenceId) {
+            throw new \Exception('Required params missing');
+        }
+        //TODO implement
+        return ['message' => 'ok', 'error' => 0, 200];
     }
 
 //    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
