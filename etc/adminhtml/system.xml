@@ -55,7 +55,13 @@
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/mondu/specificcountry</config_path>
                     </field>
-                    <field id="debug" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1"
+                    <field id="cron" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1"
+                           showInStore="0">
+                        <label>Enable automatic order processing</label>
+                        <config_path>payment/mondu/cron</config_path>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="debug" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1"
                            showInStore="0">
                         <label>Enable Mondu Logs</label>
                         <config_path>payment/mondu/debug</config_path>
