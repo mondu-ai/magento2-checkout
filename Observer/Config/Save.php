@@ -11,11 +11,9 @@ class Save implements ObserverInterface {
 
     private $_requestFactory;
     private $_monduConfig;
-    private $_subscriptions = [
-        'order/confirmed',
-        'order/declined',
-        'order/pending',
-        'order/canceled'
+    private $topics = [
+        'order',
+        'invoice'
     ];
 
     public function __construct(RequestFactory $requestFactory, ConfigProvider $monduConfig) {
@@ -37,25 +35,12 @@ class Save implements ObserverInterface {
                        ->checkSuccess()
                        ->update();
 
-                   $this->_requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/confirmed')
-                       ->process();
-
-                   $this->_requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/pending')
-                       ->process();
-
-                   $this->_requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/declined')
-                       ->process();
-
-                   $this->_requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/canceled')
-                       ->process();
+                   foreach ($this->topics as $topic) {
+                       $this->_requestFactory
+                           ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
+                           ->setTopic($topic)
+                           ->process();
+                   }
 
                } catch (\Exception $e) {
                    throw new LocalizedException(__($e->getMessage()));
