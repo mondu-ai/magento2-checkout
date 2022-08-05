@@ -154,6 +154,28 @@ class Log extends AbstractHelper
         return false;
     }
 
+    public function canCreditMemo($orderUid)
+    {
+        $monduLogger = $this->_logger->create();
+
+        $logCollection = $monduLogger->getCollection()
+            ->addFieldToFilter('reference_id', ['eq' => $orderUid])
+            ->load();
+
+        $log = $logCollection->getFirstItem()->getData();
+
+        if(
+            @$log['mondu_state'] && (
+                $log['mondu_state'] === 'partially_shipped' ||
+                $log['mondu_state'] === 'shipped' ||
+                $log['mondu_state'] === 'partially_complete' ||
+                $log['mondu_state'] === 'complete'
+            )
+        ) return true;
+
+        return false;
+    }
+
     public function syncOrder($orderUid)
     {
         $data = $this->_requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD)

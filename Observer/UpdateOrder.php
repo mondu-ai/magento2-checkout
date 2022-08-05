@@ -5,6 +5,7 @@ use Error;
 use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
+use Mondu\Mondu\Helpers\BulkActions;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -15,6 +16,10 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
     private $_requestFactory;
     protected $_monduLogger;
     private $monduFileLogger;
+    /**
+     * @var BulkActions
+     */
+    private $bulkActions;
 
     /**
      * @var PaymentMethod
@@ -27,7 +32,8 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         \Magento\Framework\App\RequestInterface $request,
         \Mondu\Mondu\Helpers\Log $logger,
         MonduFileLogger $monduFileLogger,
-        PaymentMethod $paymentMethodHelper
+        PaymentMethod $paymentMethodHelper,
+        BulkActions $bulkActions
     )
     {
         $this->_checkoutSession = $checkoutSession;
@@ -36,6 +42,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->_monduLogger = $logger;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
+        $this->bulkActions = $bulkActions;
     }
 
     //TODO refactor
@@ -53,7 +60,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
             return;
         }
         try {
-            if ($order->canCreditmemo() || $order->canInvoice()) {
+            if ($order->canCreditmemo() || $order->canInvoice() || $this->_monduLogger->canCreditMemo($monduId)) {
                 $this->monduFileLogger->info('Trying to create a credit memo', ['orderNumber' => $order->getIncrementId()]);
                 $requestParams = $this->_request->getParams();
                 if(@$requestParams['creditmemo']['creditmemo_mondu_id']) {
@@ -73,13 +80,16 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 
                     $this->_monduLogger->syncOrder($monduId);
                     $this->monduFileLogger->info('Created credit memo', ['orderNumber' => $order->getIncrementId()]);
+
+                    //TODO remove when invoice/created webhook is implemnted
+                    $this->bulkActions->execute([$order->getId()], BulkActions::BULK_SYNC_ACTION);
                 } else {
                     $this->monduFileLogger->info('Cant create a credit memo: no Mondu invoice id provided', ['orderNumber' => $order->getIncrementId()]);
                     $logData = $this->_monduLogger->getTransactionByOrderUid($monduId);
                     if($logData['mondu_state']  !== 'shipped' && $logData['mondu_state'] !== 'partially_shipped' && $logData['mondu_state'] !== 'partially_complete') {
                         throw new LocalizedException(__('You cant partially refund order before Shipment'));
                     }
-                    throw new LocalizedException(__('Something went wrong, try using "Mondu: sync order" action and try again'));
+                    throw new LocalizedException(__('Mondu: Something went wrong, try using "Mondu: sync order" action and try again'));
                 }
 
                 return;
@@ -94,13 +104,13 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 
                 $this->_monduLogger->updateLogMonduData($monduId, $cancelData['order']['state']);
 
-                $order->addStatusHistoryComment(__('Mondu:  The transaction with the id %1 was successfully canceled.', $monduId));
+                $order->addStatusHistoryComment(__('The transaction with the id %1 was successfully canceled.', $monduId));
                 $order->save();
             }
 
         } catch (Exception $error) {
             $this->monduFileLogger->info('Error in UpdateOrder observer ', ['orderNumber' => $order->getIncrementId(), 'e' => $error->getMessage()]);
-            throw new LocalizedException(__($error->getMessage()));
+            throw new LocalizedException(__('Mondu: ' . $error->getMessage()));
         }
     }
 }
