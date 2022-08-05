@@ -90,12 +90,12 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 
         foreach($shipSkuQtyArray as $key => $shipSkuQty) {
             if(@$invoiceSkuQtyArray[$key] !== $shipSkuQty) {
-                throw new LocalizedException(__('Invalid shipment amount'));
+                throw new LocalizedException(__('Mondu: Invalid shipment amount'));
             }
         }
         foreach($invoiceSkuQtyArray as $key => $invoiceSkuQty) {
             if(@$shipSkuQtyArray[$key] !== $invoiceSkuQty) {
-                throw new LocalizedException(__('Invalid shipment amount'));
+                throw new LocalizedException(__('Mondu: Invalid shipment amount'));
             }
         }
 

@@ -13,7 +13,7 @@ class Logger extends \Monolog\Logger {
         parent::__construct($name, $handlers, $processors);
     }
 
-    public function info($message, array $context = array())
+    public function info($message, array $context = array()): void
     {
         if($this->monduConfig->getDebug()) {
             parent::info($message, $context);
