@@ -198,7 +198,7 @@ class Log extends AbstractHelper
 
         $result = $this->orderRepository->getList($searchCriteria);
         $orders = $result->getItems();
-        $order = reset($orders);
+        $order = end($orders);
         $invoiceNumberIdMap = [];
 
         foreach($order->getInvoiceCollection() as $i) {

@@ -45,7 +45,7 @@ class Invoice implements \Magento\Framework\App\ActionInterface {
             throw new NotFoundException(__('invoice not found'));
         }
 
-        $order = reset($orders);
+        $order = end($orders);
         $invoice = null;
         foreach($order->getInvoiceCollection() as $i) {
             if($i->getIncrementId() === $invoiceReference) {
