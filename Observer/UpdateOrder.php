@@ -81,7 +81,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
                     $this->_monduLogger->syncOrder($monduId);
                     $this->monduFileLogger->info('Created credit memo', ['orderNumber' => $order->getIncrementId()]);
 
-                    //TODO remove when invoice/created webhook is implemnted
+                    //TODO remove when invoice/paid webhook is implemnted
                     $this->bulkActions->execute([$order->getId()], BulkActions::BULK_SYNC_ACTION);
                 } else {
                     $this->monduFileLogger->info('Cant create a credit memo: no Mondu invoice id provided', ['orderNumber' => $order->getIncrementId()]);
@@ -104,7 +104,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 
                 $this->_monduLogger->updateLogMonduData($monduId, $cancelData['order']['state']);
 
-                $order->addStatusHistoryComment(__('The transaction with the id %1 was successfully canceled.', $monduId));
+                $order->addStatusHistoryComment(__('Mondu: The transaction with the id %1 was successfully canceled.', $monduId));
                 $order->save();
             }
 
