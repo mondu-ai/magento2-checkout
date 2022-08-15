@@ -50,9 +50,9 @@ class Index extends Action implements ActionInterface {
             $content = $this->getRequest()->getContent();
             $headers = $this->getRequest()->getHeaders()->toArray();
             $signature = hash_hmac('sha256',$content, $this->_monduConfig->getWebhookSecret());
-//            if($signature !== @$headers['X-Mondu-Signature']) {
-//                throw new \Exception('Signature mismatch');
-//            }
+            if($signature !== @$headers['X-Mondu-Signature']) {
+                throw new \Exception('Signature mismatch');
+            }
             $params = $this->_json->unserialize($content);
 
             $topic = $params['topic'];
