@@ -50,9 +50,9 @@ class Index extends Action implements ActionInterface {
             $content = $this->getRequest()->getContent();
             $headers = $this->getRequest()->getHeaders()->toArray();
             $signature = hash_hmac('sha256',$content, $this->_monduConfig->getWebhookSecret());
-            if($signature !== @$headers['X-Mondu-Signature']) {
-                throw new \Exception('Signature mismatch');
-            }
+//            if($signature !== @$headers['X-Mondu-Signature']) {
+//                throw new \Exception('Signature mismatch');
+//            }
             $params = $this->_json->unserialize($content);
 
             $topic = $params['topic'];
@@ -70,6 +70,14 @@ class Index extends Action implements ActionInterface {
                     break;
                 case 'invoice/paid':
                     [$resBody, $resStatus] = $this->handleInvoicePaid($params);
+                    break;
+                case 'invoice/created':
+                case 'invoice/payment':
+                case 'invoice/late':
+                case 'invoice/payout_rejected':
+                case 'invoice/pre_debt_collection_loss':
+                case 'invoice/canceled':
+                    [$resBody, $resStatus] = $this->handleInvoiceTopics($params);
                     break;
                 default:
                     throw new \Exception('Unregistered topic');
@@ -166,12 +174,48 @@ class Index extends Action implements ActionInterface {
     public function handleInvoicePaid($params): array {
         $invoiceUid = @$params['invoice_uuid'];
         $externalReferenceId = @$params['external_reference_id'];
+        $orderUid = @$params['order_uuid'];
 
-        if(!$invoiceUid || !$externalReferenceId) {
+        if(!$invoiceUid || !$externalReferenceId || !$orderUid) {
             throw new \Exception('Required params missing');
         }
-        //TODO implement
-        return ['message' => 'ok', 'error' => 0, 200];
+
+        $monduLogCollection = $this->_monduLogger->getLogCollection($orderUid);
+        $monduLogData = $monduLogCollection->getData();
+
+        if(empty($monduLogData)) {
+            return [['message' => 'Order not found', 'error' => 1], 404];
+        }
+
+        if($monduLogData['addons'] && $monduLogData['addons'] !== 'null') {
+            $invoices = json_decode($monduLogData['addons'], true);
+            try {
+                $invoices[$externalReferenceId]['state'] = 'complete';
+                $this->_monduLogger->updateLogInvoice($orderUid, $invoices);
+            } catch (\Error $e) {
+                $this->_monduLogger->syncOrderInvoices($orderUid);
+                return [['message' => 'Invoice not found', 'error' => 1], 404];
+            }
+        } else {
+            $this->_monduLogger->syncOrderInvoices($orderUid);
+            return [['message' => 'Invoice not found', 'error' => 1], 404];
+        }
+
+        return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function handleInvoiceTopics($params) {
+        $orderUid = @$params['order_uuid'];
+
+        if(!$orderUid) {
+            throw new \Exception('Required params missing');
+        }
+
+        $this->_monduLogger->syncOrderInvoices($orderUid);
+        return [['message' => 'ok', 'error' => 0], 200];
     }
 
 //    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
