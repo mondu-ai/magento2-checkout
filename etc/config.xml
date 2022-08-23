@@ -14,6 +14,7 @@
                 <title>Rechnungskauf - jetzt kaufen, später bezahlen</title>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
                 <sandbox>1</sandbox>
+                <cron>0</cron>
                 <allowspecific>1</allowspecific>
                 <specificcountry>DE</specificcountry>
                 <can_authorize>1</can_authorize>

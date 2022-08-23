@@ -71,6 +71,10 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return (bool) $this->scopeConfig->getValue('payment/mondu/active');
     }
 
+    public function isCronEnabled(): bool
+    {
+        return (bool) $this->scopeConfig->getValue('payment/mondu/cron');
+    }
 
     public function getPdfUrl($orderUid, $invoiceId) {
         return $this->urlBuilder->getBaseUrl().'mondu/index/invoice?id='.$orderUid.'&r='.$invoiceId;
