@@ -13,7 +13,7 @@ class PaymentAction implements \Magento\Framework\Data\OptionSourceInterface
     {
         return [
             [
-                'value' => MethodInterface::ACTION_AUTHORIZE,
+                'value' => 'authorize',
                 'label' => __('Authorize')
             ]
         ];

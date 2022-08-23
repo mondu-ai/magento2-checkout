@@ -8,7 +8,6 @@ use Magento\Config\Block\System\Config\Form\Fieldset;
 use Magento\Config\Model\Config;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\View\Helper\Js;
-use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 class Payment extends Fieldset
 {
@@ -16,17 +15,12 @@ class Payment extends Fieldset
      * @var Config
      */
     private $config;
-    /**
-     * @var SecureHtmlRenderer
-     */
-    private $secureRenderer;
 
     /**
      * @param Context            $context
      * @param Session            $authSession
      * @param Js                 $jsHelper
      * @param Config             $config
-     * @param SecureHtmlRenderer $secureRenderer
      * @param array              $data
      * @codeCoverageIgnore
      */
@@ -35,18 +29,15 @@ class Payment extends Fieldset
         Session $authSession,
         Js $jsHelper,
         Config $config,
-        SecureHtmlRenderer $secureRenderer,
         array $data = []
     ) {
         parent::__construct(
             $context,
             $authSession,
             $jsHelper,
-            $data,
-            $secureRenderer
+            $data
         );
         $this->config         = $config;
-        $this->secureRenderer = $secureRenderer;
     }
 
     /**
@@ -70,7 +61,10 @@ class Payment extends Fieldset
     {
         $html = '<div class="config-heading" >';
         $htmlId = $element->getHtmlId();
-        $html .= '<div class="button-container"><button type="button"' .
+        $url = $this->getUrl('adminhtml/*/state');
+
+        $html .= '<div class="button-container"><button type="button" ' .
+            'onclick="'. sprintf('monduToggleSolution.call(this, \'%s\', \'%s\')', $htmlId, $url) .';event.preventDefault()"'.
             ' class="button action-configure' .
             '" id="' . $htmlId . '-head" >' .
             '<span class="state-closed">' . __(
@@ -78,13 +72,6 @@ class Payment extends Fieldset
             ) . '</span><span class="state-opened">' . __(
                 'Close'
             ) . '</span></button>';
-
-        $html .= /* @noEscape */ $this->secureRenderer->renderEventListenerAsTag(
-            'onclick',
-            "monduToggleSolution.call(this, '" . $htmlId . "', '" . $this->getUrl('adminhtml/*/state') .
-            "');event.preventDefault();",
-            'button#' . $htmlId . '-head'
-        );
 
         $html .= '</div>';
         $html .= '<div class="heading"><strong>' . $element->getLegend() . '</strong>';
