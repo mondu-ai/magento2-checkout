@@ -14,8 +14,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     const API_URL = 'https://api.mondu.ai/api/v1';
     const SDK_URL = 'https://checkout.mondu.ai/widget.js';
 
-    const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
-    const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.ai/widget.js';
+    const SANDBOX_API_URL = 'https://api.stage.mondu.ai/api/v1';
+    const SANDBOX_SDK_URL = 'https://checkout.stage.mondu.ai/widget.js';
 
     private $urlBuilder;
     private $resourceConfig;
@@ -99,6 +99,12 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                     'descriptionLink' => $last_word
                 ],
                 'mondusepa' => [
+                    'sdkUrl' => $this->getSdkUrl(),
+                    'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
+                    'description' => $description,
+                    'descriptionLink' => $last_word
+                ],
+                'monduinstallment' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $description,

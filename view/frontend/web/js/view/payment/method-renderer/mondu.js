@@ -130,6 +130,19 @@ define([
                 quote.billingAddress(quote.shippingAddress());
             }
             $("body").trigger("processStart");
+            let payment_method;
+
+            switch (self.getCode()) {
+                case 'mondusepa':
+                    payment_method = 'direct_debit';
+                    break;
+                case 'monduinstallment':
+                    payment_method = 'installment';
+                    break;
+                default:
+                    payment_method = 'invoice';
+                    break;
+            }
 
             var initCheckout = function () {
                 $.ajax({
@@ -137,7 +150,7 @@ define([
                     method: "get",
                     data: {
                         email: self.getCustomerEmail(),
-                        payment_method: self.getCode() === 'mondusepa' ? 'direct_debit' : 'invoice'
+                        payment_method: payment_method
                     },
                 }).always(function (res) {
                     if (res && res.token && !res.error) {
