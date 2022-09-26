@@ -1,4 +1,4 @@
-label[for=mondu], label[for=mondusepa] {
+label[for=mondu], label[for=mondusepa], label[for=monduinstallment] {
     background: url(../images/mondu_big.svg) no-repeat scroll 0px 10px;
     background-size: 60px;
     background-position-x: 2px;

@@ -5,16 +5,18 @@ use Magento\Framework\App\CacheInterface;
 use Mondu\Mondu\Model\Request\Factory;
 
 class PaymentMethod {
-    const PAYMENTS = ['mondu', 'mondusepa'];
+    const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment'];
 
     const LABELS = [
         'mondusepa' => 'SEPA Direct Debit',
+        'monduinstallment' => 'Installment',
         'mondu' => 'Rechnungskauf'
     ];
 
     const MAPPING = [
         'direct_debit' => 'mondusepa',
-        'invoice' => 'mondu'
+        'invoice' => 'mondu',
+        'installment' => 'monduinstallment'
     ];
     /**
      * @var Factory

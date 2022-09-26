@@ -39,7 +39,7 @@ class Transactions extends CommonRequest implements RequestInterface
             }
             $params = $this->getRequestParams();
 
-            if($_params['payment_method'] === 'direct_debit') {
+            if($_params['payment_method'] === 'direct_debit' || $_params['payment_method'] === 'installment') {
                 $params['payment_method'] = $_params['payment_method'];
             }
 
