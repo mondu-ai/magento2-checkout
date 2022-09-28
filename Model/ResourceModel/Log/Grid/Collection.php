@@ -16,6 +16,7 @@ class Collection extends LogCollection implements SearchResultInterface
 
     /**
      * @param \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory
+     * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
      * @param \Magento\Framework\Event\ManagerInterface $eventManager
      * @param string $mainTable
@@ -24,12 +25,13 @@ class Collection extends LogCollection implements SearchResultInterface
      * @param string $resourceModel
      * @param string $model
      * @param \Magento\Framework\DB\Adapter\AdapterInterface|string|null $connection
-     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource
+     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb|null $resource
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
+        \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
         \Magento\Framework\Event\ManagerInterface $eventManager,
         $mainTable,
@@ -42,7 +44,7 @@ class Collection extends LogCollection implements SearchResultInterface
     ) {
         parent::__construct(
             $entityFactory,
-//            $logger,
+            $logger,
             $fetchStrategy,
             $eventManager,
             $connection,
