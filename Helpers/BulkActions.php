@@ -3,6 +3,7 @@
 namespace Mondu\Mondu\Helpers;
 
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Mondu\Mondu\Helpers\Log as MonduLogs;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -17,19 +18,22 @@ class BulkActions {
     private $requestFactory;
     private $configProvider;
     private $monduFileLogger;
+    private $orderHelper;
 
     public function __construct(
         OrderCollectionFactory $orderCollectionFactory,
         MonduLogs $monduLogs,
         RequestFactory $requestFactory,
         ConfigProvider $configProvider,
-        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger,
+        OrderHelper $orderHelper
     ) {
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->monduLogs = $monduLogs;
         $this->requestFactory = $requestFactory;
         $this->configProvider = $configProvider;
         $this->monduFileLogger = $monduFileLogger;
+        $this->orderHelper = $orderHelper;
     }
 
     private function prepareData($orderIds) {
@@ -68,7 +72,12 @@ class BulkActions {
         return [$successAttempts, $notMonduOrders, $failedAttempts];
     }
 
+    /**
+     * @throws LocalizedException
+     */
     private function bulkSyncAction($order, $_additionalData) {
+
+        $this->orderHelper->handleOrderAdjustment($order, $order->getId());
         $this->monduLogs->syncOrder($order->getMonduReferenceId());
         $this->monduLogs->syncOrderInvoices($order->getMonduReferenceId());
         $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': Successfully synced order');

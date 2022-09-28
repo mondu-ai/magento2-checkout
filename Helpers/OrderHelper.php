@@ -11,16 +11,19 @@ class OrderHelper
     private $quoteFactory;
     private $_monduLogger;
     private $_requestFactory;
+    private $monduFileLogger;
 
     public function __construct(
         QuoteFactory $quoteFactory,
         \Mondu\Mondu\Helpers\Log $logger,
-        RequestFactory $requestFactory
+        RequestFactory $requestFactory,
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger
     )
     {
         $this->quoteFactory = $quoteFactory;
         $this->_monduLogger = $logger;
         $this->_requestFactory = $requestFactory;
+        $this->monduFileLogger = $monduFileLogger;
     }
     public function getLinesFromOrder(Order $order)
     {
@@ -94,6 +97,7 @@ class OrderHelper
                 ->process($adjustment);
 
             if(@$editData['errors']) {
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': couldnt be adjusted', ['payload' => $adjustment, 'response' => $editData]);
                 throw new \Exception($editData['errors'][0]['name'].' '.$editData['errors'][0]['details']);
             }
             $order->setData('mondu_reference_id', $orderUid);
