@@ -40,8 +40,8 @@
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduInstallment</model>
                 <order_status>pending</order_status>
-                <description>Installment Desc</description>
-                <title>Installment title</title>
+                <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
+                <title>Ratenzahlung - Bequem in Raten per Bankeinzug zahlen</title>
             </monduinstallment>
         </payment>
     </default>
