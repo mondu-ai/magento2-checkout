@@ -35,7 +35,7 @@ class Edit extends CommonRequest implements RequestInterface {
         if($resultJson) {
             $result = json_decode($resultJson, true);
         } else {
-            throw new LocalizedException(__('something went wrong'));
+            throw new LocalizedException(__('Mondu: something went wrong'));
         }
 
         return @$result;

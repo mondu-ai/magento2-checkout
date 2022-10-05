@@ -6,6 +6,7 @@ use \Magento\Quote\Model\Cart\CartTotalRepository;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use \Magento\Framework\App\Config\ScopeConfigInterface;
 use \Magento\Quote\Model\Quote;
+use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Transactions extends CommonRequest implements RequestInterface
@@ -18,18 +19,22 @@ class Transactions extends CommonRequest implements RequestInterface
 
     private $curl;
     private $fallbackEmail;
+    private $orderHelper;
+
     public function __construct(
         Curl $curl,
         CartTotalRepository $cartTotalRepository,
         CheckoutSession $checkoutSession,
         ScopeConfigInterface $scopeConfigInterface,
-        ConfigProvider $configProvider
+        ConfigProvider $configProvider,
+        OrderHelper $orderHelper
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_cartTotalRepository = $cartTotalRepository;
         $this->_scopeConfigInterface = $scopeConfigInterface;
         $this->_configProvider = $configProvider;
         $this->curl = $curl;
+        $this->orderHelper = $orderHelper;
     }
 
     public function process($_params = []) {
@@ -85,23 +90,27 @@ class Transactions extends CommonRequest implements RequestInterface
         $requiresShipping = $quote->getShippingAddress() !== null ? 1 : 0;
 
         $quoteTotals = $this->_cartTotalRepository->get($quote->getId());
+
         $discountAmount = $quoteTotals->getDiscountAmount();
-        return [
+
+        $order = [
             'currency' => $quote->getBaseCurrencyCode(),
             'total_discount_cents' => abs($discountAmount) * 100,
             'buyer' => $this->getBuyerParams($quote),
             'external_reference_id' => $this->getExternalReferenceId($quote),
-            'lines' => $this->getLinesParams($quote),
             'billing_address' => $this->getBillingAddressParams($quote),
             'shipping_address' => $this->getShippingAddressParams($quote)
         ];
+
+        return $this->orderHelper->addLinesOrGrossAmountToOrder($quote, $quoteTotals->getGrandTotal(), $order);
     }
 
-    private function getBuyerParams(Quote $quote) {
+    private function getBuyerParams(Quote $quote): array
+    {
         $params = [];
         if (($billing = $quote->getBillingAddress()) !== null) {
             $params = [
-                'is_registered' => $quote->getCustomer()->getId() ? true : false,
+                'is_registered' => (bool) $quote->getCustomer()->getId(),
                 'email' => $billing->getEmail() ?? $quote->getShippingAddress()->getEmail() ?? $quote->getCustomerEmail() ?? $this->fallbackEmail,
                 'company_name' => $billing->getCompany(),
                 'first_name' => $billing->getFirstname(),
@@ -112,53 +121,8 @@ class Transactions extends CommonRequest implements RequestInterface
         return $params;
     }
 
-    private function getLinesParams(Quote $quote) {
-        $shippingTotal = $this->_cartTotalRepository->get($quote->getId())->getBaseShippingAmount();
-        $totalTax = round($quote->getShippingAddress()->getBaseTaxAmount(), 2);
-        $taxCompensation = $quote->getShippingAddress()->getBaseDiscountTaxCompensationAmount() ?? 0;
-        $totalTax = round($totalTax + $taxCompensation, 2);
-        $lineItems = [];
-
-        foreach ($quote->getAllVisibleItems() as $quoteItem) {
-            $variationId = $quoteItem->getProductId();
-
-            $price = (float) $quoteItem->getBasePrice();
-            if (!$price) {
-                continue;
-            }
-
-            $quoteItem->getProduct()->load($quoteItem->getProductId());
-
-            if ($quoteItem->getProductType() === 'configurable' && $quoteItem->getHasChildren()) {
-                foreach ($quoteItem->getChildren() as $child) {
-                    $variationId = $child->getProductId();
-                    $child->getProduct()->load($child->getProductId());
-                    continue;
-                }
-            }
-
-            $lineItems[] = [
-                'title' => $quoteItem->getName(),
-                'net_price_per_item_cents' => $price * 100,
-                'variation_id' => $variationId,
-                'item_type' => $quoteItem->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
-                'external_reference_id' => $variationId,
-                'quantity' => $quoteItem->getQty(),
-                'product_sku' => $quoteItem->getSku(),
-                'product_id' => $quoteItem->getProductId()
-            ];
-        }
-
-        return [
-            [
-                'shipping_price_cents' => $shippingTotal * 100,
-                'tax_cents' => $totalTax * 100,
-                'line_items' => $lineItems
-            ]
-        ];
-    }
-
-    private function getBillingAddressParams(Quote $quote) {
+    private function getBillingAddressParams(Quote $quote): array
+    {
         $params = [];
 
         if (($billing = $quote->getBillingAddress()) !== null) {
@@ -183,7 +147,8 @@ class Transactions extends CommonRequest implements RequestInterface
         return $params;
     }
 
-    private function getShippingAddressParams(Quote $quote) {
+    private function getShippingAddressParams(Quote $quote): array
+    {
         $params = [];
 
         if (($shipping = $quote->getShippingAddress()) !== null) {
@@ -209,6 +174,11 @@ class Transactions extends CommonRequest implements RequestInterface
         return $params;
     }
 
+    /**
+     * @param Quote $quote
+     * @return mixed|string|null
+     * @throws \Exception
+     */
     public function getExternalReferenceId(Quote $quote) {
         $reservedOrderId = $quote->getReservedOrderId();
         if (!$reservedOrderId) {

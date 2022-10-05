@@ -3,6 +3,7 @@ namespace Mondu\Mondu\Observer;
 
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Magento\Framework\Exception\LocalizedException;
@@ -15,13 +16,15 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
     private $_config;
     private $monduFileLogger;
     private $paymentMethodHelper;
+    private $orderHelper;
 
     public function __construct(
         RequestFactory $requestFactory,
         ConfigProvider $config,
         Log $logger,
         MonduFileLogger $monduFileLogger,
-        PaymentMethod $paymentMethodHelper
+        PaymentMethod $paymentMethodHelper,
+        OrderHelper $orderHelper
 
     )
     {
@@ -30,8 +33,9 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $this->_monduLogger = $logger;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
+        $this->orderHelper = $orderHelper;
     }
-    //TODO refactor
+
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $shipment = $observer->getEvent()->getShipment();
@@ -138,32 +142,15 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $gross_amount_cents = $invoiceItem->getGrandTotal() * 100;
 
         $invoice_url = $this->getInvoiceUrl($monduId, $invoiceItem->getIncrementId());
-        $quoteItems = $invoiceItem->getAllItems();
-        $lineItems = [];
-
-        $mapping = $this->getConfigurableItemIdMap($quoteItems);
-
-        foreach($quoteItems as $i) {
-            $price = (float) $i->getBasePrice();
-            if (!$price) {
-                continue;
-            }
-
-            $variationId = isset($mapping[$i->getProductId()]) ? $mapping[$i->getProductId()] : $i->getProductId();
-
-            $lineItems[] = [
-                'quantity' => (int) $i->getQty(),
-                'external_reference_id' => $variationId
-            ];
-        }
 
         $invoiceBody = [
             'order_uid' => $monduId,
             'external_reference_id' => $invoiceItem->getIncrementId(),
             'gross_amount_cents' => $gross_amount_cents,
             'invoice_url' => $invoice_url,
-            'line_items' => $lineItems
         ];
+
+        $invoiceBody = $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody);
 
         $shipOrderData = $this->_requestFactory->create(RequestFactory::SHIP_ORDER)
             ->process($invoiceBody);
@@ -189,16 +176,5 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $shipment->addComment(__('Mondu: invoice created with id %1', $shipOrderData['invoice']['uuid']));
 
         return $shipOrderData;
-    }
-
-    private function getConfigurableItemIdMap($items) {
-        $mapping = [];
-        foreach($items as $i) {
-            $parent = $i->getOrderItem()->getParentItem();
-            if($parent) {
-                $mapping[$parent->getProductId()] = $i->getProductId();
-            }
-        }
-        return $mapping;
     }
 }

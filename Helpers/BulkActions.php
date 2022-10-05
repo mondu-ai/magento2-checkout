@@ -17,19 +17,22 @@ class BulkActions {
     private $requestFactory;
     private $configProvider;
     private $monduFileLogger;
+    private $orderHelper;
 
     public function __construct(
         OrderCollectionFactory $orderCollectionFactory,
         MonduLogs $monduLogs,
         RequestFactory $requestFactory,
         ConfigProvider $configProvider,
-        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger,
+        OrderHelper $orderHelper
     ) {
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->monduLogs = $monduLogs;
         $this->requestFactory = $requestFactory;
         $this->configProvider = $configProvider;
         $this->monduFileLogger = $monduFileLogger;
+        $this->orderHelper = $orderHelper;
     }
 
     private function prepareData($orderIds) {
@@ -130,23 +133,6 @@ class BulkActions {
                 continue;
             }
             $gross_amount_cents = $invoiceItem->getGrandTotal() * 100;
-            $quoteItems = $invoiceItem->getAllItems();
-
-            $lineItems = [];
-            $mapping = $this->getConfigurableItemIdMap($quoteItems);
-
-            foreach($quoteItems as $i) {
-                $price = (float) $i->getBasePrice();
-                if (!$price) {
-                    continue;
-                }
-                $variationId = isset($mapping[$i->getProductId()]) ? $mapping[$i->getProductId()] : $i->getProductId();
-
-                $lineItems[] = [
-                    'quantity' => (int) $i->getQty(),
-                    'external_reference_id' => $variationId
-                ];
-            }
 
             $invoiceBody = [
                 'order_uid' => $monduLogData['reference_id'],
@@ -155,8 +141,9 @@ class BulkActions {
                 'invoice_url' => $this->configProvider->getPdfUrl($monduLogData['reference_id'], $invoiceItem->getIncrementId()),
             ];
 
+
             if($withLineItems) {
-                $invoiceBody['line_items'] = $lineItems;
+                $invoiceBody = $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody);
             }
 
             $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
@@ -233,17 +220,6 @@ class BulkActions {
             }
         }
         return [$successattempts, $notMonduOrders, $failedAttempts];
-    }
-
-    private function getConfigurableItemIdMap($items) {
-        $mapping = [];
-        foreach($items as $i) {
-            $parent = $i->getOrderItem()->getParentItem();
-            if($parent) {
-                $mapping[$parent->getProductId()] = $i->getProductId();
-            }
-        }
-        return $mapping;
     }
 
     /**
