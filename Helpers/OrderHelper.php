@@ -86,7 +86,7 @@ class OrderHelper
             'external_reference_id' => $order->getIncrementId(),
         ];
 
-        $adjustment = $this->addLinesOrGrossAmountToOrder($quote, $quote->getGrandTotal(), $adjustment, true);
+        $adjustment = $this->addLinesOrGrossAmountToOrder($quote, $quote->getBaseGrandTotal(), $adjustment, true);
         $adjustment = $this->addAmountToOrder($quote, $adjustment);
         try {
             $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
@@ -170,7 +170,7 @@ class OrderHelper
             ];
         } else {
             $order['amount'] = [
-                'gross_amount_cents' => $quote->getGrandTotal() * 100
+                'gross_amount_cents' => $quote->getBaseGrandTotal() * 100
             ];
         }
 

@@ -102,7 +102,7 @@ class Transactions extends CommonRequest implements RequestInterface
             'shipping_address' => $this->getShippingAddressParams($quote)
         ];
 
-        return $this->orderHelper->addLinesOrGrossAmountToOrder($quote, $quoteTotals->getGrandTotal(), $order);
+        return $this->orderHelper->addLinesOrGrossAmountToOrder($quote, $quoteTotals->getBaseGrandTotal(), $order);
     }
 
     private function getBuyerParams(Quote $quote): array
