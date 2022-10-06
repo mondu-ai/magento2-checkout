@@ -26,6 +26,7 @@
                 <paymentInfoKeys>FRAUD_MSG_LIST</paymentInfoKeys>
                 <privateInfoKeys>FRAUD_MSG_LIST</privateInfoKeys>
                 <sort_order>1</sort_order>
+                <send_lines>1</send_lines>
             </mondu>
             <mondusepa>
                 <sort_order>2</sort_order>

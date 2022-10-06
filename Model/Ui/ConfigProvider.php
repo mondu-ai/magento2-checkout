@@ -129,4 +129,9 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         $val = $this->scopeConfig->getValue('payment/mondu/' . $this->getMode().'_webhook_secret');
         return $this->encryptor->decrypt($val);
     }
+
+    public function sendLines()
+    {
+        return (bool) $this->scopeConfig->getValue('payment/mondu/send_lines');
+    }
 }
