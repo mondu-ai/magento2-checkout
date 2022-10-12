@@ -88,7 +88,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
                     $invoiceSkuQtyArray[$i->getSku()] = 0;
                 }
 
-                $invoiceSkuQtyArray[$i->getSku()] += (int) $i->getQty();
+                $invoiceSkuQtyArray[$i->getSku()] += $i->getQty();
             }
         }
 
@@ -139,7 +139,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
      * @throws LocalizedException
      */
     private function createInvoiceForItem($invoiceItem, $monduId, $shipment, &$invoiceMapping) {
-        $gross_amount_cents = $invoiceItem->getGrandTotal() * 100;
+        $gross_amount_cents = round($invoiceItem->getGrandTotal(), 2) * 100;
 
         $invoice_url = $this->getInvoiceUrl($monduId, $invoiceItem->getIncrementId());
 
