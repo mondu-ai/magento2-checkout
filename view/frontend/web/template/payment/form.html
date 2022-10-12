@@ -24,7 +24,9 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-
+        <div class="checkout-agreements-block">
+            <each args="$parent.getRegion('before-place-order')" render=""></each>
+        </div>
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"
