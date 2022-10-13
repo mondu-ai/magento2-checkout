@@ -132,7 +132,7 @@ class BulkActions {
                 $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': SKIPIING INVOICE item already sent to mondu');
                 continue;
             }
-            $gross_amount_cents = $invoiceItem->getGrandTotal() * 100;
+            $gross_amount_cents = round($invoiceItem->getGrandTotal(), 2) * 100;
 
             $invoiceBody = [
                 'order_uid' => $monduLogData['reference_id'],

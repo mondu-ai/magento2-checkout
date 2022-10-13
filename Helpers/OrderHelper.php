@@ -153,7 +153,7 @@ class OrderHelper
         if ($sendLines) {
             $order['lines'] = $this->getLinesFromQuote($quote, $isAdjustment);
         } elseif(!$isAdjustment) {
-            $order['gross_amount_cents'] = $grandTotal * 100;
+            $order['gross_amount_cents'] = round($grandTotal, 2) * 100;
         }
 
         return $order;
@@ -165,12 +165,12 @@ class OrderHelper
         if($sendLines) {
             $netPrice = $quote->getSubtotal();
             $order['amount'] = [
-                'net_price_cents' => $netPrice * 100,
+                'net_price_cents' => round($netPrice, 2) * 100,
                 'tax_cents' => round($quote->getShippingAddress()->getBaseTaxAmount(), 2) * 100
             ];
         } else {
             $order['amount'] = [
-                'gross_amount_cents' => $quote->getBaseGrandTotal() * 100
+                'gross_amount_cents' => round($quote->getBaseGrandTotal(), 2) * 100
             ];
         }
 
