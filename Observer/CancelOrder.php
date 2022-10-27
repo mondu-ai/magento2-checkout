@@ -5,6 +5,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Exception;
 use \Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\ManagerInterface;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -16,16 +17,19 @@ class CancelOrder implements ObserverInterface
     private $monduFileLogger;
 
     private $paymentMethodHelper;
+    private $messageManager;
 
     public function __construct(
         RequestFactory $requestFactory,
         MonduFileLogger $monduFileLogger,
-        PaymentMethod $paymentMethodHelper
+        PaymentMethod $paymentMethodHelper,
+        ManagerInterface $messageManager
     )
     {
         $this->_requestFactory = $requestFactory;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
+        $this->messageManager = $messageManager;
     }
 
     public function execute(Observer $observer)
@@ -47,6 +51,12 @@ class CancelOrder implements ObserverInterface
 
                 $cancelData = $this->_requestFactory->create(RequestFactory::CANCEL)
                     ->process(['orderUid' => $monduId]);
+
+                if (!$cancelData) {
+                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order is corrupted, please contact Mondu Support to resolve this issue.');
+                    return;
+                }
+
                 $order->addStatusHistoryComment(__('Mondu:  The transaction with the id %1 was successfully canceled.', $monduId));
                 $order->save();
                 $this->monduFileLogger->info('Cancelled order ', ['orderNumber' => $order->getIncrementId()]);

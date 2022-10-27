@@ -65,7 +65,7 @@ class Log extends AbstractHelper
         $monduLogger->save();
     }
 
-    public function getTransactionByOrderUid($orderUid)
+    public function getTransactionByOrderUid($orderUid, $collection = false)
     {
         $monduLogger = $this->_logger->create();
 
@@ -73,8 +73,11 @@ class Log extends AbstractHelper
             ->addFieldToFilter('reference_id', ['eq' => $orderUid])
             ->load();
 
-        $log = $logCollection->getFirstItem()->getData();
-        return $log;
+        if ($collection) {
+            return $logCollection->getFirstItem();
+        }
+
+        return $logCollection->getFirstItem()->getData();
     }
 
     public function getTransactionByIncrementId($incrementId)
@@ -103,6 +106,16 @@ class Log extends AbstractHelper
             ]);
         }
 
+        $log->save();
+    }
+
+    public function updateLogSkipObserver($orderUid, $skipObserver) {
+        $log = $this->getTransactionByOrderUid($orderUid, true);
+
+        if(empty($log->getData())) return;
+
+        $log->setData('skip_ship_observer', $skipObserver);
+        $log->setDataChanges(true);
         $log->save();
     }
 
