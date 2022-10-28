@@ -34,6 +34,6 @@ class Cancel extends CommonRequest implements RequestInterface {
             $result = json_decode($resultJson, true);
         }
 
-        return $result;
+        return $result ?? null;
     }
 }

@@ -20,17 +20,20 @@ class Ship extends CommonRequest implements RequestInterface {
 
     public function process($params) {
         $api_token = $this->_scopeConfigInterface->getValue('payment/mondu/mondu_key');
-        $url = $this->_configProvider->getApiUrl('orders').'/'.$params['order_uid'].'/invoices';
+        $url = $this->_configProvider->getApiUrl('orders').'/' . $params['order_uid'] . '/invoices';
         $headers = $this->getHeaders($api_token);
+
         unset($params['orderUid']);
+
         $this->curl->setHeaders($headers);
         $this->curl->post($url, json_encode($params));
 
         $resultJson = $this->curl->getBody();
+
         if($resultJson) {
             $result = json_decode($resultJson, true);
         }
 
-        return $result;
+        return $result ?? null;
     }
 }

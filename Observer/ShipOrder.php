@@ -1,6 +1,7 @@
 <?php
 namespace Mondu\Mondu\Observer;
 
+use Magento\Framework\Message\ManagerInterface;
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
@@ -17,6 +18,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
     private $monduFileLogger;
     private $paymentMethodHelper;
     private $orderHelper;
+    private $messageManager;
 
     public function __construct(
         RequestFactory $requestFactory,
@@ -24,8 +26,8 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         Log $logger,
         MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
-        OrderHelper $orderHelper
-
+        OrderHelper $orderHelper,
+        ManagerInterface $messageManager
     )
     {
         $this->_requestFactory = $requestFactory;
@@ -34,6 +36,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
         $this->orderHelper = $orderHelper;
+        $this->messageManager = $messageManager;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -67,13 +70,15 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 
         $shipSkuQtyArray = [];
         $invoiceSkuQtyArray = [];
+
         foreach($shipment->getItems() as $item) {
-            if($item->getQty()) {
-                $shipSkuQtyArray[$item->getSku()] = $item->getQty();
-            } elseif(!@$shipSkuQtyArray[$item->getSku()]) {
-                $shipSkuQtyArray[$item->getSku()] = $item->getQty();
+            if(!@$shipSkuQtyArray[$item->getSku()]) {
+                $shipSkuQtyArray[$item->getSku()] = 0;
             }
+
+            $shipSkuQtyArray[$item->getSku()] += $item->getQty();
         }
+
         foreach($order->getInvoiceCollection()->getItems() as $invoice) {
             if (in_array($invoice->getEntityId(), $arr)) {
                 continue;
@@ -97,6 +102,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
                 throw new LocalizedException(__('Mondu: Invalid shipment amount'));
             }
         }
+
         foreach($invoiceSkuQtyArray as $key => $invoiceSkuQty) {
             if(@$shipSkuQtyArray[$key] !== $invoiceSkuQty) {
                 throw new LocalizedException(__('Mondu: Invalid shipment amount'));
@@ -127,7 +133,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 
             $this->_monduLogger->syncOrder($monduId);
         } else {
-            throw new LocalizedException(__('Please invoice all order items first'));
+            throw new LocalizedException(__('Mondu: Invoice is required to ship the order.'));
         }
     }
 
@@ -155,8 +161,10 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $shipOrderData = $this->_requestFactory->create(RequestFactory::SHIP_ORDER)
             ->process($invoiceBody);
 
-        if(!$shipOrderData) {
-            throw new LocalizedException(__('Can\'t ship the order at this time'));
+        if (!$shipOrderData) {
+            $this->_monduLogger->updateLogSkipObserver($monduId, true);
+            $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order is corrupted, please contact Mondu Support to resolve this issue.');
+            return;
         }
 
         if(@$shipOrderData['errors']) {
