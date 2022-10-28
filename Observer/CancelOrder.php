@@ -53,7 +53,7 @@ class CancelOrder implements ObserverInterface
                     ->process(['orderUid' => $monduId]);
 
                 if (!$cancelData) {
-                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order is corrupted, please contact Mondu Support to resolve this issue.');
+                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order could not be found, please contact Mondu Support to resolve this issue.');
                     return;
                 }
 

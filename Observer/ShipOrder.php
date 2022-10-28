@@ -163,7 +163,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 
         if (!$shipOrderData) {
             $this->_monduLogger->updateLogSkipObserver($monduId, true);
-            $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order is corrupted, please contact Mondu Support to resolve this issue.');
+            $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order could not be found, please contact Mondu Support to resolve this issue.');
             return;
         }
 
