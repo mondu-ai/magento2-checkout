@@ -39,21 +39,6 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/active</config_path>
                     </field>
-                    <field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
-                           showInStore="1">
-                        <label>Rechnungskauf Title</label>
-                        <config_path>payment/mondu/title</config_path>
-                    </field>
-                    <field id="sepa_title" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1"
-                           showInStore="1">
-                        <label>SEPA Title</label>
-                        <config_path>payment/mondusepa/title</config_path>
-                    </field>
-                    <field id="installment_title" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1"
-                           showInStore="1">
-                        <label>Installment Title</label>
-                        <config_path>payment/monduinstallment/title</config_path>
-                    </field>
                     <field id="allowspecific" translate="label" type="allowspecific" sortOrder="6" showInDefault="9"
                            showInWebsite="1" showInStore="0">
                         <label>Payment From Applicable Countries</label>

@@ -82,10 +82,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function getConfig()
     {
-        $string = $this->scopeConfig->getValue('payment/mondu/description');
-        $pieces = explode(' ', $string);
-        $last_word = array_pop($pieces);
-        $description = implode(' ', $pieces);
+        $description = __("Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>hier.</a>");
         return [
             'payment' => [
                 self::CODE => [
@@ -95,20 +92,20 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                         ClientMock::FAILURE => __('Fraud'),
                     ],
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => $description,
-                    'descriptionLink' => $last_word
+                    'description' => __($description),
+                    'title' => __($this->scopeConfig->getValue('payment/mondu/title'))
                 ],
                 'mondusepa' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => $description,
-                    'descriptionLink' => $last_word
+                    'description' => __($description),
+                    'title' => __($this->scopeConfig->getValue('payment/mondusepa/title'))
                 ],
                 'monduinstallment' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => $description,
-                    'descriptionLink' => $last_word
+                    'description' => __($description),
+                    'title' => __($this->scopeConfig->getValue('payment/monduinstallment/title'))
                 ]
             ]
         ];

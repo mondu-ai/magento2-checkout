@@ -26,7 +26,7 @@ class Confirm extends CommonRequest implements RequestInterface {
      */
     public function process($params) {
         if(!$params['orderUid']) {
-            throw new LocalizedException(__('Error placing the order'));
+            throw new LocalizedException(__('Error placing an order'));
         }
         $api_token = $this->_scopeConfigInterface->getValue('payment/mondu/mondu_key');
         $url = $this->_configProvider->getApiUrl('orders').'/'.$params['orderUid'];
@@ -40,7 +40,7 @@ class Confirm extends CommonRequest implements RequestInterface {
         $result = json_decode($resultJson, true);
 
         if($this->_validate && !in_array($result['order']['state'], self::ORDER_STATE)) {
-             throw new LocalizedException(__('Error placing the order'));
+             throw new LocalizedException(__('Error placing an order'));
         }
 
         return $result;
