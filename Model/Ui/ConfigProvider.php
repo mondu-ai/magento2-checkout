@@ -68,7 +68,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function isActive()
     {
-        return (bool) $this->scopeConfig->getValue('payment/mondu/active');
+        return $this->scopeConfig->getValue('payment/mondu/active') || $this->scopeConfig->getValue('payment/mondusepa/active') || $this->scopeConfig->getValue('payment/monduinstallment/active');
     }
 
     public function isCronEnabled(): bool

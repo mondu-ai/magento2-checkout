@@ -30,6 +30,7 @@
             </mondu>
             <mondusepa>
                 <sort_order>2</sort_order>
+                <active>0</active>
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
                 <order_status>pending</order_status>
@@ -38,6 +39,7 @@
             </mondusepa>
             <monduinstallment>
                 <sort_order>3</sort_order>
+                <active>0</active>
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduInstallment</model>
                 <order_status>pending</order_status>
