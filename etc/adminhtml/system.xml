@@ -4,7 +4,7 @@
     <system>
         <section id="payment">
             <group id="mondu_section" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
-                <comment><![CDATA[<div class="mondu-payment-logo"></div><div class="mondu-payment-text"><b>Mondu payment</b>. <br/>Buy Now, Pay Later for Online B2B Checkout<br/>Increase your revenue with Mondu’s solution, without the operational burden.</div>]]></comment>
+                <comment><![CDATA[<div class="mondu-payment-logo"></div><div class="mondu-payment-text">Buy Now, Pay Later for Online B2B Checkout<br/>Increase your revenue with Mondu’s solution, without the operational burden.</div>]]></comment>
                 <fieldset_css>complex mondu-section</fieldset_css>
                 <frontend_model>Mondu\Mondu\Block\Adminhtml\Config\Payment</frontend_model>
                 <group id="monduapi" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
@@ -12,7 +12,7 @@
                     <label>Api Configuration</label>
                     <field id="mondu_key" translate="label" type="obscure" sortOrder="30" showInDefault="1"
                            showInWebsite="1" showInStore="1">
-                        <label>Mondu api key</label>
+                        <label>Api key</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <config_path>payment/mondu/mondu_key</config_path>
                     </field>
@@ -35,19 +35,19 @@
                     <label>General configuration</label>
                     <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1"
                            showInStore="1">
-                        <label>Rechnungskauf Enabled</label>
+                        <label>Enable Rechnungskauf</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/active</config_path>
                     </field>
                     <field id="activesepa" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1"
                            showInStore="1">
-                        <label>SEPA Enabled</label>
+                        <label>Enable SEPA-Lastschrift</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondusepa/active</config_path>
                     </field>
                     <field id="activeinstallment" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1"
                            showInStore="1">
-                        <label>Ratenzahlung Enabled</label>
+                        <label>Enable Ratenzahlung</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/monduinstallment/active</config_path>
                     </field>
@@ -71,7 +71,7 @@
                     </field>
                     <field id="debug" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1"
                            showInStore="1">
-                        <label>Enable Mondu Logs</label>
+                        <label>Enable Logs</label>
                         <config_path>payment/mondu/debug</config_path>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>

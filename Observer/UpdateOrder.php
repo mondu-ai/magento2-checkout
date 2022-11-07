@@ -87,9 +87,9 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
                     $this->monduFileLogger->info('Cant create a credit memo: no Mondu invoice id provided', ['orderNumber' => $order->getIncrementId()]);
                     $logData = $this->_monduLogger->getTransactionByOrderUid($monduId);
                     if($logData['mondu_state']  !== 'shipped' && $logData['mondu_state'] !== 'partially_shipped' && $logData['mondu_state'] !== 'partially_complete') {
-                        throw new LocalizedException(__('You cant partially refund order before Shipment'));
+                        throw new LocalizedException(__('Mondu: You cant partially refund order before shipment'));
                     }
-                    throw new LocalizedException(__('Mondu: Something went wrong, try using "Mondu: sync order" action and try again'));
+                    throw new LocalizedException(__('Mondu: Something went wrong'));
                 }
 
                 return;
@@ -99,12 +99,12 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
                     ->process(['orderUid' => $monduId]);
 
                 if(@$cancelData['errors']) {
-                    throw new LocalizedException(__('Unexpected error'));
+                    throw new LocalizedException(__('Mondu: Something went wrong'));
                 }
 
                 $this->_monduLogger->updateLogMonduData($monduId, $cancelData['order']['state']);
 
-                $order->addStatusHistoryComment(__('Mondu: The transaction with the id %1 was successfully canceled.', $monduId));
+                $order->addStatusHistoryComment(__('Mondu: The order with the id %1 was successfully canceled.', $monduId));
                 $order->save();
             }
 

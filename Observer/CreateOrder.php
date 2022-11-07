@@ -73,7 +73,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $order->setData('mondu_reference_id', $orderUid);
 
             if($createMonduDatabaseRecord) {
-                $order->addStatusHistoryComment(__('Mondu: payment accepted for %1', $orderUid));
+                $order->addStatusHistoryComment(__('Mondu: order id %1', $orderUid));
             }
 
             $shippingAddress = $order->getShippingaddress();
