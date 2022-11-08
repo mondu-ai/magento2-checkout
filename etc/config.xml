@@ -11,7 +11,7 @@
                 <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
                 <payment_action>authorize</payment_action>
-                <title>Rechnungskauf - jetzt kaufen, später bezahlen</title>
+                <title>Pay later via bank transfer</title>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
                 <sandbox>1</sandbox>
                 <cron>0</cron>
@@ -35,7 +35,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
                 <order_status>pending</order_status>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
-                <title>SEPA-Lastschrift - jetzt kaufen, später per Bankeinzug bezahlen</title>
+                <title>Pay later via SEPA Direct Debit</title>
             </mondusepa>
             <monduinstallment>
                 <sort_order>3</sort_order>
@@ -44,7 +44,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduInstallment</model>
                 <order_status>pending</order_status>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
-                <title>Ratenzahlung - Bequem in Raten per Bankeinzug zahlen</title>
+                <title>Split Payments</title>
             </monduinstallment>
         </payment>
     </default>

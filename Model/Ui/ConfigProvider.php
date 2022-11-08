@@ -82,7 +82,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function getConfig()
     {
-        $description = __("Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>hier.</a>");
+        $description = __("Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
         return [
             'payment' => [
                 self::CODE => [
