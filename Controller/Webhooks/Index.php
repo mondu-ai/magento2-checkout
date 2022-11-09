@@ -103,7 +103,6 @@ class Index extends Action implements ActionInterface {
         }
 
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
-        $order->setStatus(Order::STATE_PROCESSING)->save();
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
@@ -121,7 +120,6 @@ class Index extends Action implements ActionInterface {
             throw new \Exception('Required params missing');
         }
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state'], $viban);
-        $order->setStatus(Order::STATE_PROCESSING)->save();
 
         return [['message' => 'ok', 'error' => 0], 200];
     }

@@ -32,6 +32,8 @@ class Save implements ObserverInterface {
         if ($this->_monduConfig->isActive()) {
            if ($this->_monduConfig->getApiKey()) {
                try {
+                   $this->_monduConfig->updateNewOrderStatus();
+
                    $this->_requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
                        ->process()
                        ->checkSuccess()
@@ -57,6 +59,7 @@ class Save implements ObserverInterface {
                        ->setTopic('order/canceled')
                        ->process();
 
+                   $this->_monduConfig->clearConfigurationCache();
                } catch (\Exception $e) {
                    throw new LocalizedException(__($e->getMessage()));
                }

@@ -6,6 +6,8 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\UrlInterface;
 use Mondu\Mondu\Gateway\Http\Client\ClientMock;
 use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\Cache\TypeListInterface;
 
 class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
@@ -22,12 +24,31 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     private $encryptor;
     private $scopeConfig;
 
-    public function __construct(UrlInterface $urlBuilder, ScopeConfigInterface $scopeConfig, ResourceConfig $resourceConfig, EncryptorInterface $encryptor)
+    /**
+     * @var WriterInterface
+     */
+    private $configWriter;
+
+    /**
+     * @var TypeListInterface
+     */
+    private $cacheTypeList;
+
+    public function __construct(
+        UrlInterface $urlBuilder,
+        ScopeConfigInterface $scopeConfig,
+        ResourceConfig $resourceConfig,
+        EncryptorInterface $encryptor,
+        WriterInterface $writer,
+        TypeListInterface $cacheTypeList
+    )
     {
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
         $this->resourceConfig = $resourceConfig;
         $this->encryptor = $encryptor;
+        $this->configWriter = $writer;
+        $this->cacheTypeList = $cacheTypeList;
     }
 
     public function getApiUrl($path = null): string
@@ -124,6 +145,19 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return $this;
     }
 
+    public function getNewOrderStatus()
+    {
+        return $this->scopeConfig->getValue('payment/mondu/order_status');
+    }
+
+    public function updateNewOrderStatus()
+    {
+        $status = $this->getNewOrderStatus();
+
+        $this->configWriter->save('payment/mondusepa/order_status', $status);
+        $this->configWriter->save('payment/monduinstallment/order_status', $status);
+    }
+
     public function getWebhookSecret()
     {
         $val = $this->scopeConfig->getValue('payment/mondu/' . $this->getMode().'_webhook_secret');
@@ -133,5 +167,10 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     public function sendLines()
     {
         return (bool) $this->scopeConfig->getValue('payment/mondu/send_lines');
+    }
+
+    public function clearConfigurationCache()
+    {
+        $this->cacheTypeList->cleanType('config');
     }
 }
