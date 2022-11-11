@@ -10,21 +10,12 @@
                 <!-- <model>CustomPaymentGatewayFacade</model> -->
                 <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
-                <payment_action>authorize</payment_action>
                 <title>Pay later via bank transfer</title>
                 <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
                 <sandbox>1</sandbox>
                 <cron>0</cron>
                 <allowspecific>1</allowspecific>
                 <specificcountry>DE</specificcountry>
-                <can_authorize>1</can_authorize>
-                <can_capture>1</can_capture>
-                <can_void>1</can_void>
-                <can_use_checkout>1</can_use_checkout>
-                <is_gateway>1</is_gateway>
-                <debugReplaceKeys>MERCHANT_KEY</debugReplaceKeys>
-                <paymentInfoKeys>FRAUD_MSG_LIST</paymentInfoKeys>
-                <privateInfoKeys>FRAUD_MSG_LIST</privateInfoKeys>
                 <sort_order>1</sort_order>
                 <send_lines>1</send_lines>
             </mondu>
