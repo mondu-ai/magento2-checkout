@@ -5,13 +5,11 @@
                class="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
         <label class="label" data-bind="attr: {'for': getCode()}">
-            <span data-bind="text: getTitle()"></span>
+            <span>
+                <!-- ko i18n: window.checkoutConfig.payment[getCode()].title--><!-- /ko -->
+            </span>
         </label>
-        <div class="payment-method-description-mondu">
-            <!-- ko i18n: window.checkoutConfig.payment.mondu.description--><!-- /ko -->
-            <a target="_blank" href="https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/">
-                <!-- ko i18n: window.checkoutConfig.payment.mondu.descriptionLink--><!-- /ko -->
-            </a>
+        <div bindHtml="window.checkoutConfig.payment.mondu.description" class="payment-method-description-mondu">
         </div>
     </div>
 

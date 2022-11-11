@@ -75,7 +75,7 @@ class OrderHelper
         $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
 
         if(!$log || !$log['reference_id']) {
-            throw new LocalizedException(__('This order was not placed with mondu'));
+            throw new LocalizedException(__('This order was not placed with Mondu'));
         }
 
         $orderUid = $log['reference_id'];
@@ -97,10 +97,10 @@ class OrderHelper
                 throw new \Exception($editData['errors'][0]['name'].' '.$editData['errors'][0]['details']);
             }
             $order->setData('mondu_reference_id', $orderUid);
-            $order->addStatusHistoryComment(__('Mondu: payment adjusted for %1', $orderUid));
+            $order->addStatusHistoryComment(__('Mondu: order with id %1 was adjusted', $orderUid));
         } catch (\Exception $e) {
             if($orderId) {
-                throw new LocalizedException(__('Mondu api error: '. $e->getMessage()));
+                throw new LocalizedException(__('Mondu api error: %1', $e->getMessage()));
             }
 
             $orderPayment = $order->getPayment();
@@ -152,27 +152,22 @@ class OrderHelper
         $sendLines = $this->configProvider->sendLines();
         if ($sendLines) {
             $order['lines'] = $this->getLinesFromQuote($quote, $isAdjustment);
-        } elseif(!$isAdjustment) {
-            $order['gross_amount_cents'] = round($grandTotal, 2) * 100;
         }
+
+        $order['gross_amount_cents'] = round($grandTotal, 2) * 100;
+
 
         return $order;
     }
 
     public function addAmountToOrder(Quote $quote, $order) {
-        $sendLines = $this->configProvider->sendLines();
+        $netPrice = $quote->getSubtotal();
 
-        if($sendLines) {
-            $netPrice = $quote->getSubtotal();
-            $order['amount'] = [
-                'net_price_cents' => round($netPrice, 2) * 100,
-                'tax_cents' => round($quote->getShippingAddress()->getBaseTaxAmount(), 2) * 100
-            ];
-        } else {
-            $order['amount'] = [
-                'gross_amount_cents' => round($quote->getBaseGrandTotal(), 2) * 100
-            ];
-        }
+        $order['amount'] = [
+            'net_price_cents' => round($netPrice, 2) * 100,
+            'tax_cents' => round($quote->getShippingAddress()->getBaseTaxAmount(), 2) * 100,
+            'gross_amount_cents' => round($quote->getBaseGrandTotal(), 2) * 100
+        ];
 
         return $order;
     }

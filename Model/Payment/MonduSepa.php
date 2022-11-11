@@ -20,19 +20,6 @@ class MonduSepa extends \Magento\Payment\Model\Method\AbstractMethod
         return $this;
     }
 
-    public function isActive($storeId = null)
-    {
-        if ('order_place_redirect_url' === 'active') {
-            return $this->getOrderPlaceRedirectUrl();
-        }
-        if (null === $storeId) {
-            $storeId = $this->getStore();
-        }
-
-        $path = 'payment/mondu/active';
-        return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-    }
-
     public function canUseForCountry($country) {
         $storeId = $this->getStore();
 

@@ -73,28 +73,8 @@ class Token implements \Magento\Framework\App\ActionInterface {
      */
     public function handleOrderDecline($monduOrder, &$response) {
         if($monduOrder['state'] === 'declined') {
-            $declineReason = $monduOrder['decline_reason'];
             $response['error'] = 1;
-
-            switch ($declineReason) {
-                case 'buyer_not_identified':
-                    $response['message'] = __('Unable to identify the buyer');
-                    break;
-                case 'address_missing':
-                    $response['message'] = __('The address is missing');
-                    break;
-                case 'buyer_fraud':
-                    $response['message'] = __('Potential fraud detected');
-                    break;
-                case 'risk_scoring_failed':
-                    $response['message'] = __('Risk scoring failed');
-                    break;
-                case 'buyer_limit_exceeded':
-                    $response['message'] = __('Buyer limit exceeded');
-                    break;
-                default:
-                    $response['message'] = __('Error placing an order');
-            }
+            $response['message'] = __('Order has been declined');
         }
     }
 

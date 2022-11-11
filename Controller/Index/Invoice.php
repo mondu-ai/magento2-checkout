@@ -30,7 +30,7 @@ class Invoice implements \Magento\Framework\App\ActionInterface {
         $invoiceReference = $this->getRequest()->getParam('r');
 
         if(!$orderIdentifierMondu || !$invoiceReference) {
-            throw new NotFoundException(__('invoice not found'));
+            throw new NotFoundException(__('Not found'));
         }
 
         $searchCriteria = $this->searchCriteriaBuilder->addFilter(
@@ -42,7 +42,7 @@ class Invoice implements \Magento\Framework\App\ActionInterface {
         $orders = $result->getItems();
 
         if(empty($orders)) {
-            throw new NotFoundException(__('invoice not found'));
+            throw new NotFoundException(__('Not found'));
         }
 
         $order = end($orders);
@@ -53,7 +53,7 @@ class Invoice implements \Magento\Framework\App\ActionInterface {
             }
         }
         if(!$invoice) {
-            throw new NotFoundException(__('invoice not found'));
+            throw new NotFoundException(__('Not found'));
         }
         $pdfContent = $this->_pdfInvoiceModel->getPdf([$invoice])->render();
 

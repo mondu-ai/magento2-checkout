@@ -1,0 +1,36 @@
+Error placing an order Please try again later.,Fehler beim Aufgeben einer Bestellung. Bitte versuchen Sie es später noch einmal.
+Error placing an order,Fehler beim Aufgeben einer Bestellung. Bitte versuchen Sie es später noch einmal.
+Order has been declined,Bestellung wurde abgelehnt.
+This order was not placed with mondu,Diese Bestellung wurde nicht mit Mondu aufgegeben.
+Mondu: order with id %1 was adjusted,Mondu: Die Bestellung mit der Nummer %1 wurde angepasst
+Mondu api error: %1,Mondu API Fehler: %1
+Mondu: The order with the id %1 was successfully canceled.,Mondu: Die Bestellung mit der Nummer %1 wurde erfolgreich storniert.
+Cant enable Mondu payments API key is missing,Mondu-Zahlungsarten können nicht aktiviert werden. Der API-Schlüssel fehlt
+Mondu: order id %1,Mondu: Bestellnummer %1
+Mondu: Invalid shipment amount,Mondu: Ungültige Versandkosten
+Can't ship order: Mondu order state must be confirmed or partially_shipped,Bestellung kann nicht versendet werden: Der Status der Mondu-Bestellung muss bestätigt oder teilweise versandt sein.
+Mondu: Invoice is required to ship the order.,Mondu: Eine Rechnung ist für den Versand der Bestellung erforderlich.
+Mondu: invoice created with id %1,Mondu: Rechnung mit Rechnungsnummer %1 erstellt 
+Mondu: You cant partially refund order before shipment,Mondu: Sie können keine Teilstornierung der Bestellung vor Versand vornehmen
+Mondu: Something went wrong,Mondu: Etwas ist falsch gelaufen
+Mondu: The order with the id %1 was successfully canceled.,Mondu: Die Bestellung mit der Nummer %1 wurde erfolgreich storniert.
+Api Configuration,API-Konfiguration
+Send order line items,Sende Bestell-Line-Items
+Sandbox mode,Sandbox Modus
+General configuration,Allgemeine Konfiguration
+Enable Bank Transfer,Rechnungskauf aktivieren
+Ensble SEPA Direct Debit,SEPA-Lastschrift aktivieren
+Enable Split Payments,Ratenkauf aktivieren
+Bank Transfer Title,Titel Rechnungskauf
+SEPA Direct Debit Title,Titel der SEPA-Lastschrift
+Split Payments Title,Titel Ratenkauf
+Enable automatic order processing,Automatische Bestellabwicklung einschalten
+Enable Logs,Protokolle einschalten
+Mondu: Invoice orders,Mondu: Bestellungen in Rechnung stellen
+Mondu: Sync orders,Mondu: Bestellungen synchronisieren
+Not found,Nicht gefunden
+Api key,API-Schlüssel
+Pay later via bank transfer,"Rechnungskauf - jetzt kaufen, später bezahlen"
+Pay later via SEPA Direct Debit,"SEPA-Lastschrift - jetzt kaufen, später per Bankeinzug bezahlen"
+Split Payments,Ratenzahlung - Bequem in Raten per Bankeinzug zahlen
+Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>,Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>hier.</a>

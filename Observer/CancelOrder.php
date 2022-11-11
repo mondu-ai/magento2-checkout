@@ -57,7 +57,7 @@ class CancelOrder implements ObserverInterface
                     return;
                 }
 
-                $order->addStatusHistoryComment(__('Mondu:  The transaction with the id %1 was successfully canceled.', $monduId));
+                $order->addStatusHistoryComment(__('Mondu: The order with the id %1 was successfully canceled.', $monduId));
                 $order->save();
                 $this->monduFileLogger->info('Cancelled order ', ['orderNumber' => $order->getIncrementId()]);
             }
