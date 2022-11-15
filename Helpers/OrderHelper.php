@@ -2,7 +2,6 @@
 namespace Mondu\Mondu\Helpers;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Quote\Api\Data\TotalsInterface as QuoteTotalsInterface;
 use Magento\Quote\Model\Cart\CartTotalRepository;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteFactory;

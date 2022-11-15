@@ -3,6 +3,8 @@ namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
+use Mondu\Mondu\Helpers\HeadersHelper;
+use Mondu\Mondu\Helpers\ModuleHelper;
 use Psr\Log\LoggerInterface;
 
 class Factory
@@ -20,6 +22,15 @@ class Factory
     const ORDER_INVOICES = 'order_invoices';
 
     private $monduFileLogger;
+    /**
+     * @var HeadersHelper
+     */
+    private $headersHelper;
+
+    /**
+     * @var ModuleHelper
+     */
+    private $moduleHelper;
 
     private $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
@@ -37,10 +48,17 @@ class Factory
 
     private $objectManager;
 
-    public function __construct(ObjectManagerInterface $objectManager, \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger)
+    public function __construct(
+        ObjectManagerInterface $objectManager,
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger,
+        HeadersHelper $headersHelper,
+        ModuleHelper $moduleHelper
+    )
     {
         $this->objectManager = $objectManager;
         $this->monduFileLogger = $monduFileLogger;
+        $this->headersHelper = $headersHelper;
+        $this->moduleHelper = $moduleHelper;
     }
 
     public function create($method)
@@ -57,6 +75,8 @@ class Factory
 
         $this->monduFileLogger->info('Sending a request to mondu api, action: '. $method);
         $model = $this->objectManager->create($className);
+        $model->setCommonHeaders($this->headersHelper->getHeaders())
+            ->setEnvironmentInformation($this->moduleHelper->getEnvironmentInformation());
 
         return $model;
     }

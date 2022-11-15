@@ -2,17 +2,61 @@
 
 namespace Mondu\Mondu\Model\Request;
 
+use Magento\Framework\HTTP\Client\Curl;
+
 abstract class CommonRequest {
-    public function getHeaders($apiToken) {
-        return ['Content-Type' => 'application/json', 'Api-Token' => $apiToken, 'x-mondu-trace-id' => $this->getUUIDV4(), 'x-mondu-parent-span-id' => $this->getUUIDV4()];
+    /**
+     * @var Curl
+     */
+    protected $curl;
+    protected $envInformation;
+
+    public function process($params) {
+        $exception = null;
+        $data = null;
+
+        try {
+            $data = $this->request($params);
+        } catch (\Exception $e) {
+            $exception = $e;
+        }
+
+        $this->sendEvents($exception);
+        return $data;
     }
 
-    private function getUUIDV4(): string
+    public function setCommonHeaders($headers): CommonRequest
     {
-//        $data = PHP_MAJOR_VERSION < 7 ? openssl_random_pseudo_bytes(16) : random_bytes(16);
-        $data = random_bytes(16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);    // Set version to 0100
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);    // Set bits 6-7 to 10
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+        $this->curl->setHeaders($headers);
+        return $this;
+    }
+
+    public function setEnvironmentInformation($environment): CommonRequest
+    {
+        if(!isset($this->envInformation)) {
+            $this->envInformation = $environment;
+        }
+        return $this;
+    }
+
+    public function sendEvents($exception = null)
+    {
+        if (strval($this->curl->getStatus())[0] !== '2') {
+            $curlData = [
+                'status' => $this->curl->getStatus(),
+                'message' => $this->curl->getBody()
+            ];
+
+            $data = array_merge($this->envInformation, $curlData);
+
+            if ($exception) {
+                $data = array_merge($data, [
+                    'trace' => $exception->getTraceAsString(),
+                    'error_message' => $exception->getMessage()
+                ]);
+            }
+
+            if ($exception) throw $exception;
+        }
     }
 }
