@@ -27,9 +27,7 @@ class PaymentMethods extends CommonRequest implements RequestInterface {
 
     public function request($_params = null) {
         $url = $this->_configProvider->getApiUrl('payment_methods');
-        $this->curl->get($url);
-
-        $resultJson = $this->curl->getBody();
+        $resultJson = $this->sendRequestWithParams('get', $url);
 
         if($resultJson) {
             $result = json_decode($resultJson, true);

@@ -154,8 +154,6 @@ class OrderHelper
         }
 
         $order['gross_amount_cents'] = round($grandTotal, 2) * 100;
-
-
         return $order;
     }
 

@@ -31,9 +31,7 @@ class Confirm extends CommonRequest implements RequestInterface {
         }
         $url = $this->_configProvider->getApiUrl('orders').'/'.$params['orderUid'];
 
-        $this->curl->get($url);
-
-        $resultJson = $this->curl->getBody();
+        $resultJson = $this->sendRequestWithParams('get', $url);
         $result = json_decode($resultJson, true);
 
         if($this->_validate && !in_array($result['order']['state'], self::ORDER_STATE)) {

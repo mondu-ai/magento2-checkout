@@ -27,8 +27,7 @@ class Keys extends CommonRequest implements RequestInterface
     public function request($params = null): Keys
     {
         $url = $this->_configProvider->getApiUrl('webhooks/keys');
-        $this->curl->get($url);
-        $resultJson = $this->curl->getBody();
+        $resultJson = $this->sendRequestWithParams('get', $url);
 
         if($resultJson) {
             $result = json_decode($resultJson, true);

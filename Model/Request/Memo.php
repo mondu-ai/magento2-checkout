@@ -18,10 +18,7 @@ class Memo extends CommonRequest implements RequestInterface {
         $url = $this->_configProvider->getApiUrl('invoices').'/'.$params['invoice_uid'].'/credit_notes';
 
         unset($params['invoice_uid']);
-
-        $this->curl->post($url, json_encode($params));
-
-        $resultJson = $this->curl->getBody();
+        $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
 
         if($resultJson) {
             $result = json_decode($resultJson, true);

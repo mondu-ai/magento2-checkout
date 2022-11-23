@@ -57,11 +57,11 @@ class Transactions extends CommonRequest implements RequestInterface
             $url = $this->_configProvider->getApiUrl('orders');
 
             $this->curl->addHeader('X-Mondu-User-Agent', $_params['user-agent']);
-            $this->curl->post($url, $params);
 
-            $result = $this->curl->getBody();
+            $result = $this->sendRequestWithParams('post', $url, $params);
             $data = json_decode($result, true);
             $this->_checkoutSession->setMonduid(@$data['order']['uuid']);
+
             if(!@$data['order']['uuid']) {
                 return [
                     'error' => 1,

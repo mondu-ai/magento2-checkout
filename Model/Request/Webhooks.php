@@ -20,7 +20,7 @@ class Webhooks extends CommonRequest implements RequestInterface
     {
         $url = $this->_configProvider->getApiUrl('webhooks');
 
-        $this->curl->post($url, json_encode([
+        $this->sendRequestWithParams('post', $url, json_encode([
             'address' => $this->_configProvider->getWebhookUrl(),
             'topic' => $this->getTopic()
         ]));

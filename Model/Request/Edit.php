@@ -21,9 +21,7 @@ class Edit extends CommonRequest implements RequestInterface {
         }
         $url = $this->_configProvider->getApiUrl('orders').'/'.$this->uid.'/adjust';
 
-        $this->curl->post($url, json_encode($params));
-
-        $resultJson = $this->curl->getBody();
+        $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
 
         if($resultJson) {
             $result = json_decode($resultJson, true);
