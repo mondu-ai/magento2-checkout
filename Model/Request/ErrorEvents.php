@@ -21,9 +21,7 @@ class ErrorEvents extends CommonRequest implements RequestInterface {
 
     public function request($params) {
         $url = $this->_configProvider->getApiUrl('plugin/events');
-
         $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
-
         return json_decode($resultJson);
     }
 }

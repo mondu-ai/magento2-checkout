@@ -198,6 +198,19 @@ class OrderHelper
         return $invoice;
     }
 
+    public function handlePaymentMethodChange($order)
+    {
+        $prevOrderId = $order->getRelationParentId();
+        $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
+
+        if (!$log || !$log['reference_id']) {
+            return;
+        }
+
+        $this->_requestFactory->create(RequestFactory::CANCEL)
+            ->process(['orderUid' => $log['reference_id']]);
+    }
+
     private function getConfigurableItemIdMap($items): array
     {
         $mapping = [];

@@ -20,6 +20,11 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
     private $monduFileLogger;
     private $paymentMethodHelper;
 
+    /**
+     * @var OrderHelper
+     */
+    private $orderHelper;
+
     public function __construct(
         CheckoutSession $checkoutSession,
         RequestFactory $requestFactory,
@@ -49,14 +54,22 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         $payment = $order->getPayment();
         $createMonduDatabaseRecord = true;
 
+        $isEditOrder = $order->getRelationParentRealId() || $order->getRelationParentId();
+        $isMondu = $this->paymentMethodHelper->isMondu($payment);
+
         $this->monduFileLogger->info('Entered CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
-        if (!$this->paymentMethodHelper->isMondu($payment)) {
+        if($isEditOrder && !$isMondu) {
+            //checks if order with Mondu payment method was changed to other payment method and cancels Mondu order.
+            $this->orderHelper->handlePaymentMethodChange($order);
+        }
+
+        if (!$isMondu) {
             $this->monduFileLogger->info('Not a Mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }
 
-        if ($order->getRelationParentRealId() || $order->getRelationParentId()) {
+        if ($isEditOrder) {
             $this->monduFileLogger->info('Order has parent id, adjusting order in Mondu. ', ['orderNumber' => $order->getIncrementId()]);
             $this->handleOrderAdjustment($order);
             $orderUid = $order->getMonduReferenceId();
