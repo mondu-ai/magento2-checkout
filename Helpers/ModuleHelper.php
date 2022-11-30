@@ -42,6 +42,6 @@ class ModuleHelper {
 
     public function getModuleNameForApi(): string
     {
-        return 'MAGENTO2';
+        return 'magento2';
     }
 }
