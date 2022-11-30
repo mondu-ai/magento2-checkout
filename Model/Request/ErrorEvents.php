@@ -5,8 +5,9 @@ namespace Mondu\Mondu\Model\Request;
 use Magento\Framework\HTTP\Client\Curl;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class Cancel extends CommonRequest implements RequestInterface {
+class ErrorEvents extends CommonRequest implements RequestInterface {
     protected $curl;
+    protected $sendEvents = false;
     private $_configProvider;
 
     /**
@@ -19,15 +20,10 @@ class Cancel extends CommonRequest implements RequestInterface {
     }
 
     public function request($params) {
-        $url = $this->_configProvider->getApiUrl('orders').'/'.$params['orderUid'].'/cancel';
+        $url = $this->_configProvider->getApiUrl('plugin/events');
 
-        unset($params['orderUid']);
-        $resultJson = $this->sendRequestWithParams('post', $url, json_encode([]));
+        $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
 
-        if($resultJson) {
-            $result = json_decode($resultJson, true);
-        }
-
-        return $result ?? null;
+        return json_decode($resultJson);
     }
 }

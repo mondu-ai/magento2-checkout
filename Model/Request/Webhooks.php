@@ -8,7 +8,7 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 class Webhooks extends CommonRequest implements RequestInterface
 {
     public $_topic;
-    private $curl;
+    protected $curl;
     private $_configProvider;
 
     public function __construct(Curl $curl, ConfigProvider $configProvider) {
@@ -16,15 +16,11 @@ class Webhooks extends CommonRequest implements RequestInterface
         $this->_configProvider = $configProvider;
     }
 
-    public function process($params = null): Webhooks
+    public function request($params = null): Webhooks
     {
-        $api_token = $this->_configProvider->getApiKey();
         $url = $this->_configProvider->getApiUrl('webhooks');
-        $headers = $this->getHeaders($api_token);
 
-        $this->curl->setHeaders($headers);
-
-        $this->curl->post($url, json_encode([
+        $this->sendRequestWithParams('post', $url, json_encode([
             'address' => $this->_configProvider->getWebhookUrl(),
             'topic' => $this->getTopic()
         ]));

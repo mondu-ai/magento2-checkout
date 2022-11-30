@@ -2,7 +2,6 @@
 
 namespace Mondu\Mondu\Model\Request\Webhooks;
 
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Mondu\Mondu\Model\Request\CommonRequest;
 use Mondu\Mondu\Model\Request\RequestInterface;
@@ -10,25 +9,25 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Keys extends CommonRequest implements RequestInterface
 {
-    private $curl;
+    protected $curl;
     private $_configProvider;
 
     public $_webhookSecret;
     public $_responseStatus;
 
+    /**
+     * @param Curl $curl
+     * @param ConfigProvider $configProvider
+     */
     public function __construct(Curl $curl, ConfigProvider $configProvider) {
         $this->curl = $curl;
         $this->_configProvider = $configProvider;
     }
 
-    public function process($params = null): Keys
+    public function request($params = null): Keys
     {
-        $api_token = $this->_configProvider->getApiKey();
         $url = $this->_configProvider->getApiUrl('webhooks/keys');
-        $headers = $this->getHeaders($api_token);
-        $this->curl->setHeaders($headers);
-        $this->curl->get($url);
-        $resultJson = $this->curl->getBody();
+        $resultJson = $this->sendRequestWithParams('get', $url);
 
         if($resultJson) {
             $result = json_decode($resultJson, true);

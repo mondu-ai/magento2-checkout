@@ -4,7 +4,6 @@ namespace Mondu\Mondu\Model\Request;
 use \Magento\Framework\HTTP\Client\Curl;
 use \Magento\Quote\Model\Cart\CartTotalRepository;
 use \Magento\Checkout\Model\Session as CheckoutSession;
-use \Magento\Framework\App\Config\ScopeConfigInterface;
 use \Magento\Quote\Model\Quote;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -14,30 +13,35 @@ class Transactions extends CommonRequest implements RequestInterface
     protected $_checkoutSession;
     protected $_cartTotalRepository;
     protected $_config;
-    protected $_scopeConfigInterface;
     protected $_configProvider;
 
-    private $curl;
+    protected $curl;
     private $fallbackEmail;
     private $orderHelper;
 
+    /**
+     * @param Curl $curl
+     * @param CartTotalRepository $cartTotalRepository
+     * @param CheckoutSession $checkoutSession
+     * @param ConfigProvider $configProvider
+     * @param OrderHelper $orderHelper
+     */
     public function __construct(
         Curl $curl,
         CartTotalRepository $cartTotalRepository,
         CheckoutSession $checkoutSession,
-        ScopeConfigInterface $scopeConfigInterface,
         ConfigProvider $configProvider,
         OrderHelper $orderHelper
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_cartTotalRepository = $cartTotalRepository;
-        $this->_scopeConfigInterface = $scopeConfigInterface;
         $this->_configProvider = $configProvider;
         $this->curl = $curl;
         $this->orderHelper = $orderHelper;
     }
 
-    public function process($_params = []) {
+    public function request($_params = []): array
+    {
         try {
             if(@$_params['email']) {
                 $this->fallbackEmail = $_params['email'];
@@ -50,18 +54,14 @@ class Transactions extends CommonRequest implements RequestInterface
 
             $params = json_encode($params);
 
-            $api_token = $this->_scopeConfigInterface->getValue('payment/mondu/mondu_key');
             $url = $this->_configProvider->getApiUrl('orders');
 
-            $headers = $this->getHeaders($api_token);
-            $headers['X-Mondu-User-Agent'] = $_params['user-agent'];
+            $this->curl->addHeader('X-Mondu-User-Agent', $_params['user-agent']);
 
-            $this->curl->setHeaders($headers);
-            $this->curl->post($url, $params);
-
-            $result = $this->curl->getBody();
+            $result = $this->sendRequestWithParams('post', $url, $params);
             $data = json_decode($result, true);
             $this->_checkoutSession->setMonduid(@$data['order']['uuid']);
+
             if(!@$data['order']['uuid']) {
                 return [
                     'error' => 1,

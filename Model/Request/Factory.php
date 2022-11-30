@@ -3,23 +3,35 @@ namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
+use Mondu\Mondu\Helpers\HeadersHelper;
+use Mondu\Mondu\Helpers\ModuleHelper;
 use Psr\Log\LoggerInterface;
 
 class Factory
 {
-    const TRANSACTIONS_REQUEST_METHOD = 'transactions';
-    const TRANSACTION_CONFIRM_METHOD = 'confirm';
-    const SHIP_ORDER = 'ship';
-    const CANCEL = 'cancel';
-    const MEMO = 'memo';
-    const WEBHOOKS_KEYS_REQUEST_METHOD = 'webhooks/keys';
-    const WEBHOOKS_REQUEST_METHOD = 'webhooks';
-    const ADJUST_ORDER = 'adjust';
-    const EDIT_ORDER = 'edit';
-    const PAYMENT_METHODS = 'payment_methods';
-    const ORDER_INVOICES = 'order_invoices';
+    const TRANSACTIONS_REQUEST_METHOD = 'CREATE_ORDER';
+    const TRANSACTION_CONFIRM_METHOD = 'GET_ORDER';
+    const SHIP_ORDER = 'CREATE_INVOICE';
+    const CANCEL = 'CANCEL_ORDER';
+    const MEMO = 'CREATE_CREDIT_NOTE';
+    const WEBHOOKS_KEYS_REQUEST_METHOD = 'GET_WEBHOOK_KEY';
+    const WEBHOOKS_REQUEST_METHOD = 'CREATE_WEBHOOK';
+    const ADJUST_ORDER = 'ADJUST_ORDER_2';
+    const EDIT_ORDER = 'ADJUST_ORDER';
+    const PAYMENT_METHODS = 'GET_PAYMENT_METHODS';
+    const ORDER_INVOICES = 'GET_ORDER_INVOICES';
+    const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
 
     private $monduFileLogger;
+    /**
+     * @var HeadersHelper
+     */
+    private $headersHelper;
+
+    /**
+     * @var ModuleHelper
+     */
+    private $moduleHelper;
 
     private $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
@@ -33,14 +45,22 @@ class Factory
         self::EDIT_ORDER => \Mondu\Mondu\Model\Request\Edit::class,
         self::PAYMENT_METHODS => \Mondu\Mondu\Model\Request\PaymentMethods::class,
         self::ORDER_INVOICES => \Mondu\Mondu\Model\Request\OrderInvoices::class,
+        self::ERROR_EVENTS => \Mondu\Mondu\Model\Request\ErrorEvents::class,
     ];
 
     private $objectManager;
 
-    public function __construct(ObjectManagerInterface $objectManager, \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger)
+    public function __construct(
+        ObjectManagerInterface $objectManager,
+        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger,
+        HeadersHelper $headersHelper,
+        ModuleHelper $moduleHelper
+    )
     {
         $this->objectManager = $objectManager;
         $this->monduFileLogger = $monduFileLogger;
+        $this->headersHelper = $headersHelper;
+        $this->moduleHelper = $moduleHelper;
     }
 
     public function create($method)
@@ -57,6 +77,13 @@ class Factory
 
         $this->monduFileLogger->info('Sending a request to mondu api, action: '. $method);
         $model = $this->objectManager->create($className);
+        $model->setCommonHeaders($this->headersHelper->getHeaders())
+            ->setEnvironmentInformation($this->moduleHelper->getEnvironmentInformation())
+            ->setRequestOrigin($method);
+
+        if ($method !== self::ERROR_EVENTS) {
+            $model->setErrorEventsHandler($this->create(self::ERROR_EVENTS));
+        }
 
         return $model;
     }
