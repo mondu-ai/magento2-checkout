@@ -78,15 +78,9 @@ class OrderHelper
         }
 
         $orderUid = $log['reference_id'];
-        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
-        $quote->collectTotals();
-        $adjustment =  [
-            'currency' => $quote->getBaseCurrencyCode(),
-            'external_reference_id' => $order->getIncrementId(),
-        ];
 
-        $adjustment = $this->addLinesOrGrossAmountToOrder($quote, $quote->getBaseGrandTotal(), $adjustment, true);
-        $adjustment = $this->addAmountToOrder($quote, $adjustment);
+        $adjustment = $this->getOrderAdjustmentData($order);
+
         try {
             $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
                 ->setOrderUid($orderUid)
@@ -108,6 +102,32 @@ class OrderHelper
             $order->save();
             throw new LocalizedException(__('Mondu api error: '. $e->getMessage()));
         }
+    }
+
+    private function getOrderAdjustmentData($order): array
+    {
+        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
+        $quote->collectTotals();
+        
+        if($quote->getId()) {
+            $adjustment =  [
+                'currency' => $quote->getBaseCurrencyCode(),
+                'external_reference_id' => $order->getIncrementId(),
+            ];
+    
+            $adjustment = $this->addLinesOrGrossAmountToOrder($quote, $quote->getBaseGrandTotal(), $adjustment, true);
+            $adjustment = $this->addAmountToOrder($quote, $adjustment);    
+            return $adjustment;
+        }
+        
+        return [
+            'currency' => $order->getBaseCurrencyCode(),
+            'external_reference_id' => $order->getIncrementId(),
+            'gross_amount_cents' => round($order->getBaseGrandTotal(), 2) * 100,
+            'amount' => [
+                'gross_amount_cents' => round($order->getBaseGrandTotal(), 2) * 100
+            ]
+        ];
     }
 
     private function getLineItemsFromQuote(Quote $quote): array
@@ -196,6 +216,19 @@ class OrderHelper
         }
 
         return $invoice;
+    }
+
+    public function handlePaymentMethodChange($order)
+    {
+        $prevOrderId = $order->getRelationParentId();
+        $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
+
+        if (!$log || !$log['reference_id']) {
+            return;
+        }
+
+        $this->_requestFactory->create(RequestFactory::CANCEL)
+            ->process(['orderUid' => $log['reference_id']]);
     }
 
     private function getConfigurableItemIdMap($items): array
