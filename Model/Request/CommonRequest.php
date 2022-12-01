@@ -83,7 +83,7 @@ abstract class CommonRequest implements RequestInterface {
                     'error_trace' => json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))
                 ]);
             }
-            
+
             $this->errorEventsHandler->process($data);
         }
     }
