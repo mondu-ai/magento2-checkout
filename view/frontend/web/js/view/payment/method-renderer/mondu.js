@@ -24,7 +24,7 @@ define([
             transactionResult: "",
             monduSkdLoaded: false,
         },
-        isBillingSameAsShippng: true,
+        isBillingSameAsShipping: true,
 
         initObservable: function () {
             self = this;
@@ -126,7 +126,7 @@ define([
             if (event) {
                 event.preventDefault();
             }
-            if (self.isBillingSameAsShippng) {
+            if (self.isBillingSameAsShipping) {
                 quote.billingAddress(quote.shippingAddress());
             }
             $("body").trigger("processStart");
