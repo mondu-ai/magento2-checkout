@@ -7,6 +7,7 @@ use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollection
 use Mondu\Mondu\Helpers\Log as MonduLogs;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Magento\Sales\Model\Order;
 
 class BulkActions {
     const BULK_SHIP_ACTION = 'bulkShipAction';
@@ -93,11 +94,7 @@ class BulkActions {
         $this->monduFileLogger->info('Order ' . $order->getIncrementId() . ' Trying to create invoice, entering shipOrder');
 
         if(!$this->configProvider->isInvoiceRequiredForShipping()) {
-            $data = $this->invoiceOrderHelper->createInvoiceForWholeOrder($order);
-            if(@$data['errors']) {
-                throw new Exception($order->getIncrementId());
-            }
-            return $order->getIncrementId();
+            return $this->shipOrderWithoutInvoices($order);
         } elseif($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
             $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Successfully created invoice', ['monduInvoice' => $monduInvoice]);
             return $order->getIncrementId();
@@ -250,5 +247,14 @@ class BulkActions {
         }
 
         return $monduLogData;
+    }
+
+    private function shipOrderWithoutInvoices(Order $order) {
+        $data = $this->invoiceOrderHelper->createInvoiceForWholeOrder($order);
+        if(@$data['errors']) {
+            throw new Exception($order->getIncrementId());
+        }
+
+        return $order->getIncrementId();
     }
 }

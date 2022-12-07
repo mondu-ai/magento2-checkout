@@ -56,12 +56,4 @@ class InvoiceOrderHelper
 
         return $data;
     }
-
-    /**
-     * creates invoices for each item in order invoices collection
-     * @param Order $order
-     */
-    public function createInvoicesForOrder(Order $order) {
-        return;
-    }
 }
