@@ -18,6 +18,10 @@ class BulkActions {
     private $configProvider;
     private $monduFileLogger;
     private $orderHelper;
+    /**
+     * @var InvoiceOrderHelper
+     */
+    private $invoiceOrderHelper;
 
     public function __construct(
         OrderCollectionFactory $orderCollectionFactory,
@@ -25,7 +29,8 @@ class BulkActions {
         RequestFactory $requestFactory,
         ConfigProvider $configProvider,
         \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger,
-        OrderHelper $orderHelper
+        OrderHelper $orderHelper,
+        InvoiceOrderHelper $invoiceOrderHelper
     ) {
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->monduLogs = $monduLogs;
@@ -33,6 +38,7 @@ class BulkActions {
         $this->configProvider = $configProvider;
         $this->monduFileLogger = $monduFileLogger;
         $this->orderHelper = $orderHelper;
+        $this->invoiceOrderHelper = $invoiceOrderHelper;
     }
 
     private function prepareData($orderIds) {
@@ -86,7 +92,13 @@ class BulkActions {
         $monduLogData = $this->getMonduLogData($order);
         $this->monduFileLogger->info('Order ' . $order->getIncrementId() . ' Trying to create invoice, entering shipOrder');
 
-        if($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
+        if(!$this->configProvider->isInvoiceRequiredForShipping()) {
+            $data = $this->invoiceOrderHelper->createInvoiceForWholeOrder($order);
+            if(@$data['errors']) {
+                throw new Exception($order->getIncrementId());
+            }
+            return $order->getIncrementId();
+        } elseif($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
             $this->monduFileLogger->info('Order '. $order->getIncrementId(). ' Successfully created invoice', ['monduInvoice' => $monduInvoice]);
             return $order->getIncrementId();
         }

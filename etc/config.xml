@@ -18,6 +18,7 @@
                 <specificcountry>DE</specificcountry>
                 <sort_order>1</sort_order>
                 <send_lines>1</send_lines>
+                <require_invoice>1</require_invoice>
             </mondu>
             <mondusepa>
                 <sort_order>2</sort_order>
