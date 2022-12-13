@@ -27,7 +27,7 @@ define([
         isBillingSameAsShipping: true,
 
         initObservable: function () {
-            self = this;
+            var self = this;
             self._super().observe(["transactionResult"]);
             billingAddress().isAddressSameAsShipping.subscribe(function (
               isSame
@@ -73,11 +73,13 @@ define([
         },
 
         getMonduCheckoutTokenUrl: function () {
+            var self = this;
             return window.checkoutConfig.payment[self.getCode()]
               .monduCheckoutTokenUrl;
         },
 
         getMonduSdkUrl: function () {
+            var self = this;
             return window.checkoutConfig.payment[self.getCode()].sdkUrl;
         },
 
