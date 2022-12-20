@@ -1,48 +1,32 @@
 <?php
 namespace Mondu\Mondu\Observer;
 
-use Magento\Framework\Message\ManagerInterface;
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
-use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
-use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Helpers\InvoiceOrderHelper;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 {
     protected $_monduLogger;
-    private $_requestFactory;
-    private $_config;
     private $monduFileLogger;
     private $paymentMethodHelper;
-    private $orderHelper;
-    private $messageManager;
     /**
      * @var InvoiceOrderHelper
      */
     private $invoiceOrderhelper;
 
     public function __construct(
-        RequestFactory $requestFactory,
-        ConfigProvider $config,
         Log $logger,
         MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
-        OrderHelper $orderHelper,
-        ManagerInterface $messageManager,
         InvoiceOrderHelper $invoiceOrderhelper
     )
     {
-        $this->_requestFactory = $requestFactory;
-        $this->_config = $config;
         $this->_monduLogger = $logger;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
-        $this->orderHelper = $orderHelper;
-        $this->messageManager = $messageManager;
         $this->invoiceOrderhelper = $invoiceOrderhelper;
     }
 
