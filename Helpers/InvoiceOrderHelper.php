@@ -81,8 +81,8 @@ class InvoiceOrderHelper
             $this->validateQuantities($order, $shipment, $createdInvoices);
             $this->createOrderInvoices($order, $shipment, $monduLog);
         } else {
-            $invoiceData = $this->invoiceOrderhelper->createInvoiceForWholeOrder($order);
-            $this->handleInvoiceOrderErrors($invoiceData, $monduId);
+            $invoiceData = $this->createInvoiceForWholeOrder($order);
+            $this->handleInvoiceOrderErrors($monduId, $invoiceData);
         }
     }
     /**
@@ -202,7 +202,7 @@ class InvoiceOrderHelper
 
         if(@$data['errors']) {
             $this->monduFileLogger->info('InvoiceOrderHelper: handleInvoiceOrderErrors', ['errors' => $data['errors']]);
-            throw new LocalizedException(__($data['errors'][0]['name']. ' '. $data['errors'][0]['details']));
+            throw new LocalizedException(__('Mondu: '. $data['errors'][0]['name']. ' '. $data['errors'][0]['details']));
         }
 
         return true;
