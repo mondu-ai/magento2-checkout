@@ -21,7 +21,7 @@ General configuration,Allgemeine Konfiguration
 Enable Bank Transfer,Rechnungskauf aktivieren
 Ensble SEPA Direct Debit,SEPA-Lastschrift aktivieren
 Enable Split Payments,Ratenkauf aktivieren
-Bank Transfer Title,Titel Rechnungskauf 
+Bank Transfer Title,Titel Rechnungskauf
 SEPA Direct Debit Title,Titel der SEPA-Lastschrift
 Split Payments Title,Titel Ratenkauf
 Enable automatic order processing,Automatische Bestellabwicklung einschalten
