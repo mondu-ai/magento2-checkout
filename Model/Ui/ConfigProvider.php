@@ -166,6 +166,11 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return (bool) $this->scopeConfig->getValue('payment/mondu/send_lines');
     }
 
+    public function isInvoiceRequiredForShipping()
+    {
+        return (bool) $this->scopeConfig->getValue('payment/mondu/require_invoice');
+    }
+
     public function clearConfigurationCache()
     {
         $this->cacheTypeList->cleanType('config');

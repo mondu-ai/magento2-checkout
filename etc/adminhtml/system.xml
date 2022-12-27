@@ -22,6 +22,12 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/send_lines</config_path>
                     </field>
+                    <field id="mondu_require_invoice" translate="label" type="select" sortOrder="32" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Require invoice for shipment</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/mondu/require_invoice</config_path>
+                    </field>
                     <field id="sandbox" translate="label" type="select" sortOrder="85" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Sandbox mode</label>
