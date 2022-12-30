@@ -15,8 +15,9 @@ jobs:
     secrets: inherit
     with:
       asset_creation_script: |
-        UPDATE_URL="https://packagist.org/api/update-package?username=MonduPlugins&apiToken=${{ secrets.PACKAGE_URL }}"
-
-        curl -XPOST -H "content-type:application/json" "${UPDATE_URL}" -d "{\"repository\":{\"url\":\"${{ secrets.API_TOKEN }}\"}}"
-
         echo "FILES=""" >> $GITHUB_ENV
+
+      post_script: |
+        UPDATE_URL="https://packagist.org/api/update-package?username=MonduPlugins&apiToken=${{ secrets.API_TOKEN }}"
+
+        curl -XPOST -H "content-type:application/json" "${UPDATE_URL}" -d "{\"repository\":{\"url\":\"${{ secrets.PACKAGE_URL }}\"}}"
