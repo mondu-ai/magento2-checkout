@@ -18,6 +18,6 @@ jobs:
         echo "FILES=""" >> $GITHUB_ENV
 
       post_script: |
-        UPDATE_URL="https://packagist.org/api/update-package?username=MonduPlugins&apiToken=${{ secrets.API_TOKEN }}"
+        UPDATE_URL="https://packagist.org/api/update-package?username=MonduPlugins&apiToken=${{ secrets.MAGENTO_2_PACKAGIST_API_TOKEN }}"
 
         curl -XPOST -H "content-type:application/json" "${UPDATE_URL}" -d "{\"repository\":{\"url\":\"${{ secrets.PACKAGE_URL }}\"}}"
