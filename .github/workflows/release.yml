@@ -1,0 +1,23 @@
+name: Release auto update
+
+on:
+  pull_request:
+    types:
+    - closed
+    branches: 
+    - main
+
+jobs:
+  release:
+    name: auto_release
+    if: github.event.pull_request.merged == true
+    uses: mondu-ai/release-action/.github/workflows/release-update.yml@master
+    secrets: inherit
+    with:
+      asset_creation_script: |
+        echo "FILES=""" >> $GITHUB_ENV
+
+      post_script: |
+        UPDATE_URL="https://packagist.org/api/update-package?username=MonduPlugins&apiToken=${{ secrets.MAGENTO_2_PACKAGIST_API_TOKEN }}"
+
+        curl -XPOST -H "content-type:application/json" "${UPDATE_URL}" -d "{\"repository\":{\"url\":\"${{ secrets.MAGENTO_2_PACKAGIST_PACKAGE_URL }}\"}}"
