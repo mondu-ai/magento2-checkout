@@ -52,7 +52,7 @@ if [[ $changes == "keep" ]]; then
     echo "Pushing changes to default branch on remote"
     default_branch=$(git remote show origin | sed -n "/HEAD branch/s/.*: //p")
 
-    git commit -m "Updated semver in compose.json"
+    git commit -m "Updated semver in compose.json etc/module.xml"
     git push origin "${default_branch}" -f
 fi
 
