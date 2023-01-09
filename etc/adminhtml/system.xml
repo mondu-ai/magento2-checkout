@@ -50,53 +50,67 @@
                         <label>Bank Transfer Title</label>
                         <config_path>payment/mondu/title</config_path>
                     </field>
-                    <field id="activesepa" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1"
+                    <field id="description" translate="label" type="textarea" sortOrder="3" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Bank Transfer Description</label>
+                        <config_path>payment/mondu/description</config_path>
+                    </field>
+                    <field id="activesepa" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Enable SEPA Direct Debit</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondusepa/active</config_path>
                     </field>
-
-                    <field id="sepa_title" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1"
+                    <field id="sepa_title" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>SEPA Direct Debit Title</label>
                         <config_path>payment/mondusepa/title</config_path>
                     </field>
-                    <field id="activeinstallment" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1"
+                    <field id="sepa_description" translate="label" type="textarea" sortOrder="6" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>SEPA Direct Debit Description</label>
+                        <config_path>payment/mondusepa/description</config_path>
+                    </field>
+                    <field id="activeinstallment" translate="label" type="select" sortOrder="7" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Enable Split Payments</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/monduinstallment/active</config_path>
                     </field>
-                    <field id="installment_title" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1"
+                    <field id="installment_title" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Split Payments Title</label>
                         <config_path>payment/monduinstallment/title</config_path>
                     </field>
-                    <field id="order_status" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <field id="installment_description" translate="label" type="textarea" sortOrder="9" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Split Payments Description</label>
+                        <config_path>payment/monduinstallment/description</config_path>
+                    </field>
+                    <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" canRestore="1">
                         <label>New Order Status</label>
                         <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
                         <config_path>payment/mondu/order_status</config_path>
                     </field>
-                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="7" showInDefault="9"
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="11" showInDefault="9"
                            showInWebsite="1" showInStore="1">
                         <label>Payment From Applicable Countries</label>
                         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                         <config_path>payment/mondu/allowspecific</config_path>
                     </field>
-                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="8" showInDefault="1"
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="12" showInDefault="1"
                            showInWebsite="1" showInStore="1">
                         <label>Payment From Specific Countries</label>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/mondu/specificcountry</config_path>
                     </field>
-                    <field id="cron" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1"
+                    <field id="cron" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Enable automatic order processing</label>
                         <config_path>payment/mondu/cron</config_path>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
-                    <field id="debug" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1"
+                    <field id="debug" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Enable Logs</label>
                         <config_path>payment/mondu/debug</config_path>

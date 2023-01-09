@@ -103,7 +103,15 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function getConfig()
     {
-        $description = __("Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
+        $privacyText = __("Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
+        $descriptionConfigMondu = $this->scopeConfig->getValue('payment/mondu/description');
+        $descriptionConfigMondusepa = $this->scopeConfig->getValue('payment/mondusepa/description');
+        $descriptionConfigMonduinstallment = $this->scopeConfig->getValue('payment/monduinstallment/description');
+        
+        $descriptionMondu = $descriptionConfigMondu ? __($descriptionConfigMondu) . '<br><br>' . $privacyText : $privacyText;
+        $descriptionMondusepa = $descriptionConfigMondusepa ? __($descriptionConfigMondusepa) . '<br><br>' . $privacyText : $privacyText;
+        $descriptionMonduinstallment = $descriptionConfigMonduinstallment ? __($descriptionConfigMonduinstallment) . '<br><br>' . $privacyText : $privacyText;
+        
         return [
             'payment' => [
                 self::CODE => [
@@ -113,19 +121,19 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                         ClientMock::FAILURE => __('Fraud'),
                     ],
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => __($description),
+                    'description' => $descriptionMondu,
                     'title' => __($this->scopeConfig->getValue('payment/mondu/title'))
                 ],
                 'mondusepa' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => __($description),
+                    'description' => $descriptionMondusepa,
                     'title' => __($this->scopeConfig->getValue('payment/mondusepa/title'))
                 ],
                 'monduinstallment' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
-                    'description' => __($description),
+                    'description' => $descriptionMonduinstallment,
                     'title' => __($this->scopeConfig->getValue('payment/monduinstallment/title'))
                 ]
             ]
