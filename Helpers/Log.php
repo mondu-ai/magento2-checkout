@@ -59,6 +59,7 @@ class Log extends AbstractHelper
             'mode' => $this->_configProvider->getMode(),
             'addons' => json_encode($addons),
             'payment_method' => $paymentMethod,
+            'authorized_net_term' => $response['authorized_net_term'] ?? 0,
             'invoice_iban' => @$response['merchant']['viban'] ?? null
         );
         $monduLogger->addData($logData);
