@@ -8,6 +8,7 @@ use Mondu\Mondu\Gateway\Http\Client\ClientMock;
 use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
@@ -104,9 +105,9 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     public function getConfig()
     {
         $privacyText = __("Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
-        $descriptionConfigMondu = $this->scopeConfig->getValue('payment/mondu/description');
-        $descriptionConfigMondusepa = $this->scopeConfig->getValue('payment/mondusepa/description');
-        $descriptionConfigMonduinstallment = $this->scopeConfig->getValue('payment/monduinstallment/description');
+        $descriptionConfigMondu = $this->scopeConfig->getValue('payment/mondu/description', ScopeInterface::SCOPE_STORE);
+        $descriptionConfigMondusepa = $this->scopeConfig->getValue('payment/mondusepa/description', ScopeInterface::SCOPE_STORE);
+        $descriptionConfigMonduinstallment = $this->scopeConfig->getValue('payment/monduinstallment/description', ScopeInterface::SCOPE_STORE);
         
         $descriptionMondu = $descriptionConfigMondu ? __($descriptionConfigMondu) . '<br><br>' . $privacyText : $privacyText;
         $descriptionMondusepa = $descriptionConfigMondusepa ? __($descriptionConfigMondusepa) . '<br><br>' . $privacyText : $privacyText;
