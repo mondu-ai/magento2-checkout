@@ -22,7 +22,6 @@ abstract class CommonRequest implements RequestInterface {
     public function process($params = null) {
         $exception = null;
         $data = null;
-
         try {
             $data = $this->request($params);
         } catch (\Exception $e) {
@@ -59,6 +58,7 @@ abstract class CommonRequest implements RequestInterface {
         if(!isset($this->requestOrigin)) {
             $this->requestOrigin = $origin;
         }
+        return $this;
     }
 
     public function sendEvents($exception = null)

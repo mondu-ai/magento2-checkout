@@ -2,14 +2,32 @@
 namespace Mondu\Mondu\Helpers;
 
 use Mondu\Mondu\Model\PaymentMethodList;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class DataPlugin {
-    public function __construct(PaymentMethodList $paymentMethodList)
+    /**
+     * @var PaymentMethodList
+     */
+    private $paymentMethodList;
+
+    /**
+     * @var ConfigProvider
+     */
+    private $configProvider;
+    public function __construct(
+        PaymentMethodList $paymentMethodList,
+        ConfigProvider $configProvider
+    )
     {
         $this->paymentMethodList = $paymentMethodList;
+        $this->configProvider = $configProvider;
     }
 
     public function afterGetPaymentMethods(\Magento\Payment\Helper\Data $subject, $result) {
+        if(!$this->configProvider->isActive()) {
+            return $result;
+        }
+
         return $this->paymentMethodList->filterMonduPaymentMethods($result);
     }
 

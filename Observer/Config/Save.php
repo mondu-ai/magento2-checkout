@@ -2,15 +2,20 @@
 namespace Mondu\Mondu\Observer\Config;
 
 use Magento\Framework\Event\Observer;
+use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Save implements ObserverInterface {
 
     private $_requestFactory;
     private $_monduConfig;
+    /**
+     * @var PaymentMethod
+     */
+    private $paymentMethod;
     private $_subscriptions = [
         'order/confirmed',
         'order/declined',
@@ -18,9 +23,14 @@ class Save implements ObserverInterface {
         'order/canceled'
     ];
 
-    public function __construct(RequestFactory $requestFactory, ConfigProvider $monduConfig) {
+    public function __construct(
+        RequestFactory $requestFactory,
+        ConfigProvider $monduConfig,
+        PaymentMethod $paymentMethod
+    ) {
         $this->_requestFactory = $requestFactory;
         $this->_monduConfig = $monduConfig;
+        $this->paymentMethod = $paymentMethod;
     }
 
     /**
@@ -33,6 +43,7 @@ class Save implements ObserverInterface {
            if ($this->_monduConfig->getApiKey()) {
                try {
                    $this->_monduConfig->updateNewOrderStatus();
+                   $this->paymentMethod->resetAllowedCache();
 
                    $this->_requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
                        ->process()

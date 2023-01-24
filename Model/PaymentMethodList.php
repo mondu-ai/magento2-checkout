@@ -19,9 +19,8 @@ class PaymentMethodList
     private $paymentMethods = [];
 
     /**
-     * @param Factory $methodFactory
+     * @var PaymentMethod
      */
-
     private $paymentMethodHelper;
 
     public function __construct(
