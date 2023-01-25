@@ -52,8 +52,13 @@ class PaymentMethod {
             $this->cache->save(json_encode($result), 'mondu_payment_methods', [], 3600);
             return $result;
         } catch (\Exception $e) {
+            $this->cache->save(json_encode([]), 'mondu_payment_methods', [], 3600);
             return [];
         }
+    }
+
+    public function resetAllowedCache() {
+        $this->cache->remove('mondu_payment_methods');
     }
 
     public function isMondu($method): bool

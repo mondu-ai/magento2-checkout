@@ -22,7 +22,6 @@ abstract class CommonRequest implements RequestInterface {
     public function process($params = null) {
         $exception = null;
         $data = null;
-
         try {
             $data = $this->request($params);
         } catch (\Exception $e) {
@@ -59,11 +58,13 @@ abstract class CommonRequest implements RequestInterface {
         if(!isset($this->requestOrigin)) {
             $this->requestOrigin = $origin;
         }
+        return $this;
     }
 
     public function sendEvents($exception = null)
     {
-        if (strval($this->curl->getStatus())[0] !== '2') {
+        $statusFirstDigit = strval($this->curl->getStatus())[0];
+        if ($statusFirstDigit !== '1' && $statusFirstDigit !== '2') {
             $curlData = [
                 'response_status' => (string) $this->curl->getStatus(),
                 'response_body' => json_decode($this->curl->getBody(), true) ?? [],
@@ -91,6 +92,11 @@ abstract class CommonRequest implements RequestInterface {
     public function sendRequestWithParams($method, $url, $params = null)
     {
         $this->requestParams = $params;
+
+        if($method ==='post') {
+            // Ensure we never send the "Expect: 100-continue" header
+            $this->curl->addHeader('Expect', '');
+        }
 
         if ($params) {
             $this->curl->{$method}($url, $params);
