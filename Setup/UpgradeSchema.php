@@ -76,8 +76,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
         }
 
         if ($installer->getConnection()->tableColumnExists($tableName, 'authorized_net_term') === false) {
-            $installer->getConnection()->addColumn('authorized_net_term', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
-                'unsigned'  => true,
+            $installer->getConnection()->addColumn($tableName, 'authorized_net_term', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                    'unsigned'  => true,
+                    'nullable'  => true,
             ), 'Mondu authorized net term');
         }
 
