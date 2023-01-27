@@ -11,7 +11,7 @@
                 <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
                 <title>Pay later via bank transfer</title>
-                <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
+                <description></description>
                 <sandbox>1</sandbox>
                 <cron>0</cron>
                 <allowspecific>1</allowspecific>
@@ -26,7 +26,7 @@
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
                 <order_status>pending</order_status>
-                <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
+                <description></description>
                 <title>Pay later via SEPA Direct Debit</title>
             </mondusepa>
             <monduinstallment>
@@ -35,7 +35,7 @@
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduInstallment</model>
                 <order_status>pending</order_status>
-                <description>Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie hier.</description>
+                <description></description>
                 <title>Split Payments</title>
             </monduinstallment>
         </payment>
