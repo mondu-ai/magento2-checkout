@@ -8,7 +8,7 @@
                 <fieldset_css>complex mondu-section</fieldset_css>
                 <frontend_model>Mondu\Mondu\Block\Adminhtml\Config\Payment</frontend_model>
                 <group id="monduapi" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
-                       showInStore="1">
+                       showInStore="0">
                     <label>Api Configuration</label>
                     <field id="mondu_key" translate="label" type="obscure" sortOrder="30" showInDefault="1"
                            showInWebsite="1" showInStore="1">
