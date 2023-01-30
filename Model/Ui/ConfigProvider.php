@@ -123,19 +123,19 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                     ],
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondu,
-                    'title' => __($this->scopeConfig->getValue('payment/mondu/title'))
+                    'title' => __($this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE))
                 ],
                 'mondusepa' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondusepa,
-                    'title' => __($this->scopeConfig->getValue('payment/mondusepa/title'))
+                    'title' => __($this->scopeConfig->getValue('payment/mondusepa/title', ScopeInterface::SCOPE_STORE))
                 ],
                 'monduinstallment' => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMonduinstallment,
-                    'title' => __($this->scopeConfig->getValue('payment/monduinstallment/title'))
+                    'title' => __($this->scopeConfig->getValue('payment/monduinstallment/title', ScopeInterface::SCOPE_STORE))
                 ]
             ]
         ];
