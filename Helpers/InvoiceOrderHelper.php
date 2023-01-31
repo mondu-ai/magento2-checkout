@@ -103,8 +103,17 @@ class InvoiceOrderHelper
         $data = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
             ->process($body);
         
-        if(!@$data['errors']) {
+        if($data && !@$data['errors']) {
             $this->monduLogger->updateLogSkipObserver($monduId, true);
+
+            $invoiceMapping[$order->getIncrementId()] = [
+                'uuid' => $data['invoice']['uuid'],
+                'state' => $data['invoice']['state'],
+                'local_id' => $order->getIncrementId()
+            ];
+
+            $this->monduLogger->updateLogInvoice($monduId, $invoiceMapping);
+
             $this->monduLogger->syncOrder($monduId);
         }
 
