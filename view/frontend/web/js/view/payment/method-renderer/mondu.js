@@ -125,6 +125,7 @@ define([
         placeOrder: function (data, event) {
             var self = this;
             if (!additionalValidators.validate()) return;
+            if(!self.isPlaceOrderActionAllowed() === true) return;
             if (event) {
                 event.preventDefault();
             }
@@ -132,6 +133,7 @@ define([
                 quote.billingAddress(quote.shippingAddress());
             }
             $("body").trigger("processStart");
+            self.isPlaceOrderActionAllowed(false);
             let payment_method;
 
             switch (self.getCode()) {
@@ -159,6 +161,7 @@ define([
                         self.openCheckout(res.token);
                         return;
                     } else {
+                        self.isPlaceOrderActionAllowed(true);
                         self.messageContainer.addErrorMessage({
                             message: res.message,
                         });
