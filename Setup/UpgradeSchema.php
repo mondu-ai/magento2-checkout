@@ -82,8 +82,40 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ), 'Mondu authorized net term');
         }
 
-
+        $this->createMonduTransactionItemsTable($installer);
         $installer->endSetup();
     }
 
+
+    public function createMonduTransactionItemsTable(SchemaSetupInterface $installer) {
+        $tableName = $installer->getTable('mondu_transaction_items');
+        if ($installer->getConnection()->isTableExists($tableName) != true) {
+            $table = $installer->getConnection()
+            ->newTable($tableName)
+            ->addColumn('entity_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, [
+                'identity'  => true,
+                'unsigned'  => true,
+                'nullable'  => false,
+                'primary'   => true
+            ], 'Transaction Item id')
+            ->addColumn('mondu_transaction_id',\Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, [
+                'unsigned' => true,
+                'nullable' => false
+            ])
+            ->addColumn('product_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, [
+                'unsigned' => true,
+                'nullable' => false
+            ])
+            ->addColumn('order_item_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, [
+                'unsigned' => true,
+                'nullable' => true
+            ])
+            ->addColumn('quote_item_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, [
+                'unsigned' => true,
+                'nullable' => true
+            ]);
+
+            $installer->getConnection()->createTable($table);
+        }
+    }
 }

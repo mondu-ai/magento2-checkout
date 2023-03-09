@@ -41,13 +41,19 @@ class InvoiceOrderHelper
      */
     private $monduFileLogger;
 
+    /**
+     * @var MonduTransactionItem
+     */
+    private $monduTransactionItem;
+
     public function __construct(
         ConfigProvider $configProvider,
         RequestFactory $requestFactory,
         MonduLogger $monduLogger,
         OrderHelper $orderHelper,
         ManagerInterface $messageManager,
-        MonduFileLogger $monduFileLogger
+        MonduFileLogger $monduFileLogger,
+        MonduTransactionItem $monduTransactionitem
     )
     {
         $this->configProvider = $configProvider;
@@ -56,6 +62,7 @@ class InvoiceOrderHelper
         $this->orderHelper = $orderHelper;
         $this->messageManager = $messageManager;
         $this->monduFileLogger = $monduFileLogger;
+        $this->monduTransactionItem = $monduTransactionitem;
     }
 
     /**
@@ -128,21 +135,23 @@ class InvoiceOrderHelper
         $invoiceCollection = $order->getInvoiceCollection();
         $createdInvoices = $this->getCreatedInvoices($monduLog);
 
-        $this->processInvoiceCollection($monduId, $invoiceCollection, $shipment, $createdInvoices, $invoiceMapping);
+        $externalReferenceIdMapping = $this->getExternalReferenceIdMapping($monduLog->getId());
+
+        $this->processInvoiceCollection($monduId, $invoiceCollection, $shipment, $createdInvoices, $invoiceMapping, $externalReferenceIdMapping);
         $this->monduLogger->syncOrder($monduId);
     }
 
-    private function processInvoiceCollection($monduId, $invoiceCollection, $shipment, $createdInvoices, $invoiceMapping) {
+    private function processInvoiceCollection($monduId, $invoiceCollection, $shipment, $createdInvoices, $invoiceMapping, $externalReferenceIdMapping) {
         foreach($invoiceCollection as $invoiceItem) {
             if (!in_array($invoiceItem->getEntityId(), $createdInvoices)) {
-                $this->createInvoiceForItem($monduId, $invoiceItem, $shipment, $invoiceMapping);
+                $this->createInvoiceForItem($monduId, $invoiceItem, $shipment, $invoiceMapping, $externalReferenceIdMapping);
                 $this->monduFileLogger->info('InvoiceOrderHelper: Invoice sent to mondu '.$invoiceItem->getIncrementId());
             }
         }
     }
 
-    private function createInvoiceForItem($monduId, $invoiceItem, $shipment, &$invoiceMapping) {
-        $invoiceBody = $this->getInvoiceItemBody($monduId, $invoiceItem);
+    private function createInvoiceForItem($monduId, $invoiceItem, $shipment, &$invoiceMapping, $externalReferenceIdMapping) {
+        $invoiceBody = $this->getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping);
         $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
             ->process($invoiceBody);
 
@@ -158,8 +167,8 @@ class InvoiceOrderHelper
         return $shipOrderData;
     }
 
-    private function getInvoiceItemBody($monduId, $invoiceItem) {
-        $gross_amount_cents = round($invoiceItem->getGrandTotal(), 2) * 100;
+    private function getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping) {
+        $gross_amount_cents = round($invoiceItem->getBaseGrandTotal(), 2) * 100;
         $invoice_url = $this->configProvider->getPdfUrl($monduId, $invoiceItem->getIncrementId());
         $invoiceBody = [
             'order_uid' => $monduId,
@@ -168,7 +177,7 @@ class InvoiceOrderHelper
             'invoice_url' => $invoice_url,
         ];
 
-        return $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody);
+        return $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody, $externalReferenceIdMapping);
     }
 
     /**
@@ -268,5 +277,14 @@ class InvoiceOrderHelper
                 throw new LocalizedException(__('Mondu: Invalid shipment amount'));
             }
         }
+    }
+
+    public function getExternalReferenceIdMapping($monduTransactionId) {
+        $mapping = [];
+        $items = $this->monduTransactionItem->getCollectionFromTransactionId($monduTransactionId);
+        foreach($items as $item) {
+            $mapping[$item->getOrderItemId()] = $item->getProductId(). '-'. $item->getQuoteItemId();
+        }
+        return $mapping;
     }
 }

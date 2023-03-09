@@ -4,7 +4,8 @@ namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\HTTP\Client\Curl;
 
-abstract class CommonRequest implements RequestInterface {
+abstract class CommonRequest implements RequestInterface
+{
     /**
      * @var Curl
      */
@@ -19,7 +20,8 @@ abstract class CommonRequest implements RequestInterface {
      */
     protected $errorEventsHandler;
 
-    public function process($params = null) {
+    public function process($params = null)
+    {
         $exception = null;
         $data = null;
         try {
@@ -28,7 +30,7 @@ abstract class CommonRequest implements RequestInterface {
             $exception = $e;
         }
 
-        if($this->sendEvents) {
+        if ($this->sendEvents) {
             $this->sendEvents($exception);
         }
 
@@ -47,15 +49,15 @@ abstract class CommonRequest implements RequestInterface {
 
     public function setEnvironmentInformation($environment): CommonRequest
     {
-        if(!isset($this->envInformation)) {
+        if (!isset($this->envInformation)) {
             $this->envInformation = $environment;
         }
         return $this;
     }
 
-    public function setRequestOrigin($origin) 
+    public function setRequestOrigin($origin)
     {
-        if(!isset($this->requestOrigin)) {
+        if (!isset($this->requestOrigin)) {
             $this->requestOrigin = $origin;
         }
         return $this;
@@ -93,7 +95,7 @@ abstract class CommonRequest implements RequestInterface {
     {
         $this->requestParams = $params;
 
-        if($method ==='post') {
+        if ($method === 'post') {
             // Ensure we never send the "Expect: 100-continue" header
             $this->curl->addHeader('Expect', '');
         }

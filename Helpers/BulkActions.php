@@ -141,7 +141,7 @@ class BulkActions {
                 $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': SKIPIING INVOICE item already sent to mondu');
                 continue;
             }
-            $gross_amount_cents = round($invoiceItem->getGrandTotal(), 2) * 100;
+            $gross_amount_cents = round($invoiceItem->getBaseGrandTotal(), 2) * 100;
 
             $invoiceBody = [
                 'order_uid' => $monduLogData['reference_id'],
@@ -150,9 +150,9 @@ class BulkActions {
                 'invoice_url' => $this->configProvider->getPdfUrl($monduLogData['reference_id'], $invoiceItem->getIncrementId()),
             ];
 
-
+            $externalReferenceIdMapping = $this->invoiceOrderHelper->getExternalReferenceIdMapping($monduLogData['entity_id']);
             if($withLineItems) {
-                $invoiceBody = $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody);
+                $invoiceBody = $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody, $externalReferenceIdMapping);
             }
 
             $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
@@ -160,7 +160,7 @@ class BulkActions {
 
             if (@$shipOrderData['errors']) {
                 $errors[] = $order->getIncrementId();
-                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': API ERROR Error creating invoice '. $invoiceItem->getIncrementId(), $shipOrderData['errors']);
+                $this->monduFileLogger->info('Order '. $order->getIncrementId(). ': API ERROR Error creating invoice '. $invoiceItem->getIncrementId(). json_encode($invoiceBody), $shipOrderData['errors']);
                 continue;
             }
 
