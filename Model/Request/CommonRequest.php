@@ -68,7 +68,7 @@ abstract class CommonRequest implements RequestInterface {
             $curlData = [
                 'response_status' => (string) $this->curl->getStatus(),
                 'response_body' => json_decode($this->curl->getBody(), true) ?? [],
-                'request_body' => json_decode($this->requestParams, true) ?? [],
+                'request_body' => json_decode($this->requestParams ?? '', true) ?? [],
                 'origin_event' => $this->requestOrigin
             ];
 
