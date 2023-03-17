@@ -64,7 +64,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
                 $this->monduFileLogger->info('Trying to create a credit memo', ['orderNumber' => $order->getIncrementId()]);
                 $requestParams = $this->_request->getParams();
                 if(@$requestParams['creditmemo']['creditmemo_mondu_id']) {
-                    $grossAmountCents = round($creditMemo->getGrandTotal(), 2) * 100;
+                    $grossAmountCents = round($creditMemo->getBaseGrandTotal(), 2) * 100;
                     $data = [
                         'invoice_uid' => $requestParams['creditmemo']['creditmemo_mondu_id'],
                         'gross_amount_cents' => $grossAmountCents,

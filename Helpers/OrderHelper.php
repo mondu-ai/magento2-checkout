@@ -157,7 +157,7 @@ class OrderHelper
                 'net_price_per_item_cents' => $price * 100,
                 'variation_id' => $variationId,
                 'item_type' => $quoteItem->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
-                'external_reference_id' => $variationId,
+                'external_reference_id' => $variationId . '-' . $quoteItem->getItemId(),
                 'quantity' => $quoteItem->getQty(),
                 'product_sku' => $quoteItem->getSku(),
                 'product_id' => $quoteItem->getProductId()
@@ -189,7 +189,7 @@ class OrderHelper
         return $order;
     }
 
-    public function addLineItemsToInvoice($invoiceItem, $invoice) {
+    public function addLineItemsToInvoice($invoiceItem, $invoice, $externalReferenceIdMapping = []) {
         $sendLines = $this->configProvider->sendLines();
 
         if($sendLines) {
@@ -208,7 +208,7 @@ class OrderHelper
 
                 $lineItems[] = [
                     'quantity' => (int) $i->getQty(),
-                    'external_reference_id' => $variationId
+                    'external_reference_id' => $externalReferenceIdMapping[$i->getOrderItemId()] ?? $variationId
                 ];
             }
 

@@ -8,6 +8,7 @@ use Magento\Quote\Model\QuoteFactory;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Magento\Sales\Model\Order;
+use Mondu\Mondu\Helpers\MonduTransactionItem;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
@@ -24,6 +25,11 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
      * @var OrderHelper
      */
     private $orderHelper;
+    
+    /**
+     * @var MonduTransactionItem
+     */
+    private $monduTransactionItem;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -32,7 +38,8 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         QuoteFactory $quoteFactory,
         OrderHelper $orderHelper,
         MonduFileLogger $monduFileLogger,
-        PaymentMethod $paymentMethodHelper
+        PaymentMethod $paymentMethodHelper,
+        MonduTransactionItem $monduTransactionItem
     )
     {
         $this->_checkoutSession = $checkoutSession;
@@ -42,6 +49,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->orderHelper = $orderHelper;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
+        $this->monduTransactionItem = $monduTransactionItem;
     }
 
     /**
@@ -95,7 +103,10 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             if($createMonduDatabaseRecord) {
                 $this->_monduLogger->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($payment));
             } else {
-                $this->_monduLogger->updateLogMonduData($orderUid, null, null, null, $order->getId());
+                $transactionId = $this->_monduLogger->updateLogMonduData($orderUid, null, null, null, $order->getId());
+
+                $this->monduTransactionItem->deleteRecords($transactionId);
+                $this->monduTransactionItem->createTransactionItemsForOrder($transactionId, $order);
             }
 
         } catch (Exception $e) {

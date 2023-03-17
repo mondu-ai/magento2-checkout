@@ -16,19 +16,22 @@ class Log extends AbstractHelper
     private $_requestFactory;
     private $searchCriteriaBuilder;
     private $orderRepository;
+    private $monduTransactionItem;
 
     public function __construct(
         LogFactory $monduLogger,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ConfigProvider $configProvider,
         Factory $requestFactory,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        MonduTransactionItem $monduTransactionItem
     ) {
         $this->_logger = $monduLogger;
         $this->_configProvider = $configProvider;
         $this->_requestFactory = $requestFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
+        $this->monduTransactionItem = $monduTransactionItem;
     }
 
     public function getLogCollection($orderUid)
@@ -64,6 +67,8 @@ class Log extends AbstractHelper
         );
         $monduLogger->addData($logData);
         $monduLogger->save();
+
+        $this->monduTransactionItem->createTransactionItemsForOrder($monduLogger->getId(), $order);
     }
 
     public function getTransactionByOrderUid($orderUid, $collection = false)
@@ -149,6 +154,7 @@ class Log extends AbstractHelper
 
         $log->addData($data);
         $log->save();
+        return $log->getId();
     }
 
     public function canShipOrder($orderUid)
