@@ -9,6 +9,7 @@ use Mondu\Mondu\Helpers\BulkActions;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Magento\Framework\Message\ManagerInterface;
 
 class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 {
@@ -26,6 +27,16 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
      */
     private $paymentMethodHelper;
 
+    /**
+     * @var ManagerInterface
+     */
+    private $messageManager;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface 
+     */
+    private $_request;
+
     public function __construct(
         CheckoutSession $checkoutSession,
         RequestFactory $requestFactory,
@@ -33,7 +44,8 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         \Mondu\Mondu\Helpers\Log $logger,
         MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
-        BulkActions $bulkActions
+        BulkActions $bulkActions,
+        ManagerInterface $messageManager
     )
     {
         $this->_checkoutSession = $checkoutSession;
@@ -43,6 +55,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
         $this->bulkActions = $bulkActions;
+        $this->messageManager = $messageManager;
     }
 
     //TODO refactor
@@ -75,31 +88,37 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
                         ->process($data);
 
                     if(@$memoData['errors']) {
-                        throw new LocalizedException(__($memoData['errors'][0]['details']));
+                        $this->monduFileLogger->info('Error in UpdateOrder observer ', ['orderNumber' => $order->getIncrementId(), 'e' => $memoData['errors'][0]['details']]);
+                        $this->messageManager->addErrorMessage('Mondu: Unexpected error: Could not send the credit note to Mondu, please contact Mondu Support to resolve this issue.');
+                        return;
                     }
 
-                    $this->_monduLogger->syncOrder($monduId);
                     $this->monduFileLogger->info('Created credit memo', ['orderNumber' => $order->getIncrementId()]);
 
-                    //TODO remove when invoice/paid webhook is implemnted
                     $this->bulkActions->execute([$order->getId()], BulkActions::BULK_SYNC_ACTION);
                 } else {
                     $this->monduFileLogger->info('Cant create a credit memo: no Mondu invoice id provided', ['orderNumber' => $order->getIncrementId()]);
                     $logData = $this->_monduLogger->getTransactionByOrderUid($monduId);
-                    if($logData['mondu_state']  !== 'shipped' && $logData['mondu_state'] !== 'partially_shipped' && $logData['mondu_state'] !== 'partially_complete') {
+                    if(
+                        $logData['mondu_state']  !== 'shipped' &&
+                        $logData['mondu_state'] !== 'partially_shipped' &&
+                        $logData['mondu_state'] !== 'partially_complete' &&
+                        $logData['mondu_state'] !== 'complete'
+                    ) {
                         throw new LocalizedException(__('Mondu: You cant partially refund order before shipment'));
                     }
-                    throw new LocalizedException(__('Mondu: Something went wrong'));
-                }
 
+                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Could not send the credit note to Mondu, please contact Mondu Support to resolve this issue.');
+                }
                 return;
             } else {
                 $this->monduFileLogger->info('Whole order amount is being refunded, canceling the order', ['orderNumber' => $order->getIncrementId()]);
                 $cancelData = $this->_requestFactory->create(RequestFactory::CANCEL)
                     ->process(['orderUid' => $monduId]);
 
-                if(@$cancelData['errors']) {
-                    throw new LocalizedException(__('Mondu: Something went wrong'));
+                if(@$cancelData['errors'] && !@$cancelData['order']) {
+                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Could not cancel the order, please contact Mondu Support to resolve this issue.');
+                    return;
                 }
 
                 $this->_monduLogger->updateLogMonduData($monduId, $cancelData['order']['state']);
@@ -110,7 +129,7 @@ class UpdateOrder implements \Magento\Framework\Event\ObserverInterface
 
         } catch (Exception $error) {
             $this->monduFileLogger->info('Error in UpdateOrder observer ', ['orderNumber' => $order->getIncrementId(), 'e' => $error->getMessage()]);
-            throw new LocalizedException(__('Mondu: ' . $error->getMessage()));
+            $this->messageManager->addErrorMessage('Mondu: ' . $error->getMessage());
         }
     }
 }
