@@ -17,8 +17,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     const API_URL = 'https://api.mondu.ai/api/v1';
     const SDK_URL = 'https://checkout.mondu.ai/widget.js';
 
-    const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
-    const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.ai/widget.js';
+    const SANDBOX_API_URL = 'http://localhost:3000/api/v1';
+    const SANDBOX_SDK_URL = 'http://checkout-sandbox.mondu.local/widget.js';
 
     private $urlBuilder;
     private $resourceConfig;
@@ -34,6 +34,11 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
      * @var TypeListInterface
      */
     private $cacheTypeList;
+
+    /**
+     * @var string|null
+     */
+    private $contextCode = null;
 
     public function __construct(
         UrlInterface $urlBuilder,
@@ -85,7 +90,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     }
 
     public function getApiKey() {
-        return $this->scopeConfig->getValue('payment/mondu/mondu_key');
+        return $this->scopeConfig->getValue('payment/mondu/mondu_key', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE, $this->contextCode);
     }
 
     public function isActive()
@@ -183,5 +188,9 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     public function clearConfigurationCache()
     {
         $this->cacheTypeList->cleanType('config');
+    }
+
+    public function setContextCode($code) {
+        $this->contextCode = $code;
     }
 }

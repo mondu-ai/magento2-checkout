@@ -6,6 +6,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Exception;
 use \Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
+use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -19,17 +20,24 @@ class CancelOrder implements ObserverInterface
     private $paymentMethodHelper;
     private $messageManager;
 
+    /**
+     * @var ContextHelper
+     */
+    private $contextHelper;
+
     public function __construct(
         RequestFactory $requestFactory,
         MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
-        ManagerInterface $messageManager
+        ManagerInterface $messageManager,
+        ContextHelper $contextHelper
     )
     {
         $this->_requestFactory = $requestFactory;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
         $this->messageManager = $messageManager;
+        $this->contextHelper = $contextHelper;
     }
 
     public function execute(Observer $observer)
@@ -44,6 +52,8 @@ class CancelOrder implements ObserverInterface
             $this->monduFileLogger->info('Not a mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }
+
+        $this->contextHelper->setConfigContextForOrder($order);
 
         try {
             if(!$order->getRelationChildId()) {

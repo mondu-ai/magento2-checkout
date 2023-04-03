@@ -5,7 +5,9 @@ use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Magento\Framework\Exception\LocalizedException;
+use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\InvoiceOrderHelper;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class ShipOrder implements \Magento\Framework\Event\ObserverInterface
 {
@@ -17,17 +19,24 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
      */
     private $invoiceOrderhelper;
 
+    /**
+     * @var ContextHelper
+     */
+    private $contextHelper;
+
     public function __construct(
         Log $logger,
         MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
-        InvoiceOrderHelper $invoiceOrderhelper
+        InvoiceOrderHelper $invoiceOrderhelper,
+        ContextHelper $contextHelper
     )
     {
         $this->_monduLogger = $logger;
         $this->monduFileLogger = $monduFileLogger;
         $this->paymentMethodHelper = $paymentMethodHelper;
         $this->invoiceOrderhelper = $invoiceOrderhelper;
+        $this->contextHelper = $contextHelper;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -38,6 +47,7 @@ class ShipOrder implements \Magento\Framework\Event\ObserverInterface
         $this->monduFileLogger->info('Entered ShipOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
         if(!$this->validateOrderPlacedWithMondu($order)) return;
+        $this->contextHelper->setConfigContextForOrder($order);
 
         $monduLog = $this->_monduLogger->getLogCollection($order->getData('mondu_reference_id'));
 

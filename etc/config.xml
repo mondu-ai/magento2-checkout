@@ -7,7 +7,6 @@
                 <debug>1</debug>
                 <active>0</active>
                 <model>Mondu\Mondu\Model\Payment\Mondu</model>
-                <!-- <model>CustomPaymentGatewayFacade</model> -->
                 <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
                 <title>Pay later via bank transfer</title>
