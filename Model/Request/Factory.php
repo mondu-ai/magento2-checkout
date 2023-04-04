@@ -4,8 +4,8 @@ namespace Mondu\Mondu\Model\Request;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Mondu\Mondu\Helpers\HeadersHelper;
+use Mondu\Mondu\Helpers\Logger\Logger;
 use Mondu\Mondu\Helpers\ModuleHelper;
-use Psr\Log\LoggerInterface;
 
 class Factory
 {
@@ -22,6 +22,9 @@ class Factory
     const ORDER_INVOICES = 'GET_ORDER_INVOICES';
     const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
 
+    /**
+     * @var Logger
+     */
     private $monduFileLogger;
     /**
      * @var HeadersHelper
@@ -33,6 +36,9 @@ class Factory
      */
     private $moduleHelper;
 
+    /**
+     * @var string[]
+     */
     private $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
         self::TRANSACTION_CONFIRM_METHOD => \Mondu\Mondu\Model\Request\Confirm::class,
@@ -48,21 +54,26 @@ class Factory
         self::ERROR_EVENTS => \Mondu\Mondu\Model\Request\ErrorEvents::class,
     ];
 
+    /**
+     * @var ObjectManagerInterface
+     */
     private $objectManager;
 
     public function __construct(
         ObjectManagerInterface $objectManager,
-        \Mondu\Mondu\Helpers\Logger\Logger $monduFileLogger,
+        Logger $monduFileLogger,
         HeadersHelper $headersHelper,
         ModuleHelper $moduleHelper
-    )
-    {
+    ) {
         $this->objectManager = $objectManager;
         $this->monduFileLogger = $monduFileLogger;
         $this->headersHelper = $headersHelper;
         $this->moduleHelper = $moduleHelper;
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function create($method)
     {
         $className = !empty($this->invokableClasses[$method])

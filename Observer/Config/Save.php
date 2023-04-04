@@ -8,8 +8,8 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
-class Save implements ObserverInterface {
-
+class Save implements ObserverInterface
+{
     private $_requestFactory;
     private $_monduConfig;
     /**
@@ -38,45 +38,44 @@ class Save implements ObserverInterface {
      */
     public function execute(Observer $observer)
     {
-
         if ($this->_monduConfig->isActive()) {
-           if ($this->_monduConfig->getApiKey()) {
-               try {
-                   $this->_monduConfig->updateNewOrderStatus();
-                   $this->paymentMethod->resetAllowedCache();
+            if ($this->_monduConfig->getApiKey()) {
+                try {
+                    $this->_monduConfig->updateNewOrderStatus();
+                    $this->paymentMethod->resetAllowedCache();
 
-                   $this->_requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
+                    $this->_requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
                        ->process()
                        ->checkSuccess()
                        ->update();
 
-                   $this->_requestFactory
+                    $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/confirmed')
                        ->process();
 
-                   $this->_requestFactory
+                    $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/pending')
                        ->process();
 
-                   $this->_requestFactory
+                    $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/declined')
                        ->process();
 
-                   $this->_requestFactory
+                    $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/canceled')
                        ->process();
 
-                   $this->_monduConfig->clearConfigurationCache();
-               } catch (\Exception $e) {
-                   throw new LocalizedException(__($e->getMessage()));
-               }
-           } else {
-               throw new LocalizedException(__('Cant enable Mondu payments API key is missing'));
-           }
+                    $this->_monduConfig->clearConfigurationCache();
+                } catch (\Exception $e) {
+                    throw new LocalizedException(__($e->getMessage()));
+                }
+            } else {
+                throw new LocalizedException(__('Cant enable Mondu payments API key is missing'));
+            }
         }
     }
 }
