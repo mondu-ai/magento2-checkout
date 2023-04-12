@@ -10,6 +10,7 @@ class Webhooks extends CommonRequest implements RequestInterface
     public $_topic;
     protected $curl;
     private $_configProvider;
+    private $storeId = 0;
 
     public function __construct(Curl $curl, ConfigProvider $configProvider) {
         $this->curl = $curl;
@@ -21,7 +22,7 @@ class Webhooks extends CommonRequest implements RequestInterface
         $url = $this->_configProvider->getApiUrl('webhooks');
 
         $this->sendRequestWithParams('post', $url, json_encode([
-            'address' => $this->_configProvider->getWebhookUrl(),
+            'address' => $this->_configProvider->getWebhookUrl($this->storeId),
             'topic' => $this->getTopic()
         ]));
 
@@ -35,5 +36,11 @@ class Webhooks extends CommonRequest implements RequestInterface
 
     private function getTopic() {
         return $this->_topic;
+    }
+
+    public function setStore($storeId)
+    {
+        $this->storeId = $storeId;
+        return $this;
     }
 }

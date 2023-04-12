@@ -48,6 +48,10 @@ class Index extends Action implements ActionInterface {
 
         try {
             $content = $this->getRequest()->getContent();
+            if($storeId = $this->getRequest()->getParam('storeId')) {
+                $this->_monduConfig->setContextCode($storeId);
+            }
+
             $headers = $this->getRequest()->getHeaders()->toArray();
             $signature = hash_hmac('sha256',$content, $this->_monduConfig->getWebhookSecret());
             if($signature !== @$headers['X-Mondu-Signature']) {

@@ -11,6 +11,7 @@ class Keys extends CommonRequest implements RequestInterface
 {
     protected $curl;
     private $_configProvider;
+    private $storeId = 0;
 
     public $_webhookSecret;
     public $_responseStatus;
@@ -52,12 +53,18 @@ class Keys extends CommonRequest implements RequestInterface
 
     public function update(): Keys
     {
-        $this->_configProvider->updateWebhookSecret($this->getWebhookSecret());
+        $this->_configProvider->updateWebhookSecret($this->getWebhookSecret(), $this->storeId);
         return $this;
     }
 
     public function getWebhookSecret()
     {
         return $this->_webhookSecret;
+    }
+
+    public function setStore($storeId)
+    {
+        $this->storeId = $storeId;
+        return $this;
     }
 }

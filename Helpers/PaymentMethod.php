@@ -41,10 +41,10 @@ class PaymentMethod
         return self::PAYMENTS;
     }
 
-    public function getAllowed()
+    public function getAllowed($storeId = null)
     {
         try {
-            if ($result = $this->cache->load('mondu_payment_methods')) {
+            if ($result = $this->cache->load('mondu_payment_methods_'.$storeId)) {
                 return json_decode($result, true);
             }
             $paymentMethods = $this->requestFactory->create(Factory::PAYMENT_METHODS)->process();
@@ -52,10 +52,10 @@ class PaymentMethod
             foreach ($paymentMethods as $value) {
                 $result[] = @self::MAPPING[$value['identifier']] ?? '';
             }
-            $this->cache->save(json_encode($result), 'mondu_payment_methods', [], 3600);
+            $this->cache->save(json_encode($result), 'mondu_payment_methods_'.$storeId, [], 3600);
             return $result;
         } catch (\Exception $e) {
-            $this->cache->save(json_encode([]), 'mondu_payment_methods', [], 3600);
+            $this->cache->save(json_encode([]), 'mondu_payment_methods_'.$storeId, [], 3600);
             return [];
         }
     }

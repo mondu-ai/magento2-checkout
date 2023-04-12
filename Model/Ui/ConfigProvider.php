@@ -85,8 +85,11 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return (bool)$this->scopeConfig->getValue('payment/mondu/debug');
     }
 
-    public function getWebhookUrl(): string
+    public function getWebhookUrl($storeId): string
     {
+        if ($storeId) {
+            return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index?storeId='.$storeId;
+        }
         return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index';
     }
 
@@ -149,11 +152,13 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         ];
     }
 
-    public function updateWebhookSecret($webhookSecret = ""): ConfigProvider
+    public function updateWebhookSecret($webhookSecret = "", $storeId = 0): ConfigProvider
     {
         $this->resourceConfig->saveConfig(
             'payment/mondu/'.$this->getMode(). '_webhook_secret',
-            $this->encryptor->encrypt($webhookSecret)
+            $this->encryptor->encrypt($webhookSecret),
+            ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $this;
@@ -174,7 +179,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function getWebhookSecret()
     {
-        $val = $this->scopeConfig->getValue('payment/mondu/' . $this->getMode().'_webhook_secret');
+        $val = $this->scopeConfig->getValue('payment/mondu/' . $this->getMode().'_webhook_secret', ScopeInterface::SCOPE_STORE, $this->contextCode);
         return $this->encryptor->decrypt($val);
     }
 

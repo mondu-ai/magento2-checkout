@@ -2,6 +2,7 @@
 namespace Mondu\Mondu\Observer\Config;
 
 use Magento\Framework\Event\Observer;
+use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\Event\ObserverInterface;
@@ -27,14 +28,21 @@ class Save implements ObserverInterface
         'order/canceled'
     ];
 
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
     public function __construct(
         RequestFactory $requestFactory,
         ConfigProvider $monduConfig,
-        PaymentMethod $paymentMethod
+        PaymentMethod $paymentMethod,
+        StoreManagerInterface $storeManager
     ) {
         $this->_requestFactory = $requestFactory;
         $this->_monduConfig = $monduConfig;
         $this->paymentMethod = $paymentMethod;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -48,29 +56,35 @@ class Save implements ObserverInterface
                     $this->_monduConfig->updateNewOrderStatus();
                     $this->paymentMethod->resetAllowedCache();
 
+                    $storeId = $this->storeManager->getStore()->getId();
                     $this->_requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
                        ->process()
+                       ->setStore($storeId)
                        ->checkSuccess()
                        ->update();
 
                     $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
+                       ->setStore($storeId)
                        ->setTopic('order/confirmed')
                        ->process();
 
                     $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/pending')
+                       ->setStore($storeId)
                        ->process();
 
                     $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/declined')
+                       ->setStore($storeId)
                        ->process();
 
                     $this->_requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/canceled')
+                       ->setStore($storeId)
                        ->process();
 
                     $this->_monduConfig->clearConfigurationCache();

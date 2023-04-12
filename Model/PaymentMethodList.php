@@ -2,6 +2,7 @@
 namespace Mondu\Mondu\Model;
 
 use Magento\Payment\Model\Method\Factory;
+use Magento\Store\Model\StoreResolver;
 use Mondu\Mondu\Helpers\PaymentMethod;
 
 class PaymentMethodList
@@ -23,12 +24,19 @@ class PaymentMethodList
      */
     private $paymentMethodHelper;
 
+    /**
+     * @var StoreResolver
+     */
+    private $storeResolver;
+
     public function __construct(
         Factory $methodFactory,
-        PaymentMethod $paymentMethodHelper
+        PaymentMethod $paymentMethodHelper,
+        StoreResolver $storeResolver
     ) {
         $this->methodFactory = $methodFactory;
         $this->paymentMethodHelper = $paymentMethodHelper;
+        $this->storeResolver = $storeResolver;
     }
 
     public function getPaymentMethod($method)
@@ -41,12 +49,13 @@ class PaymentMethodList
         return $this->paymentMethods[$method];
     }
 
-    public function filterMonduPaymentMethods($methods) {
+    public function filterMonduPaymentMethods($methods)
+    {
         $monduMethods = $this->paymentMethodHelper->getPayments();
-        $monduAllowedMethods = $this->paymentMethodHelper->getAllowed();
+        $monduAllowedMethods = $this->paymentMethodHelper->getAllowed($this->storeResolver->getCurrentStoreId());
         $result = [];
         foreach ($methods as $key => $method) {
-            if(in_array($key, $monduMethods) && !in_array($key, $monduAllowedMethods)) {
+            if (in_array($key, $monduMethods) && !in_array($key, $monduAllowedMethods)) {
                 continue;
             }
             $result[$key] = $method;
