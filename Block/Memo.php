@@ -13,11 +13,6 @@ class Memo extends \Magento\Framework\View\Element\Template
         parent::__construct($context);
     }
 
-    // public function getOrder()
-    // {
-    //     return $this->_coreRegistry->registry('current_order');
-    // }
-
     public function getCreditMemo()
     {
         return $this->_coreRegistry->registry('current_creditmemo');
