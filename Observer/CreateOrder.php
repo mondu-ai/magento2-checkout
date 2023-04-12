@@ -3,8 +3,10 @@ namespace Mondu\Mondu\Observer;
 
 use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\QuoteFactory;
+use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Magento\Sales\Model\Order;
@@ -12,8 +14,10 @@ use Mondu\Mondu\Helpers\MonduTransactionItem;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
-class CreateOrder implements \Magento\Framework\Event\ObserverInterface
+class CreateOrder extends MonduObserver
 {
+    protected $name = 'CreateOrder';
+
     private $_checkoutSession;
     private $_requestFactory;
     private $_monduLogger;
@@ -32,6 +36,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
     private $monduTransactionItem;
 
     public function __construct(
+        ContextHelper $contextHelper,
         CheckoutSession $checkoutSession,
         RequestFactory $requestFactory,
         \Mondu\Mondu\Helpers\Log $logger,
@@ -41,6 +46,11 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         PaymentMethod $paymentMethodHelper,
         MonduTransactionItem $monduTransactionItem
     ) {
+        parent::__construct(
+            $paymentMethodHelper,
+            $monduFileLogger,
+            $contextHelper
+        );
         $this->_checkoutSession = $checkoutSession;
         $this->_requestFactory = $requestFactory;
         $this->_monduLogger = $logger;
@@ -54,7 +64,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
     /**
      * @throws LocalizedException
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function _execute(Observer $observer)
     {
         $orderUid = $this->_checkoutSession->getMonduid();
         $order = $observer->getEvent()->getOrder();
@@ -63,8 +73,6 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
 
         $isEditOrder = $order->getRelationParentRealId() || $order->getRelationParentId();
         $isMondu = $this->paymentMethodHelper->isMondu($payment);
-
-        $this->monduFileLogger->info('Entered CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
 
         if ($isEditOrder && !$isMondu) {
             //checks if order with Mondu payment method was changed to other payment method and cancels Mondu order.

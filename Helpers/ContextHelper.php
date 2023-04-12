@@ -4,7 +4,8 @@ namespace Mondu\Mondu\Helpers;
 
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class ContextHelper {
+class ContextHelper
+{
 
     /**
      * @var ConfigProvider
@@ -17,7 +18,12 @@ class ContextHelper {
         $this->configProvider = $configProvider;
     }
 
-    public function setConfigContextForOrder($order) {
-        $this->configProvider->setContextCode($order->getStore()->getWebsite()->getId());
+    /**
+     * @param $order
+     * @return void
+     */
+    public function setConfigContextForOrder($order)
+    {
+        $this->configProvider->setContextCode($order->getStore()->getId());
     }
 }

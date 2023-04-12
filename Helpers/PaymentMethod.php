@@ -4,7 +4,8 @@ namespace Mondu\Mondu\Helpers;
 use Magento\Framework\App\CacheInterface;
 use Mondu\Mondu\Model\Request\Factory;
 
-class PaymentMethod {
+class PaymentMethod
+{
     const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment'];
 
     const LABELS = [
@@ -35,13 +36,15 @@ class PaymentMethod {
         $this->cache = $cache;
     }
 
-    public function getPayments() {
+    public function getPayments()
+    {
         return self::PAYMENTS;
     }
 
-    public function getAllowed() {
+    public function getAllowed()
+    {
         try {
-            if($result = $this->cache->load('mondu_payment_methods')) {
+            if ($result = $this->cache->load('mondu_payment_methods')) {
                 return json_decode($result, true);
             }
             $paymentMethods = $this->requestFactory->create(Factory::PAYMENT_METHODS)->process();
@@ -57,7 +60,8 @@ class PaymentMethod {
         }
     }
 
-    public function resetAllowedCache() {
+    public function resetAllowedCache()
+    {
         $this->cache->remove('mondu_payment_methods');
     }
 
@@ -68,11 +72,13 @@ class PaymentMethod {
         return in_array($code, self::PAYMENTS);
     }
 
-    public function getCode($method) {
+    public function getCode($method)
+    {
         return $method->getCode() ?? $method->getMethod();
     }
 
-    public function getLabel($code) {
+    public function getLabel($code)
+    {
         return @self::LABELS[$code];
     }
 }

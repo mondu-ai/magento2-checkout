@@ -16,6 +16,10 @@ class Save implements ObserverInterface
      * @var PaymentMethod
      */
     private $paymentMethod;
+
+    /**
+     * @var string[]
+     */
     private $_subscriptions = [
         'order/confirmed',
         'order/declined',

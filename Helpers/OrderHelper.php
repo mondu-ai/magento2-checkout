@@ -23,8 +23,7 @@ class OrderHelper
         RequestFactory $requestFactory,
         ConfigProvider $configProvider,
         CartTotalRepository $cartTotalRepository
-    )
-    {
+    ) {
         $this->quoteFactory = $quoteFactory;
         $this->_monduLogger = $logger;
         $this->_requestFactory = $requestFactory;
@@ -50,7 +49,8 @@ class OrderHelper
         ];
     }
 
-    public function getLinesFromQuote(Quote $quote, $isAdjustment = false): array {
+    public function getLinesFromQuote(Quote $quote, $isAdjustment = false): array
+    {
         $shippingTotal = $isAdjustment ? round($quote->getShippingAddress()->getShippingAmount(), 2) : $this->cartTotalRepository->get($quote->getId())->getBaseShippingAmount();
         $totalTax = round($quote->getShippingAddress()->getBaseTaxAmount(), 2);
         $taxCompensation = $quote->getShippingAddress()->getBaseDiscountTaxCompensationAmount() ?? 0;
@@ -69,30 +69,30 @@ class OrderHelper
     /**
      * @throws LocalizedException
      */
-    public function handleOrderAdjustment($order, $orderId = null) {
+    public function handleOrderAdjustment($order, $orderId = null)
+    {
         $prevOrderId = $orderId ?? $order->getRelationParentId();
         $log = $this->_monduLogger->getTransactionByIncrementId($prevOrderId);
 
-        if(!$log || !$log['reference_id']) {
+        if (!$log || !$log['reference_id']) {
             throw new LocalizedException(__('This order was not placed with Mondu'));
         }
 
         $orderUid = $log['reference_id'];
 
         $adjustment = $this->getOrderAdjustmentData($order);
-
         try {
             $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
                 ->setOrderUid($orderUid)
                 ->process($adjustment);
 
-            if(@$editData['errors']) {
+            if (@$editData['errors']) {
                 throw new \Exception($editData['errors'][0]['name'].' '.$editData['errors'][0]['details']);
             }
             $order->setData('mondu_reference_id', $orderUid);
             $order->addStatusHistoryComment(__('Mondu: order with id %1 was adjusted', $orderUid));
         } catch (\Exception $e) {
-            if($orderId) {
+            if ($orderId) {
                 throw new LocalizedException(__('Mondu api error: %1', $e->getMessage()));
             }
 
@@ -106,20 +106,19 @@ class OrderHelper
 
     private function getOrderAdjustmentData($order): array
     {
-        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
+        $quote = $this->quoteFactory->create()->loadByIdWithoutStore($order->getQuoteId());
         $quote->collectTotals();
-        
-        if($quote->getId()) {
+
+        if ($quote->getId()) {
             $adjustment =  [
                 'currency' => $quote->getBaseCurrencyCode(),
                 'external_reference_id' => $order->getIncrementId(),
             ];
-    
+
             $adjustment = $this->addLinesOrGrossAmountToOrder($quote, $quote->getBaseGrandTotal(), $adjustment, true);
-            $adjustment = $this->addAmountToOrder($quote, $adjustment);    
+            $adjustment = $this->addAmountToOrder($quote, $adjustment);
             return $adjustment;
         }
-        
         return [
             'currency' => $order->getBaseCurrencyCode(),
             'external_reference_id' => $order->getIncrementId(),
@@ -167,7 +166,8 @@ class OrderHelper
         return $lineItems;
     }
 
-    public function addLinesOrGrossAmountToOrder(Quote $quote, $grandTotal, $order, $isAdjustment = false) {
+    public function addLinesOrGrossAmountToOrder(Quote $quote, $grandTotal, $order, $isAdjustment = false)
+    {
         $sendLines = $this->configProvider->sendLines();
         if ($sendLines) {
             $order['lines'] = $this->getLinesFromQuote($quote, $isAdjustment);
@@ -177,7 +177,8 @@ class OrderHelper
         return $order;
     }
 
-    public function addAmountToOrder(Quote $quote, $order) {
+    public function addAmountToOrder(Quote $quote, $order)
+    {
         $netPrice = $quote->getSubtotal();
 
         $order['amount'] = [
@@ -189,16 +190,17 @@ class OrderHelper
         return $order;
     }
 
-    public function addLineItemsToInvoice($invoiceItem, $invoice, $externalReferenceIdMapping = []) {
+    public function addLineItemsToInvoice($invoiceItem, $invoice, $externalReferenceIdMapping = [])
+    {
         $sendLines = $this->configProvider->sendLines();
 
-        if($sendLines) {
+        if ($sendLines) {
             $quoteItems = $invoiceItem->getAllItems();
             $lineItems = [];
 
             $mapping = $this->getConfigurableItemIdMap($quoteItems);
 
-            foreach($quoteItems as $i) {
+            foreach ($quoteItems as $i) {
                 $price = (float) $i->getBasePrice();
                 if (!$price) {
                     continue;
@@ -234,9 +236,9 @@ class OrderHelper
     private function getConfigurableItemIdMap($items): array
     {
         $mapping = [];
-        foreach($items as $i) {
+        foreach ($items as $i) {
             $parent = $i->getOrderItem()->getParentItem();
-            if($parent) {
+            if ($parent) {
                 $mapping[$parent->getProductId()] = $i->getProductId();
             }
         }

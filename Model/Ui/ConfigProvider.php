@@ -17,8 +17,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     const API_URL = 'https://api.mondu.ai/api/v1';
     const SDK_URL = 'https://checkout.mondu.ai/widget.js';
 
-    const SANDBOX_API_URL = 'http://localhost:3000/api/v1';
-    const SANDBOX_SDK_URL = 'http://checkout-sandbox.mondu.local/widget.js';
+    const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
+    const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.aiwidget.js';
 
     private $urlBuilder;
     private $resourceConfig;
@@ -47,8 +47,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         EncryptorInterface $encryptor,
         WriterInterface $writer,
         TypeListInterface $cacheTypeList
-    )
-    {
+    ) {
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
         $this->resourceConfig = $resourceConfig;
@@ -61,7 +60,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     {
         $baseUrl = self::API_URL;
 
-        if($this->scopeConfig->getValue('payment/mondu/sandbox')) {
+        if ($this->scopeConfig->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode)) {
             $baseUrl = self::SANDBOX_API_URL;
         }
 
@@ -70,17 +69,19 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 
     public function getSdkUrl(): string
     {
-        if($this->scopeConfig->getValue('payment/mondu/sandbox')) {
+        if ($this->scopeConfig->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode)) {
             return self::SANDBOX_SDK_URL;
         }
         return self::SDK_URL;
     }
 
-    public function getMode() {
-        return $this->scopeConfig->getValue('payment/mondu/sandbox') ? 'sandbox' : 'live';
+    public function getMode()
+    {
+        return $this->scopeConfig->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode) ? 'sandbox' : 'live';
     }
 
-    public function getDebug() {
+    public function getDebug()
+    {
         return (bool)$this->scopeConfig->getValue('payment/mondu/debug');
     }
 
@@ -89,8 +90,9 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index';
     }
 
-    public function getApiKey() {
-        return $this->scopeConfig->getValue('payment/mondu/mondu_key', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE, $this->contextCode);
+    public function getApiKey()
+    {
+        return $this->scopeConfig->getValue('payment/mondu/mondu_key', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     public function isActive()
@@ -103,7 +105,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         return (bool) $this->scopeConfig->getValue('payment/mondu/cron');
     }
 
-    public function getPdfUrl($orderUid, $invoiceId) {
+    public function getPdfUrl($orderUid, $invoiceId)
+    {
         return $this->urlBuilder->getBaseUrl().'mondu/index/invoice?id='.$orderUid.'&r='.$invoiceId;
     }
 
@@ -113,11 +116,11 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         $descriptionConfigMondu = $this->scopeConfig->getValue('payment/mondu/description', ScopeInterface::SCOPE_STORE);
         $descriptionConfigMondusepa = $this->scopeConfig->getValue('payment/mondusepa/description', ScopeInterface::SCOPE_STORE);
         $descriptionConfigMonduinstallment = $this->scopeConfig->getValue('payment/monduinstallment/description', ScopeInterface::SCOPE_STORE);
-        
+
         $descriptionMondu = $descriptionConfigMondu ? __($descriptionConfigMondu) . '<br><br>' . $privacyText : $privacyText;
         $descriptionMondusepa = $descriptionConfigMondusepa ? __($descriptionConfigMondusepa) . '<br><br>' . $privacyText : $privacyText;
         $descriptionMonduinstallment = $descriptionConfigMonduinstallment ? __($descriptionConfigMonduinstallment) . '<br><br>' . $privacyText : $privacyText;
-        
+
         return [
             'payment' => [
                 self::CODE => [
@@ -190,7 +193,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
         $this->cacheTypeList->cleanType('config');
     }
 
-    public function setContextCode($code) {
+    public function setContextCode($code)
+    {
         $this->contextCode = $code;
     }
 }
