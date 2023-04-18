@@ -8,7 +8,7 @@
                 <fieldset_css>complex mondu-section</fieldset_css>
                 <frontend_model>Mondu\Mondu\Block\Adminhtml\Config\Payment</frontend_model>
                 <group id="monduapi" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Api Configuration</label>
                     <field id="mondu_key" translate="label" type="obscure" sortOrder="30" showInDefault="1"
                            showInWebsite="1" showInStore="1">
@@ -17,13 +17,13 @@
                         <config_path>payment/mondu/mondu_key</config_path>
                     </field>
                     <field id="mondu_send_lines" translate="label" type="select" sortOrder="31" showInDefault="1"
-                           showInWebsite="1" showInStore="1">
+                           showInWebsite="0" showInStore="0">
                         <label>Send order line items</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/send_lines</config_path>
                     </field>
                     <field id="mondu_require_invoice" translate="label" type="select" sortOrder="32" showInDefault="1"
-                           showInWebsite="1" showInStore="1">
+                           showInWebsite="0" showInStore="0">
                         <label>Require invoice for shipment</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/require_invoice</config_path>

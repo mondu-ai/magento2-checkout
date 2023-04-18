@@ -105,7 +105,6 @@ abstract class CommonRequest implements RequestInterface
         } else {
             $this->curl->{$method}($url);
         }
-
         return $this->curl->getBody();
     }
 

@@ -2,54 +2,68 @@
 namespace Mondu\Mondu\Observer;
 
 use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
 use Exception;
 use \Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
+use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
-class CancelOrder implements ObserverInterface
+class CancelOrder extends MonduObserver
 {
-    private $_requestFactory;
+    protected $name = 'CancelOrder';
 
+    /**
+     * @var RequestFactory
+     */
+    private $requestFactory;
+
+    /**
+     * @var MonduFileLogger
+     */
     private $monduFileLogger;
 
-    private $paymentMethodHelper;
+    /**
+     * @var ManagerInterface
+     */
     private $messageManager;
 
+    /**
+     * @param PaymentMethod $paymentMethodHelper
+     * @param MonduFileLogger $monduFileLogger
+     * @param ContextHelper $contextHelper
+     * @param RequestFactory $requestFactory
+     * @param ManagerInterface $messageManager
+     */
     public function __construct(
-        RequestFactory $requestFactory,
-        MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
+        MonduFileLogger $monduFileLogger,
+        ContextHelper $contextHelper,
+        RequestFactory $requestFactory,
         ManagerInterface $messageManager
-    )
-    {
-        $this->_requestFactory = $requestFactory;
+    ) {
+        parent::__construct(
+            $paymentMethodHelper,
+            $monduFileLogger,
+            $contextHelper
+        );
+
         $this->monduFileLogger = $monduFileLogger;
-        $this->paymentMethodHelper = $paymentMethodHelper;
+        $this->requestFactory = $requestFactory;
         $this->messageManager = $messageManager;
     }
 
-    public function execute(Observer $observer)
+    public function _execute(Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
-        $payment = $order->getPayment();
         $monduId = $order->getData('mondu_reference_id');
 
-        $this->monduFileLogger->info('Entered CancelOrder observer', ['orderNumber' => $order->getIncrementId()]);
-
-        if (!$this->paymentMethodHelper->isMondu($payment)) {
-            $this->monduFileLogger->info('Not a mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
-            return;
-        }
-
         try {
-            if(!$order->getRelationChildId()) {
+            if (!$order->getRelationChildId()) {
                 $this->monduFileLogger->info('Trying to cancel Order '.$order->getIncrementId());
 
-                $cancelData = $this->_requestFactory->create(RequestFactory::CANCEL)
+                $cancelData = $this->requestFactory->create(RequestFactory::CANCEL)
                     ->process(['orderUid' => $monduId]);
 
                 if (!$cancelData) {

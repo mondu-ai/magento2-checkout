@@ -3,8 +3,10 @@ namespace Mondu\Mondu\Observer;
 
 use Exception;
 use \Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\QuoteFactory;
+use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Magento\Sales\Model\Order;
@@ -12,8 +14,10 @@ use Mondu\Mondu\Helpers\MonduTransactionItem;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
-class CreateOrder implements \Magento\Framework\Event\ObserverInterface
+class CreateOrder extends MonduObserver
 {
+    protected $name = 'CreateOrder';
+
     private $_checkoutSession;
     private $_requestFactory;
     private $_monduLogger;
@@ -25,13 +29,14 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
      * @var OrderHelper
      */
     private $orderHelper;
-    
+
     /**
      * @var MonduTransactionItem
      */
     private $monduTransactionItem;
 
     public function __construct(
+        ContextHelper $contextHelper,
         CheckoutSession $checkoutSession,
         RequestFactory $requestFactory,
         \Mondu\Mondu\Helpers\Log $logger,
@@ -40,8 +45,12 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
         MonduTransactionItem $monduTransactionItem
-    )
-    {
+    ) {
+        parent::__construct(
+            $paymentMethodHelper,
+            $monduFileLogger,
+            $contextHelper
+        );
         $this->_checkoutSession = $checkoutSession;
         $this->_requestFactory = $requestFactory;
         $this->_monduLogger = $logger;
@@ -55,7 +64,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
     /**
      * @throws LocalizedException
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function _execute(Observer $observer)
     {
         $orderUid = $this->_checkoutSession->getMonduid();
         $order = $observer->getEvent()->getOrder();
@@ -65,9 +74,7 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
         $isEditOrder = $order->getRelationParentRealId() || $order->getRelationParentId();
         $isMondu = $this->paymentMethodHelper->isMondu($payment);
 
-        $this->monduFileLogger->info('Entered CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
-
-        if($isEditOrder && !$isMondu) {
+        if ($isEditOrder && !$isMondu) {
             //checks if order with Mondu payment method was changed to other payment method and cancels Mondu order.
             $this->orderHelper->handlePaymentMethodChange($order);
         }
@@ -93,14 +100,14 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
             $orderData = $orderData['order'];
             $order->setData('mondu_reference_id', $orderUid);
 
-            if($createMonduDatabaseRecord) {
+            if ($createMonduDatabaseRecord) {
                 $order->addStatusHistoryComment(__('Mondu: order id %1', $orderUid));
             }
 
             $order->save();
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
 
-            if($createMonduDatabaseRecord) {
+            if ($createMonduDatabaseRecord) {
                 $this->_monduLogger->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($payment));
             } else {
                 $transactionId = $this->_monduLogger->updateLogMonduData($orderUid, null, null, null, $order->getId());
@@ -108,7 +115,6 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
                 $this->monduTransactionItem->deleteRecords($transactionId);
                 $this->monduTransactionItem->createTransactionItemsForOrder($transactionId, $order);
             }
-
         } catch (Exception $e) {
             $this->monduFileLogger->info('Error in CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
             throw new LocalizedException(__($e->getMessage()));
@@ -118,7 +124,8 @@ class CreateOrder implements \Magento\Framework\Event\ObserverInterface
     /**
      * @throws LocalizedException
      */
-    public function handleOrderAdjustment($order) {
+    public function handleOrderAdjustment($order)
+    {
         $this->orderHelper->handleOrderAdjustment($order);
     }
 }

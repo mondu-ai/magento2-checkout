@@ -1,67 +1,84 @@
 <?php
 namespace Mondu\Mondu\Observer;
 
+use Magento\Framework\Event\Observer;
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Magento\Framework\Exception\LocalizedException;
+use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\InvoiceOrderHelper;
 
-class ShipOrder implements \Magento\Framework\Event\ObserverInterface
+class ShipOrder extends MonduObserver
 {
-    protected $_monduLogger;
+    /**
+     * @var string
+     */
+    protected $name = 'ShipOrder';
+
+    /**
+     * @var MonduFileLogger
+     */
     private $monduFileLogger;
-    private $paymentMethodHelper;
+
+    /**
+     * @var Log
+     */
+    protected $monduLogger;
+
     /**
      * @var InvoiceOrderHelper
      */
-    private $invoiceOrderhelper;
+    private $invoiceOrderHelper;
 
+    /**
+     * @param PaymentMethod $paymentMethodHelper
+     * @param MonduFileLogger $monduFileLogger
+     * @param ContextHelper $contextHelper
+     * @param Log $logger
+     * @param InvoiceOrderHelper $invoiceOrderHelper
+     */
     public function __construct(
-        Log $logger,
-        MonduFileLogger $monduFileLogger,
         PaymentMethod $paymentMethodHelper,
-        InvoiceOrderHelper $invoiceOrderhelper
-    )
-    {
-        $this->_monduLogger = $logger;
+        MonduFileLogger $monduFileLogger,
+        ContextHelper $contextHelper,
+        Log $logger,
+        InvoiceOrderHelper $invoiceOrderHelper
+    ) {
+        parent::__construct(
+            $paymentMethodHelper,
+            $monduFileLogger,
+            $contextHelper
+        );
+
         $this->monduFileLogger = $monduFileLogger;
-        $this->paymentMethodHelper = $paymentMethodHelper;
-        $this->invoiceOrderhelper = $invoiceOrderhelper;
+        $this->monduLogger = $logger;
+        $this->invoiceOrderHelper = $invoiceOrderHelper;
     }
 
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    /**
+     * @param Observer $observer
+     * @return void
+     * @throws LocalizedException
+     */
+    public function _execute(Observer $observer)
     {
         $shipment = $observer->getEvent()->getShipment();
         $order = $shipment->getOrder();
 
-        $this->monduFileLogger->info('Entered ShipOrder observer', ['orderNumber' => $order->getIncrementId()]);
+        $monduLog = $this->monduLogger->getLogCollection($order->getData('mondu_reference_id'));
 
-        if(!$this->validateOrderPlacedWithMondu($order)) return;
-
-        $monduLog = $this->_monduLogger->getLogCollection($order->getData('mondu_reference_id'));
-
-        if($monduLog->getSkipShipObserver()) {
+        if ($monduLog->getSkipShipObserver()) {
             $this->monduFileLogger->info('Already invoiced using invoice orders action, skipping', ['orderNumber' => $order->getIncrementId()]);
             return;
         }
-        
+
         $monduId = $order->getData('mondu_reference_id');
 
-        if(!$this->_monduLogger->canShipOrder($monduId)) {
+        if (!$this->monduLogger->canShipOrder($monduId)) {
             throw new LocalizedException(__('Can\'t ship order: Mondu order state must be confirmed or partially_shipped'));
         }
 
-        $this->invoiceOrderhelper->handleInvoiceOrder($order, $shipment, $monduLog);
-    }
-
-    private function validateOrderPlacedWithMondu($order) {
-        $payment = $order->getPayment();
-        if (!$this->paymentMethodHelper->isMondu($payment)) {
-            $this->monduFileLogger->info('Not a mondu order, skipping', ['orderNumber' => $order->getIncrementId()]);
-            return false;
-        }
-
-        return true;
+        $this->invoiceOrderHelper->handleInvoiceOrder($order, $shipment, $monduLog);
     }
 }
