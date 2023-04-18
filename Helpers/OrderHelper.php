@@ -6,6 +6,7 @@ use Magento\Quote\Model\Cart\CartTotalRepository;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Model\Order;
+use Mondu\Mondu\Helpers\AdditionalCosts\AdditionalCostsInterface;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
@@ -17,36 +18,25 @@ class OrderHelper
     private $configProvider;
     private $cartTotalRepository;
 
+    /**
+     * @var AdditionalCostsInterface
+     */
+    private $additionalCosts;
+
     public function __construct(
         QuoteFactory $quoteFactory,
         \Mondu\Mondu\Helpers\Log $logger,
         RequestFactory $requestFactory,
         ConfigProvider $configProvider,
-        CartTotalRepository $cartTotalRepository
+        CartTotalRepository $cartTotalRepository,
+        AdditionalCostsInterface $additionalCosts
     ) {
         $this->quoteFactory = $quoteFactory;
         $this->_monduLogger = $logger;
         $this->_requestFactory = $requestFactory;
         $this->configProvider = $configProvider;
         $this->cartTotalRepository = $cartTotalRepository;
-    }
-
-    public function getLinesFromOrder(Order $order): array
-    {
-        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
-        $quote->collectTotals();
-
-        $totalTax = round($quote->getShippingAddress()->getBaseTaxAmount(), 2);
-        $shippingTotal = round($quote->getShippingAddress()->getShippingAmount(), 2) * 100;
-        $lineItems = $this->getLineItemsFromQuote($quote);
-
-        return [
-            [
-                'tax_cents' => $totalTax * 100,
-                'shipping_price_cents' => $shippingTotal,
-                'line_items' => $lineItems
-            ]
-        ];
+        $this->additionalCosts = $additionalCosts;
     }
 
     public function getLinesFromQuote(Quote $quote, $isAdjustment = false): array
@@ -56,9 +46,11 @@ class OrderHelper
         $taxCompensation = $quote->getShippingAddress()->getBaseDiscountTaxCompensationAmount() ?? 0;
         $totalTax = round($totalTax + $taxCompensation, 2);
         $lineItems = $this->getLineItemsFromQuote($quote);
+        $buyerFeeCents = $this->additionalCosts->getAdditionalCostsFromQuote($quote);
 
         return [
             [
+                'buyer_fee_cents' => $buyerFeeCents,
                 'shipping_price_cents' => $shippingTotal * 100,
                 'tax_cents' => $totalTax * 100,
                 'line_items' => $lineItems
@@ -81,6 +73,7 @@ class OrderHelper
         $orderUid = $log['reference_id'];
 
         $adjustment = $this->getOrderAdjustmentData($order);
+
         try {
             $editData = $this->_requestFactory->create(RequestFactory::EDIT_ORDER)
                 ->setOrderUid($orderUid)
@@ -106,7 +99,7 @@ class OrderHelper
 
     private function getOrderAdjustmentData($order): array
     {
-        $quote = $this->quoteFactory->create()->loadByIdWithoutStore($order->getQuoteId());
+        $quote = $this->quoteFactory->create()->load($order->getQuoteId());
         $quote->collectTotals();
 
         if ($quote->getId()) {
@@ -119,6 +112,7 @@ class OrderHelper
             $adjustment = $this->addAmountToOrder($quote, $adjustment);
             return $adjustment;
         }
+
         return [
             'currency' => $order->getBaseCurrencyCode(),
             'external_reference_id' => $order->getIncrementId(),
