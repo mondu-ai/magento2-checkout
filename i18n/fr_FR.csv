@@ -1,7 +1,7 @@
 Configure,Configurer
 Close,Fermer
 Adjust,Ajuster
-"Not found","Pas trouvé"
+"Not found","Non trouvé"
 "Error placing an order Please try again later.","Erreur lors de la commande Veuillez réessayer plus tard."
 "Order has been declined","La commande a été refusée"
 "Mondu: Invoice is required to ship the order.","Mondu: Une facture est nécessaire pour expédier la commande."
@@ -12,7 +12,7 @@ Adjust,Ajuster
 "Mondu api error: %1","Erreur d'API Mondu: %1"
 "'Mondu api error: ' .","'Mondu erreur API: ' ."
 Authorize,Autoriser
-"something went wrong","quelque chose s'est mal passé"
+"something went wrong","Quelque chose s'est mal passé"
 "Error placing an order","Erreur lors de la commande"
 "No order uid provided to adjust the order","Aucun identifiant de commande fourni pour ajuster la commande"
 "Mondu: something went wrong","Mondu: quelque chose s'est mal passé"
@@ -28,9 +28,9 @@ Fraud,Fraude
 "Place Order","Passer la commande"
 "Api Configuration","Configuration de l'API"
 "Api key","Clé API"
-"Send order line items","Envoyer des éléments de campagne de commande"
+"Send order line items","Envoyer les éléments de commande"
 "Require invoice for shipment","Exiger une facture pour l'expédition"
-"Sandbox mode","Mode bac à sable"
+"Sandbox mode","Exiger une facture pour l'envoie"
 "General configuration","Paramétrage général"
 "Enable Bank Transfer","Activer le virement bancaire"
 "Bank Transfer Title","Titre du virement bancaire"
@@ -45,19 +45,19 @@ Fraud,Fraude
 "Payment From Applicable Countries","Paiement depuis les pays concernés"
 "Payment From Specific Countries","Paiement depuis des pays spécifiques"
 "Enable automatic order processing","Activer le traitement automatique des commandes"
-"Enable Logs","Activer les journaux"
+"Enable Logs","Activer les documentations (logs)"
 "General Information","Informations générales"
 State,État
 "-- Order status --","-- Statut de la commande --"
 ID,ID
 "Order ID","numéro de commande"
 "Payment Method","Mode de paiement"
-"Reference ID","Pièce d'identité"
+"Reference ID","Référence ID"
 "Api Mode","Mode API"
 Actions,Actions
 "Created At","Créé à"
-"Mondu: Invoice orders","Mondu: Commandes facturées"
+"Mondu: Invoice orders","Mondu: Commandes par facture"
 "Mondu: Sync orders","Mondu: Synchroniser les commandes"
 Pay later via bank transfer,"Payez plus tard par virement"
-Pay later via SEPA Direct Debit,"SEPA - Payer plus tard par prélèvement SEPA"
+Pay later via SEPA Direct Debit,"SEPA - Payer plus tard par prélèvement automatique"
 Split Payments,Paiements Fractionnés - Payer facilement en plusieurs fois par prélèvement automatique
