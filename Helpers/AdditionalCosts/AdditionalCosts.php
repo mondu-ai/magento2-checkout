@@ -8,6 +8,9 @@ class AdditionalCosts implements AdditionalCostsInterface
 {
     public function getAdditionalCostsFromQuote(Quote $quote): int
     {
-        return round($quote->getPaymentSurchargeAmount(), 2) ?? 0;
+        if ($quote->getPaymentSurchargeAmount()) {
+            return round($quote->getPaymentSurchargeAmount(), 2) ?? 0;
+        }
+        return 0;
     }
 }
