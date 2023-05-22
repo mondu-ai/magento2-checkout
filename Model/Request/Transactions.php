@@ -43,12 +43,12 @@ class Transactions extends CommonRequest implements RequestInterface
     public function request($_params = []): array
     {
         try {
-            if(@$_params['email']) {
+            if (@$_params['email']) {
                 $this->fallbackEmail = $_params['email'];
             }
             $params = $this->getRequestParams();
 
-            if($_params['payment_method'] === 'direct_debit' || $_params['payment_method'] === 'installment') {
+            if ($_params['payment_method'] === 'direct_debit' || $_params['payment_method'] === 'installment') {
                 $params['payment_method'] = $_params['payment_method'];
             }
 
@@ -62,7 +62,7 @@ class Transactions extends CommonRequest implements RequestInterface
             $data = json_decode($result, true);
             $this->_checkoutSession->setMonduid(@$data['order']['uuid']);
 
-            if(!@$data['order']['uuid']) {
+            if (!@$data['order']['uuid']) {
                 return [
                     'error' => 1,
                     'body' => json_decode($result, true),
@@ -75,7 +75,7 @@ class Transactions extends CommonRequest implements RequestInterface
                     'message' => __('Success')
                 ];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return [
                 'error' => 1,
                 'body' => null,
@@ -84,7 +84,8 @@ class Transactions extends CommonRequest implements RequestInterface
         }
     }
 
-    protected function getRequestParams() {
+    protected function getRequestParams()
+    {
         $quote = $this->_checkoutSession->getQuote();
         $quote->collectTotals();
         $requiresShipping = $quote->getShippingAddress() !== null ? 1 : 0;
@@ -128,7 +129,7 @@ class Transactions extends CommonRequest implements RequestInterface
         if (($billing = $quote->getBillingAddress()) !== null) {
             $address = (array) $billing->getStreet();
             $line1 = (string) array_shift($address);
-            if($billing->getStreetNumber()) {
+            if ($billing->getStreetNumber()) {
                 $line1 .= ', '. $billing->getStreetNumber();
             }
             $line2 = (string) implode(' ', $address);
@@ -139,7 +140,7 @@ class Transactions extends CommonRequest implements RequestInterface
                 'address_line1' => $line1,
                 'address_line2' => $line2,
             ];
-            if($billing->getRegion()) {
+            if ($billing->getRegion()) {
                 $params['state'] = (string) $billing->getRegion();
             }
         }
@@ -154,7 +155,7 @@ class Transactions extends CommonRequest implements RequestInterface
         if (($shipping = $quote->getShippingAddress()) !== null) {
             $address = (array) $shipping->getStreet();
             $line1 = (string) array_shift($address);
-            if($shipping->getStreetNumber()) {
+            if ($shipping->getStreetNumber()) {
                 $line1 .= ', '. $shipping->getStreetNumber();
             }
             $line2 = (string) implode(' ', $address);
@@ -166,7 +167,7 @@ class Transactions extends CommonRequest implements RequestInterface
                 'address_line2' => $line2,
             ];
 
-            if($shipping->getRegion()) {
+            if ($shipping->getRegion()) {
                 $params['state'] = (string) $shipping->getRegion();
             }
         }
@@ -179,7 +180,8 @@ class Transactions extends CommonRequest implements RequestInterface
      * @return mixed|string|null
      * @throws \Exception
      */
-    public function getExternalReferenceId(Quote $quote) {
+    public function getExternalReferenceId(Quote $quote)
+    {
         $reservedOrderId = $quote->getReservedOrderId();
         if (!$reservedOrderId) {
             $quote->reserveOrderId()->save();
