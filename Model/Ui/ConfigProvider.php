@@ -128,10 +128,6 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
-                    'transactionResults' => [
-                        ClientMock::SUCCESS => __('Success'),
-                        ClientMock::FAILURE => __('Fraud'),
-                    ],
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondu,
                     'title' => __($this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE))

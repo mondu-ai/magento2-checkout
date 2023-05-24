@@ -21,14 +21,12 @@ define([
     return Component.extend({
         defaults: {
             template: "Mondu_Mondu/payment/form",
-            transactionResult: "",
             monduSkdLoaded: false,
         },
         isBillingSameAsShipping: true,
 
         initObservable: function () {
             var self = this;
-            self._super().observe(["transactionResult"]);
             billingAddress().isAddressSameAsShipping.subscribe(function (
               isSame
             ) {
@@ -53,23 +51,7 @@ define([
         getData: function () {
             return {
                 method: this.item.method,
-                additional_data: {
-                    transaction_result: this.transactionResult(),
-                },
             };
-        },
-
-        getTransactionResults: function () {
-            var self = this;
-            return _.map(
-              window.checkoutConfig.payment[self.getCode()].transactionResults,
-              function (value, key) {
-                  return {
-                      value: key,
-                      transaction_result: value,
-                  };
-              }
-            );
         },
 
         getMonduCheckoutTokenUrl: function () {
