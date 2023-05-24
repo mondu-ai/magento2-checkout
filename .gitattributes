@@ -1,3 +1,3 @@
 /.* export-ignore
 /releaser.sh export-ignore
-/docker-compose.yml
+/docker-compose.yml export-ignore
