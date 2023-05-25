@@ -1,0 +1,3 @@
+/.* export-ignore
+/releaser.sh export-ignore
+/docker-compose.yml export-ignore
