@@ -1,10 +1,23 @@
 <?php
 namespace Mondu\Mondu\Model\ResourceModel\Log;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+
+class Collection extends AbstractCollection
 {
+    /**
+     * @var string
+     */
     protected $_idFieldName = 'entity_id';
+
+    /**
+     * @var string
+     */
     protected $_eventPrefix = 'mondu_mondu_log_collection';
+
+    /**
+     * @var string
+     */
     protected $_eventObject = 'log_collection';
 
     /**
@@ -14,6 +27,6 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('Mondu\Mondu\Model\Log', 'Mondu\Mondu\Model\ResourceModel\Log');
+        $this->_init(\Mondu\Mondu\Model\Log::class, \Mondu\Mondu\Model\ResourceModel\Log::class);
     }
 }

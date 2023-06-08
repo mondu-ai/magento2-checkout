@@ -12,6 +12,9 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CancelOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected $name = 'CancelOrder';
 
     /**
@@ -54,6 +57,13 @@ class CancelOrder extends MonduObserver
         $this->messageManager = $messageManager;
     }
 
+    /**
+     * Execute
+     *
+     * @param Observer $observer
+     * @return void
+     * @throws LocalizedException
+     */
     public function _execute(Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
@@ -67,16 +77,22 @@ class CancelOrder extends MonduObserver
                     ->process(['orderUid' => $monduId]);
 
                 if (!$cancelData) {
-                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Order could not be found, please contact Mondu Support to resolve this issue.');
+                    $message = 'Mondu: Unexpected error: Order could not be found,' .
+                        ' please contact Mondu Support to resolve this issue.';
+                    $this->messageManager
+                        ->addErrorMessage($message);
                     return;
                 }
 
-                $order->addStatusHistoryComment(__('Mondu: The order with the id %1 was successfully canceled.', $monduId));
+                $order->addStatusHistoryComment(
+                    __('Mondu: The order with the id %1 was successfully canceled.', $monduId)
+                );
                 $order->save();
                 $this->monduFileLogger->info('Cancelled order ', ['orderNumber' => $order->getIncrementId()]);
             }
         } catch (Exception $error) {
-            $this->monduFileLogger->info('Failed to cancel Order '.$order->getIncrementId(), ['e' => $error->getMessage()]);
+            $this->monduFileLogger
+                ->info('Failed to cancel Order '.$order->getIncrementId(), ['e' => $error->getMessage()]);
             throw new LocalizedException(__($error->getMessage()));
         }
     }

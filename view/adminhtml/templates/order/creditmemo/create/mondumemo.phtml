@@ -6,14 +6,20 @@
 
 <?php if ($block->render()): ?>
 <div class="field choice admin__field">
-    <?= $block->getPaymentMethod() ?>
+    <?= $block->escapeHtml($block->getPaymentMethod()) ?>
     <div class="admin__field">
         <label for="history_status" class="admin__field-label">Invoice to memo</label>
         <div class="admin__field-control">
             <select name="creditmemo[creditmemo_mondu_id]" id="history_status" class="admin__control-select">
                 <?php $i = 0; foreach ($mapping as $key => $item): ?>
-                    <option value="<?= $item['uuid'] ?>" <?php @$item['state'] === 'complete' ? printf('disabled') : '' ?>>
-                        INVOICE: <?= $key ?> State: <?= $item['state'] ?>
+                    <option value="<?= $block->escapeHtml($item['uuid']) ?>"
+                        <?php
+                            (isset($item['state']) && $item['state'] === 'complete') ?
+                            $block->escapeHtml('disabled') :
+                            ''
+                        ?>
+                    >
+                        INVOICE: <?= $block->escapeHtml($key) ?> State: <?= $block->escapeHtml($item['state']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>

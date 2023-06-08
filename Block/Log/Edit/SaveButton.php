@@ -4,18 +4,16 @@ namespace Mondu\Mondu\Block\Log\Edit;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
-/**
- * Class SaveButton
- * @package Magento\Customer\Block\Adminhtml\Edit
- */
 class SaveButton extends GenericButton implements ButtonProviderInterface
 {
     /**
+     * GetButtonData
+     *
      * @return array
      */
     public function getButtonData()
     {
-        $data = [
+        return [
             'label' => __('Adjust'),
             'class' => 'save primary',
             'data_attribute' => [
@@ -24,6 +22,5 @@ class SaveButton extends GenericButton implements ButtonProviderInterface
             ],
             'sort_order' => 90,
         ];
-        return $data;
     }
 }

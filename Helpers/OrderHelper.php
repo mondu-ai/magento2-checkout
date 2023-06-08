@@ -1,7 +1,9 @@
 <?php
 namespace Mondu\Mondu\Helpers;
 
+use Laminas\Filter\Boolean;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Cart\CartTotalRepository;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteFactory;
@@ -12,10 +14,29 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class OrderHelper
 {
+    /**
+     * @var QuoteFactory
+     */
     private $quoteFactory;
+
+    /**
+     * @var Log
+     */
     private $_monduLogger;
+
+    /**
+     * @var RequestFactory
+     */
     private $_requestFactory;
+
+    /**
+     * @var ConfigProvider
+     */
     private $configProvider;
+
+    /**
+     * @var CartTotalRepository
+     */
     private $cartTotalRepository;
 
     /**
@@ -23,6 +44,14 @@ class OrderHelper
      */
     private $additionalCosts;
 
+    /**
+     * @param QuoteFactory $quoteFactory
+     * @param Log $logger
+     * @param RequestFactory $requestFactory
+     * @param ConfigProvider $configProvider
+     * @param CartTotalRepository $cartTotalRepository
+     * @param AdditionalCostsInterface $additionalCosts
+     */
     public function __construct(
         QuoteFactory $quoteFactory,
         \Mondu\Mondu\Helpers\Log $logger,
@@ -39,9 +68,20 @@ class OrderHelper
         $this->additionalCosts = $additionalCosts;
     }
 
+    /**
+     * GetLinesFromQuote
+     *
+     * @param Quote $quote
+     * @param bool $isAdjustment
+     * @return array[]
+     * @throws NoSuchEntityException
+     */
     public function getLinesFromQuote(Quote $quote, $isAdjustment = false): array
     {
-        $shippingTotal = $isAdjustment ? round($quote->getShippingAddress()->getShippingAmount(), 2) : $this->cartTotalRepository->get($quote->getId())->getBaseShippingAmount();
+        $shippingTotal = $isAdjustment ?
+            round($quote->getShippingAddress()->getShippingAmount(), 2) :
+            $this->cartTotalRepository->get($quote->getId())->getBaseShippingAmount();
+
         $totalTax = round($quote->getShippingAddress()->getBaseTaxAmount(), 2);
         $taxCompensation = $quote->getShippingAddress()->getBaseDiscountTaxCompensationAmount() ?? 0;
         $totalTax = round($totalTax + $taxCompensation, 2);
@@ -59,6 +99,11 @@ class OrderHelper
     }
 
     /**
+     * HandleOrderAdjustment
+     *
+     * @param Order $order
+     * @param mixed $orderId
+     * @return void
      * @throws LocalizedException
      */
     public function handleOrderAdjustment($order, $orderId = null)
@@ -79,12 +124,12 @@ class OrderHelper
                 ->setOrderUid($orderUid)
                 ->process($adjustment);
 
-            if (@$editData['errors']) {
-                throw new \Exception($editData['errors'][0]['name'].' '.$editData['errors'][0]['details']);
+            if (isset($editData['errors'])) {
+                throw new LocalizedException(__($editData['errors'][0]['name'].' '.$editData['errors'][0]['details']));
             }
             $order->setData('mondu_reference_id', $orderUid);
             $order->addStatusHistoryComment(__('Mondu: order with id %1 was adjusted', $orderUid));
-        } catch (\Exception $e) {
+        } catch (\Exception|LocalizedException $e) {
             if ($orderId) {
                 throw new LocalizedException(__('Mondu api error: %1', $e->getMessage()));
             }
@@ -97,6 +142,13 @@ class OrderHelper
         }
     }
 
+    /**
+     * GetOrderAdjustmentData
+     *
+     * @param Order $order
+     * @return array
+     * @throws NoSuchEntityException
+     */
     private function getOrderAdjustmentData($order): array
     {
         $quote = $this->quoteFactory->create()->load($order->getQuoteId());
@@ -109,8 +161,7 @@ class OrderHelper
             ];
 
             $adjustment = $this->addLinesOrGrossAmountToOrder($quote, $quote->getBaseGrandTotal(), $adjustment, true);
-            $adjustment = $this->addAmountToOrder($quote, $adjustment);
-            return $adjustment;
+            return $this->addAmountToOrder($quote, $adjustment);
         }
 
         return [
@@ -123,6 +174,12 @@ class OrderHelper
         ];
     }
 
+    /**
+     * GetLineItemsFromQuote
+     *
+     * @param Quote $quote
+     * @return array
+     */
     private function getLineItemsFromQuote(Quote $quote): array
     {
         $lineItems = [];
@@ -141,7 +198,6 @@ class OrderHelper
                 foreach ($quoteItem->getChildren() as $child) {
                     $variationId = $child->getProductId();
                     $child->getProduct()->load($child->getProductId());
-                    continue;
                 }
             }
 
@@ -160,6 +216,16 @@ class OrderHelper
         return $lineItems;
     }
 
+    /**
+     * AddLinesOrGrossAmountToOrder
+     *
+     * @param Quote $quote
+     * @param float $grandTotal
+     * @param array $order
+     * @param Boolean $isAdjustment
+     * @return array
+     * @throws NoSuchEntityException
+     */
     public function addLinesOrGrossAmountToOrder(Quote $quote, $grandTotal, $order, $isAdjustment = false)
     {
         $sendLines = $this->configProvider->sendLines();
@@ -171,6 +237,13 @@ class OrderHelper
         return $order;
     }
 
+    /**
+     * AddAmountToOrder
+     *
+     * @param Quote $quote
+     * @param array $order
+     * @return array
+     */
     public function addAmountToOrder(Quote $quote, $order)
     {
         $netPrice = $quote->getSubtotal();
@@ -184,6 +257,14 @@ class OrderHelper
         return $order;
     }
 
+    /**
+     * AddLineItemsToInvoice
+     *
+     * @param mixed $invoiceItem
+     * @param mixed $invoice
+     * @param array $externalReferenceIdMapping
+     * @return mixed
+     */
     public function addLineItemsToInvoice($invoiceItem, $invoice, $externalReferenceIdMapping = [])
     {
         $sendLines = $this->configProvider->sendLines();
@@ -214,6 +295,13 @@ class OrderHelper
         return $invoice;
     }
 
+    /**
+     * HandlePaymentMethodChange
+     *
+     * @param Order $order
+     * @return void
+     * @throws LocalizedException
+     */
     public function handlePaymentMethodChange($order)
     {
         $prevOrderId = $order->getRelationParentId();
@@ -227,6 +315,12 @@ class OrderHelper
             ->process(['orderUid' => $log['reference_id']]);
     }
 
+    /**
+     * GetConfigurableItemIdMap
+     *
+     * @param array $items
+     * @return array
+     */
     private function getConfigurableItemIdMap($items): array
     {
         $mapping = [];

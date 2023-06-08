@@ -24,6 +24,11 @@ class Cron
      */
     private $bulkActions;
 
+    /**
+     * @param OrderCollectionFactory $orderCollectionFactory
+     * @param BulkActions $bulkActions
+     * @param ConfigProvider $configProvider
+     */
     public function __construct(
         OrderCollectionFactory $orderCollectionFactory,
         BulkActions $bulkActions,
@@ -34,13 +39,18 @@ class Cron
         $this->configProvider = $configProvider;
     }
 
+    /**
+     * Execute
+     *
+     * @return $this
+     */
     public function execute(): Cron
     {
-        if($this->configProvider->isCronEnabled()) {
+        if ($this->configProvider->isCronEnabled()) {
             $date = date('Y-m-d H:i:s', strtotime('-1 hour'));
             $result = $this->orderCollectionFactory->create()
-                ->addAttributeToFilter('updated_at', array( 'from' => $date ))
-                ->addAttributeToFilter('mondu_reference_id', array('neq' => null));
+                ->addAttributeToFilter('updated_at', [ 'from' => $date ])
+                ->addAttributeToFilter('mondu_reference_id', ['neq' => null]);
 
             $orders = $result->getAllIds();
 

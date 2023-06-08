@@ -13,7 +13,7 @@ abstract class BulkAction extends Action
 {
     use BulkActionHelpers;
 
-    const ADMIN_RESOURCE = 'Magento_Sales::sales_order';
+    public const ADMIN_RESOURCE = 'Magento_Sales::sales_order';
 
     /**
      * @var BulkActions
@@ -56,6 +56,8 @@ abstract class BulkAction extends Action
         parent::__construct($context);
     }
     /**
+     * Execute
+     *
      * @throws LocalizedException
      */
     abstract public function execute();

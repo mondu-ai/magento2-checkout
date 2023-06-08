@@ -1,6 +1,7 @@
 <?php
 namespace Mondu\Mondu\Model;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Model\Method\Factory;
 use Magento\Store\Model\StoreResolver;
 use Mondu\Mondu\Helpers\PaymentMethod;
@@ -29,6 +30,11 @@ class PaymentMethodList
      */
     private $storeResolver;
 
+    /**
+     * @param Factory $methodFactory
+     * @param PaymentMethod $paymentMethodHelper
+     * @param StoreResolver $storeResolver
+     */
     public function __construct(
         Factory $methodFactory,
         PaymentMethod $paymentMethodHelper,
@@ -39,6 +45,13 @@ class PaymentMethodList
         $this->storeResolver = $storeResolver;
     }
 
+    /**
+     * GetPaymentMethod
+     *
+     * @param string $method
+     * @return Payment\Mondu
+     * @throws LocalizedException
+     */
     public function getPaymentMethod($method)
     {
         if (!isset($this->paymentMethods[$method])) {
@@ -49,6 +62,12 @@ class PaymentMethodList
         return $this->paymentMethods[$method];
     }
 
+    /**
+     * FilterMonduPaymentMethods
+     *
+     * @param string $methods
+     * @return array
+     */
     public function filterMonduPaymentMethods($methods)
     {
         $monduMethods = $this->paymentMethodHelper->getPayments();

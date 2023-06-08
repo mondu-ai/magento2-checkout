@@ -8,13 +8,29 @@ use Magento\Framework\View\Element\UiComponent\ContextInterface;
 
 class PaymentMethod extends Column
 {
+    /**
+     * @var UrlInterface
+     */
     private $urlBuilder;
+
+    /**
+     * @var mixed|string
+     */
     private $viewUrl;
     /**
      * @var \Mondu\Mondu\Helpers\PaymentMethod
      */
     private $paymentMethodHelper;
 
+    /**
+     * @param ContextInterface $context
+     * @param UiComponentFactory $uiComponentFactory
+     * @param UrlInterface $backendUrl
+     * @param \Mondu\Mondu\Helpers\PaymentMethod $paymentMethodHelper
+     * @param string $viewUrl
+     * @param array $components
+     * @param array $data
+     */
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,

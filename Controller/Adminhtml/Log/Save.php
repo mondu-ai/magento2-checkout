@@ -2,41 +2,57 @@
 
 namespace Mondu\Mondu\Controller\Adminhtml\Log;
 
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
 
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
-class Save extends \Magento\Backend\App\Action
+class Save extends Action
 {
-    const ADMIN_RESOURCE = 'Mondu_Mondu::log';
+    public const ADMIN_RESOURCE = 'Mondu_Mondu::log';
+
     /**
      * @var DataPersistorInterface
      */
     protected $dataPersistor;
 
+    /**
+     * @var RequestFactory
+     */
     protected $requestFactory;
+
+    /**
+     * @var Log
+     */
     private $monduLogger;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
     private $orderRepository;
 
     /**
      * @param Context $context
      * @param DataPersistorInterface $dataPersistor
-     * @param ImageUploader $imageUploader
+     * @param RequestFactory $requestFactory
+     * @param Log $logger
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Context $context,
         DataPersistorInterface $dataPersistor,
         RequestFactory $requestFactory,
-        \Mondu\Mondu\Helpers\Log $logger,
+        Log $logger,
         OrderRepositoryInterface $orderRepository
     ) {
         $this->dataPersistor = $dataPersistor;
         $this->requestFactory = $requestFactory;
-        $this->_monduLogger = $logger;
+        $this->monduLogger = $logger;
         $this->orderRepository = $orderRepository;
         parent::__construct($context);
     }
@@ -46,6 +62,8 @@ class Save extends \Magento\Backend\App\Action
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @return \Magento\Framework\Controller\ResultInterface
+     * @throws LocalizedException
+     * @throws \Exception
      */
     public function execute()
     {
@@ -58,20 +76,20 @@ class Save extends \Magento\Backend\App\Action
 
         $response = $this->requestFactory->create(RequestFactory::ADJUST_ORDER)
             ->process($requestObject);
-        if(@$response['status'] === 422) {
+        if (isset($response['status']) && $response['status'] === 422) {
             $this->messageManager->addError($response['errors'][0]['name']. ' '. $response['errors'][0]['details']);
-            $this->_monduLogger->syncOrder($data['reference_id']);
+            $this->monduLogger->syncOrder($data['reference_id']);
             return $resultRedirect->setPath('*/*/adjust', ['entity_id' => $this->getRequest()->getParam('entity_id')]);
         }
-        if(@$response['order']['state'] === 'canceled') {
+        if (isset($response['order']['state']) && $response['order']['state'] === 'canceled') {
             $order = $this->orderRepository->get($data['order_id']);
             $order->setStatus(Order::STATE_CANCELED)->save();
-        } elseif (@$response['order']['state'] === 'shipped') {
+        } elseif (isset($response['order']['state']) && $response['order']['state'] === 'shipped') {
             $order = $this->orderRepository->get($data['order_id']);
             $order->setStatus(Order::STATE_COMPLETE)->save();
         }
 
-        $this->_monduLogger->syncOrder($data['reference_id']);
+        $this->monduLogger->syncOrder($data['reference_id']);
 
         return $resultRedirect->setPath('*/*/');
     }

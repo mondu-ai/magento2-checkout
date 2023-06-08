@@ -1,16 +1,15 @@
 <?php
 namespace Mondu\Mondu\Model;
 
+use Magento\Ui\DataProvider\AbstractDataProvider;
 use Mondu\Mondu\Model\LogFactory;
 use Magento\Framework\App\Request\DataPersistorInterface;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Filesystem;
 
-/**
- * Class DataProvider
- */
-class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
+class DataProvider extends AbstractDataProvider
 {
+    /**
+     * @var mixed
+     */
     protected $collection;
 
     /**
@@ -24,12 +23,10 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
     protected $loadedData;
 
     /**
-     * Constructor
-     *
      * @param string $name
      * @param string $primaryFieldName
      * @param string $requestFieldName
-     * @param CollectionFactory $bannerCollectionFactory
+     * @param LogFactory $logCollectionFactory
      * @param DataPersistorInterface $dataPersistor
      * @param array $meta
      * @param array $data
@@ -53,7 +50,7 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
      *
      * @return array
      */
-    public function getData()
+    public function getData(): array
     {
         if (isset($this->loadedData)) {
             return $this->loadedData;

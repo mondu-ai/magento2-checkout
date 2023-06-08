@@ -1,41 +1,48 @@
 <?php
 namespace Mondu\Mondu\Controller\Adminhtml\Log;
 
-class Adjust extends \Magento\Backend\App\Action
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\View\Result\Page;
+use Magento\Framework\View\Result\PageFactory;
+
+class Adjust extends Action
 {
-    const ADMIN_RESOURCE = 'Mondu_Mondu::log';
+    public const ADMIN_RESOURCE = 'Mondu_Mondu::log';
 
-    const PAGE_TITLE = 'Mondu adjust order';
+    public const PAGE_TITLE = 'Mondu adjust order';
 
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
+     * @var PageFactory
      */
-    protected $_pageFactory;
+    protected $pageFactory;
 
     /**
-     * @param \Magento\Backend\App\Action\Context $context
+     * @param Context $context
+     * @param PageFactory $pageFactory
      */
     public function __construct(
-        \Magento\Backend\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $pageFactory
-    )
-    {
-        $this->_pageFactory = $pageFactory;
+        Context $context,
+        PageFactory $pageFactory
+    ) {
+        $this->pageFactory = $pageFactory;
         return parent::__construct($context);
     }
 
     /**
      * Index action
      *
-     * @return \Magento\Framework\View\Result\Page
+     * @return Page
      */
     public function execute()
     {
-        /** @var \Magento\Framework\View\Result\Page $resultPage */
-        $resultPage = $this->_pageFactory->create();
+        $resultPage = $this->pageFactory->create();
         $resultPage->setActiveMenu(static::ADMIN_RESOURCE);
-        $resultPage->addBreadcrumb(__(static::PAGE_TITLE), __(static::PAGE_TITLE));
-        $resultPage->getConfig()->getTitle()->prepend(__(static::PAGE_TITLE));
+
+        $pageTitle = static::PAGE_TITLE;
+
+        $resultPage->addBreadcrumb(__($pageTitle), __($pageTitle));
+        $resultPage->getConfig()->getTitle()->prepend(__($pageTitle));
 
         return $resultPage;
     }

@@ -11,8 +11,15 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class Save implements ObserverInterface
 {
-    private $_requestFactory;
-    private $_monduConfig;
+    /**
+     * @var RequestFactory
+     */
+    private $requestFactory;
+
+    /**
+     * @var ConfigProvider
+     */
+    private $monduConfig;
     /**
      * @var PaymentMethod
      */
@@ -21,7 +28,7 @@ class Save implements ObserverInterface
     /**
      * @var string[]
      */
-    private $_subscriptions = [
+    private $subscriptions = [
         'order/confirmed',
         'order/declined',
         'order/pending',
@@ -33,61 +40,71 @@ class Save implements ObserverInterface
      */
     private $storeManager;
 
+    /**
+     * @param RequestFactory $requestFactory
+     * @param ConfigProvider $monduConfig
+     * @param PaymentMethod $paymentMethod
+     * @param StoreManagerInterface $storeManager
+     */
     public function __construct(
         RequestFactory $requestFactory,
         ConfigProvider $monduConfig,
         PaymentMethod $paymentMethod,
         StoreManagerInterface $storeManager
     ) {
-        $this->_requestFactory = $requestFactory;
-        $this->_monduConfig = $monduConfig;
+        $this->requestFactory = $requestFactory;
+        $this->monduConfig = $monduConfig;
         $this->paymentMethod = $paymentMethod;
         $this->storeManager = $storeManager;
     }
 
     /**
+     * Execute
+     *
+     * @param Observer $observer
+     * @return void
      * @throws LocalizedException
      */
     public function execute(Observer $observer)
     {
-        if ($this->_monduConfig->isActive()) {
-            if ($this->_monduConfig->getApiKey()) {
+        if ($this->monduConfig->isActive()) {
+            if ($this->monduConfig->getApiKey()) {
                 try {
-                    $this->_monduConfig->updateNewOrderStatus();
+                    $this->monduConfig->updateNewOrderStatus();
                     $this->paymentMethod->resetAllowedCache();
 
                     $storeId = $this->storeManager->getStore()->getId();
-                    $this->_requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
+                    $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
                        ->process()
                        ->setStore($storeId)
                        ->checkSuccess()
                        ->update();
 
-                    $this->_requestFactory
+                    $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setStore($storeId)
                        ->setTopic('order/confirmed')
                        ->process();
 
-                    $this->_requestFactory
+                    $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/pending')
                        ->setStore($storeId)
                        ->process();
 
-                    $this->_requestFactory
+                    $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/declined')
                        ->setStore($storeId)
                        ->process();
 
-                    $this->_requestFactory
+                    $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/canceled')
                        ->setStore($storeId)
                        ->process();
 
-                    $this->_monduConfig->clearConfigurationCache();
+                    $this->monduConfig->clearConfigurationCache();
                 } catch (\Exception $e) {
                     throw new LocalizedException(__($e->getMessage()));
                 }

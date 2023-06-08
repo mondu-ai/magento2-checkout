@@ -1,13 +1,10 @@
 <?php
 namespace Mondu\Mondu\Block\Log\Edit;
 
-
+use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\View\Element\UiComponent\Context;
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
-/**
- * Class GenericButton
- */
 class GenericButton implements ButtonProviderInterface
 {
     /**
@@ -16,22 +13,27 @@ class GenericButton implements ButtonProviderInterface
     protected $context;
 
     /**
-     * @var \Magento\Framework\AuthorizationInterface
+     * @var AuthorizationInterface
      */
     protected $_authorization;
 
     /**
      * @param Context $context
-     * @param \Magento\Framework\AuthorizationInterface $authorization
+     * @param AuthorizationInterface $authorization
      */
     public function __construct(
         Context $context,
-        \Magento\Framework\AuthorizationInterface $authorization
+        AuthorizationInterface $authorization
     ) {
         $this->context = $context;
         $this->_authorization = $authorization;
     }
 
+    /**
+     * GetId
+     *
+     * @return int
+     */
     public function getId(): int
     {
         return (int)$this->context->getRequestParams('entity_id');
@@ -50,7 +52,7 @@ class GenericButton implements ButtonProviderInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getButtonData()
     {

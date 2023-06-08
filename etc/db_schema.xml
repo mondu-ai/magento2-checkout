@@ -1,0 +1,40 @@
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="mondu_transactions" resource="default" engine="innodb">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Log id"/>
+        <column xsi:type="int" name="store_id" unsigned="true" comment="Store Id"/>
+        <column xsi:type="int" name="order_id" unsigned="true" comment="Order Id"/>
+        <column xsi:type="varchar" name="reference_id" nullable="false" comment="Mondu reference id"/>
+        <column xsi:type="timestamp" name="created_at" default="CURRENT_TIMESTAMP" on_update="false" comment="Created at"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" comment="Customer Id"/>
+        <column xsi:type="varchar" name="mode" comment="Transaction mode"/>
+        <column xsi:type="varchar" name="mondu_state" comment="Mondu state"/>
+        <column xsi:type="text" name="addons" comment="Order addons"/>
+        <column xsi:type="varchar" name="invoice_iban" comment="Iban"/>
+        <column xsi:type="tinyint" name="skip_ship_observer" padding="2" comment="Skip ship observer"/>
+        <column xsi:type="varchar" name="payment_method" comment="Mondu payment method"/>
+        <column xsi:type="int" name="authorized_net_term" unsigned="true" nullable="true" comment="Mondu authorized net term"/>
+
+        <index referenceId="MONDU_TRANSACTIONS_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+
+    <table name="mondu_transaction_items" resource="default" engine="innodb">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Transaction Item id"/>
+        <column xsi:type="int" name="mondu_transaction_id" nullable="false" unsigned="true" comment="Mondu Transaction item id"/>
+        <column xsi:type="int" name="product_id" nullable="false" unsigned="true" comment="Product id"/>
+        <column xsi:type="int" name="order_item_id" nullable="true" unsigned="true" comment="Order item id"/>
+        <column xsi:type="int" name="quote_item_id" nullable="true" unsigned="true" comment="Quote item id"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+
+    <table name="sales_order" resource="sales">
+        <column xsi:type="varchar" name="mondu_reference_id" nullable="false" comment="Mondu Reference id" />
+    </table>
+</schema>

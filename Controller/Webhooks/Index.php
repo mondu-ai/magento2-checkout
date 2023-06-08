@@ -1,32 +1,57 @@
 <?php
 namespace Mondu\Mondu\Controller\Webhooks;
 
+use Exception;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ActionInterface;
-//use Magento\Framework\App\CsrfAwareActionInterface;
-//use Balancepay\Balancepay\Model\Request\Factory as RequestFactory;
-//use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class Index extends Action implements ActionInterface {
+class Index extends Action implements ActionInterface
+{
+    /**
+     * @var JsonFactory
+     */
     private $_jsonFactory;
-//    private $_requestFactory;
+
+    /**
+     * @var Json
+     */
     private $_json;
+
+    /**
+     * @var OrderFactory
+     */
     private $_orderFactory;
+
+    /**
+     * @var Log
+     */
     private $_monduLogger;
+
+    /**
+     * @var ConfigProvider
+     */
     private $_monduConfig;
 
+    /**
+     * @param Context $context
+     * @param JsonFactory $jsonFactory
+     * @param Json $json
+     * @param OrderFactory $orderFactory
+     * @param Log $logger
+     * @param ConfigProvider $monduConfig
+     */
     public function __construct(
         Context $context,
         JsonFactory $jsonFactory,
-//        RequestFactory $requestFactory,
         Json $json,
         OrderFactory $orderFactory,
         Log $logger,
@@ -34,13 +59,17 @@ class Index extends Action implements ActionInterface {
     ) {
         parent::__construct($context);
         $this->_jsonFactory = $jsonFactory;
-//        $this->_requestFactory = $requestFactory;
         $this->_json = $json;
         $this->_orderFactory = $orderFactory;
         $this->_monduLogger = $logger;
         $this->_monduConfig = $monduConfig;
     }
 
+    /**
+     * Execute
+     *
+     * @return \Magento\Framework\Controller\Result\Json
+     */
     public function execute()
     {
         $resBody = [];
@@ -48,14 +77,14 @@ class Index extends Action implements ActionInterface {
 
         try {
             $content = $this->getRequest()->getContent();
-            if($storeId = $this->getRequest()->getParam('storeId')) {
+            if ($storeId = $this->getRequest()->getParam('storeId')) {
                 $this->_monduConfig->setContextCode($storeId);
             }
 
             $headers = $this->getRequest()->getHeaders()->toArray();
-            $signature = hash_hmac('sha256',$content, $this->_monduConfig->getWebhookSecret());
-            if($signature !== @$headers['X-Mondu-Signature']) {
-                throw new \Exception('Signature mismatch');
+            $signature = hash_hmac('sha256', $content, $this->_monduConfig->getWebhookSecret());
+            if ($signature !== ($headers['X-Mondu-Signature'] ?? null)) {
+                throw new AuthorizationException(__('Signature mismatch'));
             }
             $params = $this->_json->unserialize($content);
 
@@ -73,9 +102,9 @@ class Index extends Action implements ActionInterface {
                     [$resBody, $resStatus] = $this->handleDeclinedOrCanceled($params);
                     break;
                 default:
-                    throw new \Exception('Unregistered topic');
+                    throw new AuthorizationException(__('Unregistered topic'));
             }
-        } catch (\Exception $e) {
+        } catch (AuthorizationException|Exception $e) {
             $resBody = [
                 'error' => 1,
                 'message' => $e->getMessage()
@@ -89,20 +118,24 @@ class Index extends Action implements ActionInterface {
     }
 
     /**
-     * @throws \Exception
+     * HandlePending
+     *
+     * @param array|null $params
+     * @return array
+     * @throws Exception
      */
     public function handlePending($params): array
     {
-        $externalReferenceId = @$params['external_reference_id'];
+        $externalReferenceId = $params['external_reference_id'] ?? null;
 
-        $monduId = @$params['order_uuid'];
+        $monduId = $params['order_uuid'] ?? null;
         $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
 
-        if(!$externalReferenceId || !$monduId) {
-            throw new \Exception('Required params missing');
+        if (!$externalReferenceId || !$monduId) {
+            throw new Exception('Required params missing');
         }
 
-        if(!$order || !$order->getIncrementId()) {
+        if (!$order || !$order->getIncrementId()) {
             return [['message' => 'Not Found', 'error' => 1], 404];
         }
 
@@ -110,18 +143,23 @@ class Index extends Action implements ActionInterface {
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
+
     /**
-     * @throws \Exception
+     * HandleConfirmed
+     *
+     * @param array|null $params
+     * @return array
+     * @throws Exception
      */
     public function handleConfirmed($params): array
     {
-        $viban = @$params['bank_account']['iban'];
-        $monduId = @$params['order_uuid'];
-        $externalReferenceId = @$params['external_reference_id'];
+        $viban = $params['bank_account']['iban'] ?? null;
+        $monduId = $params['order_uuid'] ?? null;
+        $externalReferenceId = $params['external_reference_id'] ?? null;
         $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
 
-        if(!$viban || !$externalReferenceId) {
-            throw new \Exception('Required params missing');
+        if (!$viban || !$externalReferenceId) {
+            throw new Exception('Required params missing');
         }
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state'], $viban);
 
@@ -129,17 +167,21 @@ class Index extends Action implements ActionInterface {
     }
 
     /**
-     * @throws \Exception
+     * HandleDeclinedOrCanceled
+     *
+     * @param array|null $params
+     * @return array
+     * @throws Exception
      */
     public function handleDeclinedOrCanceled($params): array
     {
-        $monduId = @$params['order_uuid'];
-        $externalReferenceId = @$params['external_reference_id'];
-        $orderState = @$params['order_state'];
+        $monduId = $params['order_uuid'] ?? null;
+        $externalReferenceId = $params['external_reference_id'] ?? null;
+        $orderState = $params['order_state'] ?? null;
         $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
 
-        if(!$monduId || !$externalReferenceId || !$orderState) {
-            throw new \Exception('Required params missing');
+        if (!$monduId || !$externalReferenceId || !$orderState) {
+            throw new Exception('Required params missing');
         }
         if (!empty($order->getData)) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
@@ -147,7 +189,7 @@ class Index extends Action implements ActionInterface {
         if ($orderState === 'canceled') {
             $order->setStatus(Order::STATE_CANCELED)->save();
         } elseif ($orderState === 'declined') {
-            if(@$params['reason'] === 'buyer_fraud') {
+            if (isset($params['reason']) && $params['reason'] === 'buyer_fraud') {
                 $order->setStatus(Order::STATUS_FRAUD)->save();
             } else {
                 $order->setStatus(Order::STATE_CANCELED)->save();
@@ -159,12 +201,13 @@ class Index extends Action implements ActionInterface {
         return [['message' => 'ok', 'error' => 0], 200];
     }
 
-//    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
-//    {
-//        return null;
-//    }
-
-    public function validateForCsrf(RequestInterface $request): ?bool
+    /**
+     * ValidateForCsrf
+     *
+     * @param RequestInterface $request
+     * @return bool|null
+     */
+    public function validateForCsrf(RequestInterface $request): bool
     {
         return true;
     }
