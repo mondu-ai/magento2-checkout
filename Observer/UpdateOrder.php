@@ -15,6 +15,9 @@ use Magento\Framework\Message\ManagerInterface;
 
 class UpdateOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected $name = 'UpdateOrder';
 
     /**
@@ -81,7 +84,12 @@ class UpdateOrder extends MonduObserver
         $this->messageManager = $messageManager;
     }
 
-    //TODO refactor
+    /**
+     * Execute
+     *
+     * @param Observer $observer
+     * @return void
+     */
     public function _execute(Observer $observer)
     {
         $creditMemo = $observer->getEvent()->getCreditmemo();
@@ -90,9 +98,10 @@ class UpdateOrder extends MonduObserver
 
         try {
             if ($order->canCreditmemo() || $order->canInvoice() || $this->monduLogger->canCreditMemo($monduId)) {
-                $this->monduFileLogger->info('Trying to create a credit memo', ['orderNumber' => $order->getIncrementId()]);
+                $this->monduFileLogger
+                    ->info('Trying to create a credit memo', ['orderNumber' => $order->getIncrementId()]);
                 $requestParams = $this->request->getParams();
-                if (@$requestParams['creditmemo']['creditmemo_mondu_id']) {
+                if (isset($requestParams['creditmemo']['creditmemo_mondu_id'])) {
                     $grossAmountCents = round($creditMemo->getBaseGrandTotal(), 2) * 100;
                     $data = [
                         'invoice_uid' => $requestParams['creditmemo']['creditmemo_mondu_id'],
@@ -103,9 +112,16 @@ class UpdateOrder extends MonduObserver
                     $memoData = $this->requestFactory->create(RequestFactory::MEMO)
                         ->process($data);
 
-                    if (@$memoData['errors']) {
-                        $this->monduFileLogger->info('Error in UpdateOrder observer ', ['orderNumber' => $order->getIncrementId(), 'e' => $memoData['errors'][0]['details']]);
-                        $this->messageManager->addErrorMessage('Mondu: Unexpected error: Could not send the credit note to Mondu, please contact Mondu Support to resolve this issue.');
+                    if (isset($memoData['errors'])) {
+                        $this->monduFileLogger
+                            ->info(
+                                'Error in UpdateOrder observer ',
+                                ['orderNumber' => $order->getIncrementId(), 'e' => $memoData['errors'][0]['details']]
+                            );
+                        $message = 'Mondu: Unexpected error: Could not send the credit note to Mondu,' .
+                            ' please contact Mondu Support to resolve this issue.';
+                        $this->messageManager
+                            ->addErrorMessage($message);
                         return;
                     }
 
@@ -113,37 +129,54 @@ class UpdateOrder extends MonduObserver
 
                     $this->bulkActions->execute([$order->getId()], BulkActions::BULK_SYNC_ACTION);
                 } else {
-                    $this->monduFileLogger->info('Cant create a credit memo: no Mondu invoice id provided', ['orderNumber' => $order->getIncrementId()]);
+                    $this->monduFileLogger
+                        ->info(
+                            'Cant create a credit memo: no Mondu invoice id provided',
+                            ['orderNumber' => $order->getIncrementId()]
+                        );
                     $logData = $this->monduLogger->getTransactionByOrderUid($monduId);
-                    if (
-                        $logData['mondu_state']  !== 'shipped' &&
+                    if ($logData['mondu_state']  !== 'shipped' &&
                         $logData['mondu_state'] !== 'partially_shipped' &&
                         $logData['mondu_state'] !== 'partially_complete' &&
                         $logData['mondu_state'] !== 'complete'
                     ) {
                         throw new LocalizedException(__('Mondu: You cant partially refund order before shipment'));
                     }
-
-                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Could not send the credit note to Mondu, please contact Mondu Support to resolve this issue.');
+                    $message = 'Mondu: Unexpected error: Could not send the credit note to Mondu,' .
+                        ' please contact Mondu Support to resolve this issue.';
+                    $this->messageManager->addErrorMessage($message);
                 }
                 return;
             } else {
-                $this->monduFileLogger->info('Whole order amount is being refunded, canceling the order', ['orderNumber' => $order->getIncrementId()]);
+                $this->monduFileLogger
+                    ->info(
+                        'Whole order amount is being refunded, canceling the order',
+                        ['orderNumber' => $order->getIncrementId()]
+                    );
                 $cancelData = $this->requestFactory->create(RequestFactory::CANCEL)
                     ->process(['orderUid' => $monduId]);
 
-                if (@$cancelData['errors'] && !@$cancelData['order']) {
-                    $this->messageManager->addErrorMessage('Mondu: Unexpected error: Could not cancel the order, please contact Mondu Support to resolve this issue.');
+                if (isset($cancelData['errors']) && !isset($cancelData['order'])) {
+                    $message = 'Mondu: Unexpected error: Could not cancel the order,' .
+                        ' please contact Mondu Support to resolve this issue.';
+                    $this->messageManager
+                        ->addErrorMessage($message);
                     return;
                 }
 
                 $this->monduLogger->updateLogMonduData($monduId, $cancelData['order']['state']);
 
-                $order->addStatusHistoryComment(__('Mondu: The order with the id %1 was successfully canceled.', $monduId));
+                $order->addStatusHistoryComment(
+                    __('Mondu: The order with the id %1 was successfully canceled.', $monduId)
+                );
                 $order->save();
             }
         } catch (Exception $error) {
-            $this->monduFileLogger->info('Error in UpdateOrder observer ', ['orderNumber' => $order->getIncrementId(), 'e' => $error->getMessage()]);
+            $this->monduFileLogger
+                ->info(
+                    'Error in UpdateOrder observer ',
+                    ['orderNumber' => $order->getIncrementId(), 'e' => $error->getMessage()]
+                );
             $this->messageManager->addErrorMessage('Mondu: ' . $error->getMessage());
         }
     }

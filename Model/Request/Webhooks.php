@@ -7,37 +7,84 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Webhooks extends CommonRequest implements RequestInterface
 {
-    public $_topic;
-    protected $curl;
-    private $_configProvider;
-    private $storeId = 0;
+    /**
+     * @var string
+     */
+    protected $topic;
 
-    public function __construct(Curl $curl, ConfigProvider $configProvider) {
+    /**
+     * @var Curl
+     */
+    protected $curl;
+
+    /**
+     * @var ConfigProvider
+     */
+    protected $configProvider;
+
+    /**
+     * @var int
+     */
+    protected $storeId = 0;
+
+    /**
+     * @param Curl $curl
+     * @param ConfigProvider $configProvider
+     */
+    public function __construct(
+        Curl $curl,
+        ConfigProvider $configProvider
+    ) {
         $this->curl = $curl;
-        $this->_configProvider = $configProvider;
+        $this->configProvider = $configProvider;
     }
 
+    /**
+     * Request
+     *
+     * @param array|null $params
+     * @return $this
+     */
     public function request($params = null): Webhooks
     {
-        $url = $this->_configProvider->getApiUrl('webhooks');
+        $url = $this->configProvider->getApiUrl('webhooks');
 
         $this->sendRequestWithParams('post', $url, json_encode([
-            'address' => $this->_configProvider->getWebhookUrl($this->storeId),
+            'address' => $this->configProvider->getWebhookUrl($this->storeId),
             'topic' => $this->getTopic()
         ]));
 
         return $this;
     }
 
-    public function setTopic($topic) {
-        $this->_topic = $topic;
+    /**
+     * Set webhook topic
+     *
+     * @param string $topic
+     * @return $this
+     */
+    public function setTopic($topic)
+    {
+        $this->topic = $topic;
         return $this;
     }
 
-    private function getTopic() {
-        return $this->_topic;
+    /**
+     * Get webhook topic
+     *
+     * @return string
+     */
+    private function getTopic()
+    {
+        return $this->topic;
     }
 
+    /**
+     * Set store
+     *
+     * @param int $storeId
+     * @return $this
+     */
     public function setStore($storeId)
     {
         $this->storeId = $storeId;

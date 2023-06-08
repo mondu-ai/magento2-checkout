@@ -22,7 +22,6 @@ class Payment extends Fieldset
      * @param Js                 $jsHelper
      * @param Config             $config
      * @param array              $data
-     * @codeCoverageIgnore
      */
     public function __construct(
         Context $context,
@@ -37,7 +36,7 @@ class Payment extends Fieldset
             $jsHelper,
             $data
         );
-        $this->config         = $config;
+        $this->config = $config;
     }
 
     /**
@@ -64,7 +63,8 @@ class Payment extends Fieldset
         $url = $this->getUrl('adminhtml/*/state');
 
         $html .= '<div class="button-container"><button type="button" ' .
-            'onclick="'. sprintf('monduToggleSolution.call(this, \'%s\', \'%s\')', $htmlId, $url) .';event.preventDefault()"'.
+            'onclick="'. sprintf('monduToggleSolution.call(this, \'%s\', \'%s\')', $htmlId, $url) .
+            ';event.preventDefault()"' .
             ' class="button action-configure' .
             '" id="' . $htmlId . '-head" >' .
             '<span class="state-closed">' . __(

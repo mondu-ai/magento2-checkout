@@ -1,25 +1,29 @@
 <?php
 namespace Mondu\Mondu\Controller\Adminhtml\Log;
 
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\View\Result\Page;
+use Magento\Framework\View\Result\PageFactory;
+
 class Index extends \Magento\Backend\App\Action
 {
-    const ADMIN_RESOURCE = 'Mondu_Mondu::log';
+    public const ADMIN_RESOURCE = 'Mondu_Mondu::log';
 
-    const PAGE_TITLE = 'Mondu orders';
+    public const PAGE_TITLE = 'Mondu orders';
 
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
+     * @var PageFactory
      */
     protected $_pageFactory;
 
     /**
-     * @param \Magento\Backend\App\Action\Context $context
+     * @param Context $context
+     * @param PageFactory $pageFactory
      */
     public function __construct(
-       \Magento\Backend\App\Action\Context $context,
-       \Magento\Framework\View\Result\PageFactory $pageFactory
-    )
-    {
+        Context $context,
+        PageFactory $pageFactory
+    ) {
         $this->_pageFactory = $pageFactory;
         return parent::__construct($context);
     }
@@ -27,24 +31,24 @@ class Index extends \Magento\Backend\App\Action
     /**
      * Index action
      *
-     * @return \Magento\Framework\View\Result\Page
+     * @return Page
      */
     public function execute()
     {
-         /** @var \Magento\Framework\View\Result\Page $resultPage */
-         $resultPage = $this->_pageFactory->create();
-         $resultPage->setActiveMenu(static::ADMIN_RESOURCE);
-         $resultPage->addBreadcrumb(__(static::PAGE_TITLE), __(static::PAGE_TITLE));
-         $resultPage->getConfig()->getTitle()->prepend(__(static::PAGE_TITLE));
+        $resultPage = $this->_pageFactory->create();
+        $resultPage->setActiveMenu(static::ADMIN_RESOURCE);
+        $pageTitle = static::PAGE_TITLE;
+        $resultPage->addBreadcrumb(__($pageTitle), __($pageTitle));
+        $resultPage->getConfig()->getTitle()->prepend(__($pageTitle));
 
-         return $resultPage;
+        return $resultPage;
     }
 
     /**
      * Is the user allowed to view the page.
-    *
-    * @return bool
-    */
+     *
+     * @return bool
+     */
     protected function _isAllowed()
     {
         return $this->_authorization->isAllowed(static::ADMIN_RESOURCE);

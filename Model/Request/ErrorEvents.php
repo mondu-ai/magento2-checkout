@@ -2,25 +2,46 @@
 
 namespace Mondu\Mondu\Model\Request;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class ErrorEvents extends CommonRequest implements RequestInterface {
+class ErrorEvents extends CommonRequest
+{
+    /**
+     * @var Curl
+     */
     protected $curl;
+
+    /**
+     * @var bool
+     */
     protected $sendEvents = false;
-    private $_configProvider;
+
+    /**
+     * @var ConfigProvider
+     */
+    private $configProvider;
 
     /**
      * @param Curl $curl
      * @param ConfigProvider $configProvider
      */
-    public function __construct(Curl $curl, ConfigProvider $configProvider) {
-        $this->_configProvider = $configProvider;
+    public function __construct(Curl $curl, ConfigProvider $configProvider)
+    {
+        $this->configProvider = $configProvider;
         $this->curl = $curl;
     }
 
-    public function request($params) {
-        $url = $this->_configProvider->getApiUrl('plugin/events');
+    /**
+     * Request
+     *
+     * @param array $params
+     * @return mixed
+     */
+    public function request($params)
+    {
+        $url = $this->configProvider->getApiUrl('plugin/events');
 
         $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
 

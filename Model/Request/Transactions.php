@@ -8,15 +8,37 @@ use \Magento\Quote\Model\Quote;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
+//TODO refactor
 class Transactions extends CommonRequest implements RequestInterface
 {
+    /**
+     * @var CheckoutSession
+     */
     protected $_checkoutSession;
+
+    /**
+     * @var CartTotalRepository
+     */
     protected $_cartTotalRepository;
-    protected $_config;
+
+    /**
+     * @var ConfigProvider
+     */
     protected $_configProvider;
 
+    /**
+     * @var Curl
+     */
     protected $curl;
+
+    /**
+     * @var string
+     */
     private $fallbackEmail;
+
+    /**
+     * @var OrderHelper
+     */
     private $orderHelper;
 
     /**
@@ -40,10 +62,16 @@ class Transactions extends CommonRequest implements RequestInterface
         $this->orderHelper = $orderHelper;
     }
 
+    /**
+     * Request
+     *
+     * @param array $_params
+     * @return array
+     */
     public function request($_params = []): array
     {
         try {
-            if (@$_params['email']) {
+            if ($_params['email']) {
                 $this->fallbackEmail = $_params['email'];
             }
             $params = $this->getRequestParams();
@@ -60,9 +88,9 @@ class Transactions extends CommonRequest implements RequestInterface
 
             $result = $this->sendRequestWithParams('post', $url, $params);
             $data = json_decode($result, true);
-            $this->_checkoutSession->setMonduid(@$data['order']['uuid']);
+            $this->_checkoutSession->setMonduid($data['order']['uuid'] ?? null);
 
-            if (!@$data['order']['uuid']) {
+            if (!isset($data['order']['uuid'])) {
                 return [
                     'error' => 1,
                     'body' => json_decode($result, true),
@@ -84,6 +112,13 @@ class Transactions extends CommonRequest implements RequestInterface
         }
     }
 
+    /**
+     * Get Request Params from
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     protected function getRequestParams()
     {
         $quote = $this->_checkoutSession->getQuote();
@@ -106,6 +141,12 @@ class Transactions extends CommonRequest implements RequestInterface
         return $this->orderHelper->addLinesOrGrossAmountToOrder($quote, $quoteTotals->getBaseGrandTotal(), $order);
     }
 
+    /**
+     * Get Buyer params
+     *
+     * @param Quote $quote
+     * @return array
+     */
     private function getBuyerParams(Quote $quote): array
     {
         $params = [];
@@ -113,7 +154,10 @@ class Transactions extends CommonRequest implements RequestInterface
             $params = [
                 'is_registered' => (bool) $quote->getCustomer()->getId(),
                 'external_reference_id' => $quote->getCustomerId() ? $quote->getCustomerId() : null,
-                'email' => $billing->getEmail() ?? $quote->getShippingAddress()->getEmail() ?? $quote->getCustomerEmail() ?? $this->fallbackEmail,
+                'email' => $billing->getEmail() ??
+                    $quote->getShippingAddress()->getEmail() ??
+                    $quote->getCustomerEmail() ??
+                    $this->fallbackEmail,
                 'company_name' => $billing->getCompany(),
                 'first_name' => $billing->getFirstname(),
                 'last_name' => $billing->getLastname(),
@@ -123,6 +167,12 @@ class Transactions extends CommonRequest implements RequestInterface
         return $params;
     }
 
+    /**
+     * Get billing address params
+     *
+     * @param Quote $quote
+     * @return array
+     */
     private function getBillingAddressParams(Quote $quote): array
     {
         $params = [];
@@ -149,6 +199,12 @@ class Transactions extends CommonRequest implements RequestInterface
         return $params;
     }
 
+    /**
+     * Get shipping address params
+     *
+     * @param Quote $quote
+     * @return array
+     */
     private function getShippingAddressParams(Quote $quote): array
     {
         $params = [];
@@ -177,6 +233,8 @@ class Transactions extends CommonRequest implements RequestInterface
     }
 
     /**
+     * Get External reference id to be used
+     *
      * @param Quote $quote
      * @return mixed|string|null
      * @throws \Exception

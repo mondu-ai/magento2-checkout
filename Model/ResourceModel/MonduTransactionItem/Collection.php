@@ -1,10 +1,23 @@
 <?php
 namespace Mondu\Mondu\Model\ResourceModel\MonduTransactionItem;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+
+class Collection extends AbstractCollection
 {
+    /**
+     * @var string
+     */
     protected $_idFieldName = 'entity_id';
+
+    /**
+     * @var string
+     */
     protected $_eventPrefix = 'mondu_transaction_item_collection';
+
+    /**
+     * @var string
+     */
     protected $_eventObject = 'mondu_transaction_item_collection';
 
     /**
@@ -14,6 +27,9 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('Mondu\Mondu\Model\MonduTransactionItem', 'Mondu\Mondu\Model\ResourceModel\MonduTransactionItem');
+        $this->_init(
+            \Mondu\Mondu\Model\MonduTransactionItem::class,
+            \Mondu\Mondu\Model\ResourceModel\MonduTransactionItem::class
+        );
     }
 }

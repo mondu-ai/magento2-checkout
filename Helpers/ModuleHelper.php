@@ -5,8 +5,10 @@ namespace Mondu\Mondu\Helpers;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 
-class ModuleHelper {
-    const MODULE_NAME = 'Mondu_Mondu';
+class ModuleHelper
+{
+    public const MODULE_NAME = 'Mondu_Mondu';
+
     /**
      * @var ModuleListInterface
      */
@@ -17,6 +19,10 @@ class ModuleHelper {
      */
     private $productMetadata;
 
+    /**
+     * @param ModuleListInterface $moduleList
+     * @param ProductMetadataInterface $productMetadata
+     */
     public function __construct(
         ModuleListInterface $moduleList,
         ProductMetadataInterface $productMetadata
@@ -25,6 +31,11 @@ class ModuleHelper {
         $this->productMetadata = $productMetadata;
     }
 
+    /**
+     * GetEnvironmentInformation
+     *
+     * @return array
+     */
     public function getEnvironmentInformation(): array
     {
         return [
@@ -35,11 +46,21 @@ class ModuleHelper {
         ];
     }
 
+    /**
+     * GetModuleVersion
+     *
+     * @return string
+     */
     public function getModuleVersion(): string
     {
         return $this->moduleList->getOne(self::MODULE_NAME)['setup_version'];
     }
 
+    /**
+     * GetModuleNameForApi
+     *
+     * @return string
+     */
     public function getModuleNameForApi(): string
     {
         return 'magento2';

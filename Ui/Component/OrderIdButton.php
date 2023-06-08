@@ -8,14 +8,26 @@ use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 
-/**
- * Class Actions
- */
 class OrderIdButton extends Column
 {
-    private $_urlBuilder;
-    private $_viewUrl;
+    /**
+     * @var UrlInterface
+     */
+    private $urlBuilder;
 
+    /**
+     * @var mixed|string
+     */
+    private $viewUrl;
+
+    /**
+     * @param ContextInterface $context
+     * @param UiComponentFactory $uiComponentFactory
+     * @param UrlInterface $backendUrl
+     * @param string $viewUrl
+     * @param array $components
+     * @param array $data
+     */
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
@@ -24,8 +36,8 @@ class OrderIdButton extends Column
         array $components = [],
         array $data = []
     ) {
-        $this->_urlBuilder = $backendUrl;
-        $this->_viewUrl    = $viewUrl;
+        $this->urlBuilder = $backendUrl;
+        $this->viewUrl    = $viewUrl;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -39,10 +51,9 @@ class OrderIdButton extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                // here we can also use the data from $item to configure some parameters of an action URL
                 $item[$this->getData('name')] = [
                     'adjust' => [
-                        'href' => $this->_urlBuilder->getUrl('sales/order/view', [
+                        'href' => $this->urlBuilder->getUrl('sales/order/view', [
                             'order_id' => $item['order_id']
                         ]),
                         'label' => $item['order_id']

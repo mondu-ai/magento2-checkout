@@ -3,6 +3,7 @@
 namespace Mondu\Mondu\Observer;
 
 use Magento\Framework\Event\Observer;
+use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
@@ -44,12 +45,19 @@ abstract class MonduObserver implements MonduObserverInterface
         $this->contextHelper = $contextHelper;
     }
 
+    /**
+     * Execute
+     *
+     * @param Observer $observer
+     * @return void
+     */
     public function execute(Observer $observer)
     {
         $order = $this->getOrderFromObserver($observer);
         $this->contextHelper->setConfigContextForOrder($order);
 
-        $this->monduFileLogger->info('Entered ' . $this->name . ' observer', ['orderNumber' => $order->getIncrementId()]);
+        $this->monduFileLogger
+            ->info('Entered ' . $this->name . ' observer', ['orderNumber' => $order->getIncrementId()]);
 
         if ($this->checkOrderPlacedWithMondu($order)) {
             $this->_execute($observer);
@@ -58,14 +66,32 @@ abstract class MonduObserver implements MonduObserverInterface
         }
     }
 
+    /**
+     * Execute to be implemented in the class
+     *
+     * @param Observer $observer
+     * @return void
+     */
     abstract public function _execute(Observer $observer);
 
+    /**
+     * Check if order is placed with Mondu
+     *
+     * @param Order $order
+     * @return bool
+     */
     private function checkOrderPlacedWithMondu($order): bool
     {
         $payment = $order->getPayment();
         return $this->paymentMethodHelper->isMondu($payment);
     }
 
+    /**
+     * Gets order from different observer events
+     *
+     * @param Observer $observer
+     * @return mixed
+     */
     private function getOrderFromObserver(Observer $observer)
     {
         switch ($this->name) {

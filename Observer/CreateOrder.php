@@ -16,13 +16,39 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected $name = 'CreateOrder';
 
+    /**
+     * @var CheckoutSession
+     */
     private $_checkoutSession;
+
+    /**
+     * @var RequestFactory
+     */
     private $_requestFactory;
+
+    /**
+     * @var \Mondu\Mondu\Helpers\Log
+     */
     private $_monduLogger;
+
+    /**
+     * @var QuoteFactory
+     */
     private $quoteFactory;
+
+    /**
+     * @var MonduFileLogger
+     */
     private $monduFileLogger;
+
+    /**
+     * @var PaymentMethod
+     */
     private $paymentMethodHelper;
 
     /**
@@ -35,6 +61,17 @@ class CreateOrder extends MonduObserver
      */
     private $monduTransactionItem;
 
+    /**
+     * @param ContextHelper $contextHelper
+     * @param CheckoutSession $checkoutSession
+     * @param RequestFactory $requestFactory
+     * @param \Mondu\Mondu\Helpers\Log $logger
+     * @param QuoteFactory $quoteFactory
+     * @param OrderHelper $orderHelper
+     * @param MonduFileLogger $monduFileLogger
+     * @param PaymentMethod $paymentMethodHelper
+     * @param MonduTransactionItem $monduTransactionItem
+     */
     public function __construct(
         ContextHelper $contextHelper,
         CheckoutSession $checkoutSession,
@@ -62,6 +99,10 @@ class CreateOrder extends MonduObserver
     }
 
     /**
+     * Execute
+     *
+     * @param Observer $observer
+     * @return void
      * @throws LocalizedException
      */
     public function _execute(Observer $observer)
@@ -85,14 +126,19 @@ class CreateOrder extends MonduObserver
         }
 
         if ($isEditOrder) {
-            $this->monduFileLogger->info('Order has parent id, adjusting order in Mondu. ', ['orderNumber' => $order->getIncrementId()]);
+            $this->monduFileLogger
+                ->info(
+                    'Order has parent id, adjusting order in Mondu. ',
+                    ['orderNumber' => $order->getIncrementId()]
+                );
             $this->handleOrderAdjustment($order);
             $orderUid = $order->getMonduReferenceId();
             $createMonduDatabaseRecord = false;
         }
 
         try {
-            $this->monduFileLogger->info('Validating order status in Mondu. ', ['orderNumber' => $order->getIncrementId()]);
+            $this->monduFileLogger
+                ->info('Validating order status in Mondu. ', ['orderNumber' => $order->getIncrementId()]);
             $orderData = $this->_requestFactory->create(RequestFactory::TRANSACTION_CONFIRM_METHOD)
                 ->setValidate(true)
                 ->process(['orderUid' => $orderUid]);
@@ -108,7 +154,8 @@ class CreateOrder extends MonduObserver
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
 
             if ($createMonduDatabaseRecord) {
-                $this->_monduLogger->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($payment));
+                $this->_monduLogger
+                    ->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($payment));
             } else {
                 $transactionId = $this->_monduLogger->updateLogMonduData($orderUid, null, null, null, $order->getId());
 
@@ -122,6 +169,10 @@ class CreateOrder extends MonduObserver
     }
 
     /**
+     * HandleOrderAdjustment
+     *
+     * @param Order $order
+     * @return void
      * @throws LocalizedException
      */
     public function handleOrderAdjustment($order)

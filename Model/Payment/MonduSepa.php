@@ -6,26 +6,52 @@ use Magento\Payment\Model\InfoInterface;
 
 class MonduSepa extends \Magento\Payment\Model\Method\AbstractMethod
 {
-    const PAYMENT_METHOD_MONDU_CODE = 'mondusepa';
+    public const PAYMENT_METHOD_MONDU_CODE = 'mondusepa';
 
+    /**
+     * @var string
+     */
     protected $_code = 'mondusepa';
 
+    /**
+     * Authorize
+     *
+     * @param InfoInterface $payment
+     * @param float $amount
+     * @return $this|MonduSepa
+     */
     public function authorize(InfoInterface $payment, $amount)
     {
         return $this;
     }
 
-    public function setCode($code) {
+    /**
+     * SetCode
+     *
+     * @param string $code
+     * @return $this
+     */
+    public function setCode($code)
+    {
         $this->_code = $code;
         return $this;
     }
 
-    public function canUseForCountry($country) {
+    /**
+     * CanUseForCountry
+     *
+     * @param string $country
+     * @return bool
+     */
+    public function canUseForCountry($country)
+    {
         $storeId = $this->getStore();
 
         $path = 'payment/' . 'mondu' . '/' . 'specificcountry';
-        $availableCountries = $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-        $allowSpecific = $this->_scopeConfig->getValue('payment/mondu/allowspecific', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $availableCountries = $this->_scopeConfig
+            ->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $allowSpecific = $this->_scopeConfig
+            ->getValue('payment/mondu/allowspecific', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
 
         if ($allowSpecific == 1) {
             $availableCountries = explode(',', $availableCountries);

@@ -9,18 +9,18 @@ use Mondu\Mondu\Helpers\ModuleHelper;
 
 class Factory
 {
-    const TRANSACTIONS_REQUEST_METHOD = 'CREATE_ORDER';
-    const TRANSACTION_CONFIRM_METHOD = 'GET_ORDER';
-    const SHIP_ORDER = 'CREATE_INVOICE';
-    const CANCEL = 'CANCEL_ORDER';
-    const MEMO = 'CREATE_CREDIT_NOTE';
-    const WEBHOOKS_KEYS_REQUEST_METHOD = 'GET_WEBHOOK_KEY';
-    const WEBHOOKS_REQUEST_METHOD = 'CREATE_WEBHOOK';
-    const ADJUST_ORDER = 'ADJUST_ORDER_2';
-    const EDIT_ORDER = 'ADJUST_ORDER';
-    const PAYMENT_METHODS = 'GET_PAYMENT_METHODS';
-    const ORDER_INVOICES = 'GET_ORDER_INVOICES';
-    const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
+    public const TRANSACTIONS_REQUEST_METHOD = 'CREATE_ORDER';
+    public const TRANSACTION_CONFIRM_METHOD = 'GET_ORDER';
+    public const SHIP_ORDER = 'CREATE_INVOICE';
+    public const CANCEL = 'CANCEL_ORDER';
+    public const MEMO = 'CREATE_CREDIT_NOTE';
+    public const WEBHOOKS_KEYS_REQUEST_METHOD = 'GET_WEBHOOK_KEY';
+    public const WEBHOOKS_REQUEST_METHOD = 'CREATE_WEBHOOK';
+    public const ADJUST_ORDER = 'ADJUST_ORDER_2';
+    public const EDIT_ORDER = 'ADJUST_ORDER';
+    public const PAYMENT_METHODS = 'GET_PAYMENT_METHODS';
+    public const ORDER_INVOICES = 'GET_ORDER_INVOICES';
+    public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
 
     /**
      * @var Logger
@@ -59,6 +59,12 @@ class Factory
      */
     private $objectManager;
 
+    /**
+     * @param ObjectManagerInterface $objectManager
+     * @param Logger $monduFileLogger
+     * @param HeadersHelper $headersHelper
+     * @param ModuleHelper $moduleHelper
+     */
     public function __construct(
         ObjectManagerInterface $objectManager,
         Logger $monduFileLogger,
@@ -72,6 +78,10 @@ class Factory
     }
 
     /**
+     * Create class using object manager
+     *
+     * @param mixed $method
+     * @return CommonRequest
      * @throws LocalizedException
      */
     public function create($method)

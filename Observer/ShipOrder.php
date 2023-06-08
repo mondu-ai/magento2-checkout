@@ -57,6 +57,8 @@ class ShipOrder extends MonduObserver
     }
 
     /**
+     * Execute
+     *
      * @param Observer $observer
      * @return void
      * @throws LocalizedException
@@ -69,14 +71,20 @@ class ShipOrder extends MonduObserver
         $monduLog = $this->monduLogger->getLogCollection($order->getData('mondu_reference_id'));
 
         if ($monduLog->getSkipShipObserver()) {
-            $this->monduFileLogger->info('Already invoiced using invoice orders action, skipping', ['orderNumber' => $order->getIncrementId()]);
+            $this->monduFileLogger
+                ->info(
+                    'Already invoiced using invoice orders action, skipping',
+                    ['orderNumber' => $order->getIncrementId()]
+                );
             return;
         }
 
         $monduId = $order->getData('mondu_reference_id');
 
         if (!$this->monduLogger->canShipOrder($monduId)) {
-            throw new LocalizedException(__('Can\'t ship order: Mondu order state must be confirmed or partially_shipped'));
+            throw new LocalizedException(
+                __('Can\'t ship order: Mondu order state must be confirmed or partially_shipped')
+            );
         }
 
         $this->invoiceOrderHelper->handleInvoiceOrder($order, $shipment, $monduLog);

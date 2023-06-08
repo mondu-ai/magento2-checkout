@@ -2,6 +2,8 @@
 
 namespace Mondu\Mondu\Model\Request;
 
+use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 
 abstract class CommonRequest implements RequestInterface
@@ -10,9 +12,25 @@ abstract class CommonRequest implements RequestInterface
      * @var Curl
      */
     protected $curl;
+
+    /**
+     * @var mixed
+     */
     protected $envInformation;
+
+    /**
+     * @var mixed
+     */
     protected $requestParams;
+
+    /**
+     * @var bool
+     */
     protected $sendEvents = true;
+
+    /**
+     * @var string
+     */
     protected $requestOrigin;
 
     /**
@@ -20,13 +38,29 @@ abstract class CommonRequest implements RequestInterface
      */
     protected $errorEventsHandler;
 
+    /**
+     * Method that sends the request to api
+     *
+     * @param array|null $params
+     * @return mixed
+     * @throws LocalizedException
+     */
+    abstract protected function request($params);
+
+    /**
+     * Sends Request
+     *
+     * @param mixed $params
+     * @return null
+     * @throws Exception
+     */
     public function process($params = null)
     {
         $exception = null;
         $data = null;
         try {
             $data = $this->request($params);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $exception = $e;
         }
 
@@ -41,12 +75,24 @@ abstract class CommonRequest implements RequestInterface
         return $data;
     }
 
+    /**
+     * Sets Curl headers
+     *
+     * @param array $headers
+     * @return $this
+     */
     public function setCommonHeaders($headers): CommonRequest
     {
         $this->curl->setHeaders($headers);
         return $this;
     }
 
+    /**
+     * Sets env information
+     *
+     * @param array $environment
+     * @return $this
+     */
     public function setEnvironmentInformation($environment): CommonRequest
     {
         if (!isset($this->envInformation)) {
@@ -55,6 +101,12 @@ abstract class CommonRequest implements RequestInterface
         return $this;
     }
 
+    /**
+     * Sets request origin
+     *
+     * @param string $origin
+     * @return $this
+     */
     public function setRequestOrigin($origin)
     {
         if (!isset($this->requestOrigin)) {
@@ -63,9 +115,15 @@ abstract class CommonRequest implements RequestInterface
         return $this;
     }
 
+    /**
+     * Send error events to Mondu Api
+     *
+     * @param Exception|null $exception
+     * @return void
+     */
     public function sendEvents($exception = null)
     {
-        $statusFirstDigit = strval($this->curl->getStatus())[0];
+        $statusFirstDigit = ((string) $this->curl->getStatus())[0];
         if ($statusFirstDigit !== '1' && $statusFirstDigit !== '2') {
             $curlData = [
                 'response_status' => (string) $this->curl->getStatus(),
@@ -91,6 +149,14 @@ abstract class CommonRequest implements RequestInterface
         }
     }
 
+    /**
+     * Sends request
+     *
+     * @param string $method
+     * @param string $url
+     * @param string $params
+     * @return string
+     */
     public function sendRequestWithParams($method, $url, $params = null)
     {
         $this->requestParams = $params;
@@ -108,6 +174,12 @@ abstract class CommonRequest implements RequestInterface
         return $this->curl->getBody();
     }
 
+    /**
+     * Sets error events handler
+     *
+     * @param mixed $handler
+     * @return $this
+     */
     public function setErrorEventsHandler($handler)
     {
         $this->errorEventsHandler = $handler;

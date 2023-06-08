@@ -6,9 +6,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class Confirm extends CommonRequest implements RequestInterface
+class Confirm extends CommonRequest
 {
-    const ORDER_STATE = ['pending', 'confirmed'];
+    public const ORDER_STATE = ['pending', 'confirmed'];
 
     /**
      * @var Curl
@@ -17,45 +17,57 @@ class Confirm extends CommonRequest implements RequestInterface
     /**
      * @var ConfigProvider
      */
-    private $_configProvider;
+    private $configProvider;
     /**
      * @var bool
      */
-    private $_validate = true;
+    private $validate = true;
 
     /**
      * @param Curl $curl
      * @param ConfigProvider $configProvider
      */
-    public function __construct(Curl $curl, ConfigProvider $configProvider)
-    {
-        $this->_configProvider = $configProvider;
+    public function __construct(
+        Curl $curl,
+        ConfigProvider $configProvider
+    ) {
+        $this->configProvider = $configProvider;
         $this->curl = $curl;
     }
 
     /**
+     * Request
+     *
+     * @param array $params
+     * @return mixed
      * @throws LocalizedException
      */
-    public function request($params)
+    protected function request($params)
     {
         if (!$params['orderUid']) {
             throw new LocalizedException(__('Error placing an order'));
         }
-        $url = $this->_configProvider->getApiUrl('orders').'/'.$params['orderUid'];
 
+        $url = $this->configProvider->getApiUrl('orders').'/'.$params['orderUid'];
         $resultJson = $this->sendRequestWithParams('get', $url);
         $result = json_decode($resultJson, true);
 
-        if ($this->_validate && !in_array($result['order']['state'], self::ORDER_STATE)) {
+        if ($this->validate && !in_array($result['order']['state'] ?? null, self::ORDER_STATE)) {
             throw new LocalizedException(__('Error placing an order'));
         }
 
         return $result;
     }
 
+    /**
+     * SetValidate ( will check if order state is in self::ORDER_STATE )
+     *
+     * @param bool $validate
+     * @return $this
+     */
     public function setValidate($validate): Confirm
     {
-        $this->_validate = $validate;
+        $this->validate = $validate;
         return $this;
     }
 }

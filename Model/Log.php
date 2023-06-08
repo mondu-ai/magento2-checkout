@@ -1,8 +1,17 @@
 <?php
 namespace Mondu\Mondu\Model;
 
-class Log extends \Magento\Framework\Model\AbstractModel {
-    public function _construct() {
-        $this->_init("Mondu\Mondu\Model\ResourceModel\Log");
+use Magento\Framework\Model\AbstractModel;
+
+class Log extends AbstractModel
+{
+    /**
+     * Construct
+     *
+     * @return void
+     */
+    public function _construct()
+    {
+        $this->_init(\Mondu\Mondu\Model\ResourceModel\Log::class);
     }
 }

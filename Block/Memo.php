@@ -1,33 +1,78 @@
 <?php
 namespace Mondu\Mondu\Block;
 
-class Memo extends \Magento\Framework\View\Element\Template
-{
-    protected $_template = 'Mondu_Mondu::order/creditmemo/create/mondumemo.phtml';
-    protected $_monduLogger;
+use Magento\Framework\Registry;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Mondu\Mondu\Helpers\Log;
 
-    public function __construct(\Magento\Framework\View\Element\Template\Context $context, \Magento\Framework\Registry $registry, \Mondu\Mondu\Helpers\Log $logger)
-    {
+class Memo extends Template
+{
+    /**
+     * @var string
+     */
+    protected $_template = 'Mondu_Mondu::order/creditmemo/create/mondumemo.phtml';
+
+    /**
+     * @var Log
+     */
+    protected $monduLogger;
+
+    /**
+     * @var Registry
+     */
+    private $_coreRegistry;
+
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param Log $logger
+     */
+    public function __construct(
+        Context $context,
+        Registry $registry,
+        Log $logger
+    ) {
         $this->_coreRegistry = $registry;
-        $this->_monduLogger = $logger;
+        $this->monduLogger = $logger;
         parent::__construct($context);
     }
 
+    /**
+     * GetCreditMemo
+     *
+     * @return mixed|null
+     */
     public function getCreditMemo()
     {
         return $this->_coreRegistry->registry('current_creditmemo');
     }
 
+    /**
+     * Render
+     *
+     * @return string
+     */
     public function render()
     {
         return $this->getOrderMonduId();
     }
 
+    /**
+     * GetOrder
+     *
+     * @return mixed
+     */
     public function getOrder()
     {
         return $this->getCreditMemo()->getOrder();
     }
 
+    /**
+     * GetOrderMonduId
+     *
+     * @return string
+     */
     public function getOrderMonduId()
     {
         $memo = $this->getCreditMemo();
@@ -36,16 +81,26 @@ class Memo extends \Magento\Framework\View\Element\Template
         return $order->getMonduReferenceId();
     }
 
+    /**
+     * Invoice collection for specific order
+     *
+     * @return mixed
+     */
     public function invoices()
     {
         $invoiceCollection = $this->getOrder()->getInvoiceCollection();
         return $invoiceCollection;
     }
 
+    /**
+     * GetInvoiceMappings
+     *
+     * @return array|mixed
+     */
     public function getInvoiceMappings()
     {
         $monduId = $this->getOrderMonduId();
-        $log = $this->_monduLogger->getTransactionByOrderUid($monduId);
+        $log = $this->monduLogger->getTransactionByOrderUid($monduId);
 
         if (!$log) {
             return [];

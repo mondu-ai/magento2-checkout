@@ -3,12 +3,13 @@
 
 namespace Mondu\Mondu\Model\ResourceModel\Log\Grid;
 
+use Magento\Framework\Api\Search\AggregationInterface;
 use Magento\Framework\Api\Search\SearchResultInterface;
-use Magento\Framework\Search\AggregationInterface;
 use Mondu\Mondu\Model\ResourceModel\Log\Collection as LogCollection;
 
 class Collection extends LogCollection implements SearchResultInterface
 {
+
     /**
      * @var AggregationInterface
      */
@@ -57,7 +58,7 @@ class Collection extends LogCollection implements SearchResultInterface
     }
 
     /**
-     * @return AggregationInterface
+     * @inheritdoc
      */
     public function getAggregations()
     {
@@ -65,18 +66,16 @@ class Collection extends LogCollection implements SearchResultInterface
     }
 
     /**
-     * @param AggregationInterface $aggregations
-     * @return $this
+     * @inheritdoc
      */
     public function setAggregations($aggregations)
     {
         $this->aggregations = $aggregations;
+        return $this;
     }
 
     /**
-     * Get search criteria.
-     *
-     * @return \Magento\Framework\Api\SearchCriteriaInterface|null
+     * @inheritdoc
      */
     public function getSearchCriteria()
     {
