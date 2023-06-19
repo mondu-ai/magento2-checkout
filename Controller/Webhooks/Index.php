@@ -183,7 +183,7 @@ class Index extends Action implements ActionInterface
         if (!$monduId || !$externalReferenceId || !$orderState) {
             throw new Exception('Required params missing');
         }
-        if (!empty($order->getData)) {
+        if (!empty($order->getData())) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
         if ($orderState === 'canceled') {
