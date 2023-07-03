@@ -135,8 +135,8 @@ class Index extends Action implements ActionInterface
             throw new Exception('Required params missing');
         }
 
-        if (!$order || !$order->getIncrementId()) {
-            return [['message' => 'Not Found', 'error' => 1], 404];
+        if (empty($order->getData())) {
+            return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
@@ -161,6 +161,11 @@ class Index extends Action implements ActionInterface
         if (!$viban || !$externalReferenceId) {
             throw new Exception('Required params missing');
         }
+
+        if (empty($order->getData())) {
+            return [['message' => 'Order does not exist', 'error' => 0], 200];
+        }
+
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state'], $viban);
 
         return [['message' => 'ok', 'error' => 0], 200];
@@ -183,9 +188,11 @@ class Index extends Action implements ActionInterface
         if (!$monduId || !$externalReferenceId || !$orderState) {
             throw new Exception('Required params missing');
         }
-        if (!empty($order->getData())) {
+
+        if (empty($order->getData())) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
+
         if ($orderState === 'canceled') {
             $order->setStatus(Order::STATE_CANCELED)->save();
         } elseif ($orderState === 'declined') {
