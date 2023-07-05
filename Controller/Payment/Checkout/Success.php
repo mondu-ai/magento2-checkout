@@ -50,21 +50,4 @@ class Success extends AbstractSuccessController
             $this->processException($e, 'Mondu: Error during the order process');
         }
     }
-
-    /**
-     * Get External reference id to be used
-     *
-     * @param Quote $quote
-     * @return string
-     * @throws \Exception
-     */
-    public function getExternalReferenceId(Quote $quote)
-    {
-        $reservedOrderId = $quote->getReservedOrderId();
-        if (!$reservedOrderId) {
-            $quote->reserveOrderId()->save();
-            $reservedOrderId = $quote->getReservedOrderId();
-        }
-        return $reservedOrderId;
-    }
 }

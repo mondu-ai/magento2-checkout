@@ -161,4 +161,21 @@ abstract class AbstractSuccessController extends AbstractPaymentController
 
         return $this->quoteManagement->submit($quote);
     }
+
+    /**
+     * Get External reference id to be used
+     *
+     * @param Quote $quote
+     * @return string
+     * @throws \Exception
+     */
+    protected function getExternalReferenceId(Quote $quote)
+    {
+        $reservedOrderId = $quote->getReservedOrderId();
+        if (!$reservedOrderId) {
+            $quote->reserveOrderId()->save();
+            $reservedOrderId = $quote->getReservedOrderId();
+        }
+        return $reservedOrderId;
+    }
 }
