@@ -131,7 +131,7 @@ class CreateOrder extends MonduObserver
                     'Order has parent id, adjusting order in Mondu. ',
                     ['orderNumber' => $order->getIncrementId()]
                 );
-            $this->handleOrderAdjustment($order);
+            $this->orderHelper->handleOrderAdjustment($order);
             $orderUid = $order->getMonduReferenceId();
             $createMonduDatabaseRecord = false;
         }
@@ -145,10 +145,6 @@ class CreateOrder extends MonduObserver
 
             $orderData = $orderData['order'];
             $order->setData('mondu_reference_id', $orderUid);
-
-            if ($createMonduDatabaseRecord) {
-                $order->addStatusHistoryComment(__('Mondu: order id %1', $orderUid));
-            }
 
             $order->save();
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
@@ -166,17 +162,5 @@ class CreateOrder extends MonduObserver
             $this->monduFileLogger->info('Error in CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
             throw new LocalizedException(__($e->getMessage()));
         }
-    }
-
-    /**
-     * HandleOrderAdjustment
-     *
-     * @param Order $order
-     * @return void
-     * @throws LocalizedException
-     */
-    public function handleOrderAdjustment($order)
-    {
-        $this->orderHelper->handleOrderAdjustment($order);
     }
 }

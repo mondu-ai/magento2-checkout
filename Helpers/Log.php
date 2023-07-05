@@ -214,7 +214,7 @@ class Log extends AbstractHelper
      * @param array $addons
      * @param string|int $orderId
      * @param string $paymentMethod
-     * @return void
+     * @return mixed
      */
     public function updateLogMonduData(
         $orderUid,

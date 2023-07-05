@@ -7,8 +7,8 @@ use \Magento\Checkout\Model\Session as CheckoutSession;
 use \Magento\Quote\Model\Quote;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Magento\Framework\UrlInterface;
 
-//TODO refactor
 class Transactions extends CommonRequest implements RequestInterface
 {
     /**
@@ -42,24 +42,32 @@ class Transactions extends CommonRequest implements RequestInterface
     private $orderHelper;
 
     /**
+     * @var UrlInterface
+     */
+    private $urlBuilder;
+
+    /**
      * @param Curl $curl
      * @param CartTotalRepository $cartTotalRepository
      * @param CheckoutSession $checkoutSession
      * @param ConfigProvider $configProvider
      * @param OrderHelper $orderHelper
+     * @param UrlInterface $urlBuilder
      */
     public function __construct(
         Curl $curl,
         CartTotalRepository $cartTotalRepository,
         CheckoutSession $checkoutSession,
         ConfigProvider $configProvider,
-        OrderHelper $orderHelper
+        OrderHelper $orderHelper,
+        UrlInterface $urlBuilder
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_cartTotalRepository = $cartTotalRepository;
         $this->_configProvider = $configProvider;
         $this->curl = $curl;
         $this->orderHelper = $orderHelper;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -129,11 +137,19 @@ class Transactions extends CommonRequest implements RequestInterface
 
         $discountAmount = $quoteTotals->getDiscountAmount();
 
+        $successUrl = $this->urlBuilder->getUrl('mondu/payment_checkout/success');
+        $cancelUrl = $this->urlBuilder->getUrl('mondu/payment_checkout/cancel');
+        $declinedUrl = $this->urlBuilder->getUrl('mondu/payment_checkout/decline');
+
         $order = [
             'currency' => $quote->getBaseCurrencyCode(),
+            'state_flow' => ConfigProvider::AUTHORIZATION_STATE_FLOW,
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'declined_url' => $declinedUrl,
             'total_discount_cents' => abs($discountAmount) * 100,
             'buyer' => $this->getBuyerParams($quote),
-            'external_reference_id' => $this->getExternalReferenceId($quote),
+            'external_reference_id' => uniqid('M2_'),
             'billing_address' => $this->getBillingAddressParams($quote),
             'shipping_address' => $this->getShippingAddressParams($quote)
         ];
@@ -153,7 +169,7 @@ class Transactions extends CommonRequest implements RequestInterface
         if (($billing = $quote->getBillingAddress()) !== null) {
             $params = [
                 'is_registered' => (bool) $quote->getCustomer()->getId(),
-                'external_reference_id' => $quote->getCustomerId() ? $quote->getCustomerId() : null,
+                'external_reference_id' => $quote->getCustomerId() ? (string) $quote->getCustomerId() : null,
                 'email' => $billing->getEmail() ??
                     $quote->getShippingAddress()->getEmail() ??
                     $quote->getCustomerEmail() ??
@@ -230,22 +246,5 @@ class Transactions extends CommonRequest implements RequestInterface
         }
 
         return $params;
-    }
-
-    /**
-     * Get External reference id to be used
-     *
-     * @param Quote $quote
-     * @return mixed|string|null
-     * @throws \Exception
-     */
-    public function getExternalReferenceId(Quote $quote)
-    {
-        $reservedOrderId = $quote->getReservedOrderId();
-        if (!$reservedOrderId) {
-            $quote->reserveOrderId()->save();
-            $reservedOrderId = $quote->getReservedOrderId();
-        }
-        return $reservedOrderId;
     }
 }

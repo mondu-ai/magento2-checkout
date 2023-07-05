@@ -21,6 +21,7 @@ class Factory
     public const PAYMENT_METHODS = 'GET_PAYMENT_METHODS';
     public const ORDER_INVOICES = 'GET_ORDER_INVOICES';
     public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
+    public const CONFIRM_ORDER = 'CONFIRM_ORDER';
 
     /**
      * @var Logger
@@ -52,6 +53,7 @@ class Factory
         self::PAYMENT_METHODS => \Mondu\Mondu\Model\Request\PaymentMethods::class,
         self::ORDER_INVOICES => \Mondu\Mondu\Model\Request\OrderInvoices::class,
         self::ERROR_EVENTS => \Mondu\Mondu\Model\Request\ErrorEvents::class,
+        self::CONFIRM_ORDER => \Mondu\Mondu\Model\Request\ConfirmOrder::class
     ];
 
     /**

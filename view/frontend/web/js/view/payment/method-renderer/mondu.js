@@ -7,15 +7,17 @@ define([
     "Magento_Checkout/js/model/payment/additional-validators",
     "Magento_Checkout/js/view/billing-address",
     "Magento_Checkout/js/action/set-payment-information",
+    'Magento_Customer/js/customer-data'
 ], function (
-  $,
-  quote,
-  Component,
-  redirectOnSuccessAction,
-  Messages,
-  additionalValidators,
-  billingAddress,
-  SetPaymentInformationAction
+    $,
+    quote,
+    Component,
+    redirectOnSuccessAction,
+    Messages,
+    additionalValidators,
+    billingAddress,
+    SetPaymentInformationAction,
+    customerData
 ) {
     "use strict";
     return Component.extend({
@@ -28,20 +30,10 @@ define([
         initObservable: function () {
             var self = this;
             billingAddress().isAddressSameAsShipping.subscribe(function (
-              isSame
+                isSame
             ) {
                 self.isBillingSameAsShipping = isSame;
             });
-
-            if(!window.monduLoading) {
-                window.monduLoading = true;
-                var monduSkd = document.createElement("script");
-                monduSkd.onload = function () {
-                    self.monduSdkLoaded = true;
-                };
-                monduSkd.src = self.getMonduSdkUrl();
-                document.head.appendChild(monduSkd);
-            }
 
             this.messageContainer = new Messages();
 
@@ -60,11 +52,6 @@ define([
               .monduCheckoutTokenUrl;
         },
 
-        getMonduSdkUrl: function () {
-            var self = this;
-            return window.checkoutConfig.payment[self.getCode()].sdkUrl;
-        },
-
         getCustomerEmail: function () {
             if (quote.guestEmail) {
                 return quote.guestEmail;
@@ -73,41 +60,14 @@ define([
             }
         },
 
-        openCheckout: function (token) {
-            var self = this;
-            $(
-              '<div id="mondu-checkout-widget" style="position: fixed; top: 0;right: 0;left: 0;bottom: 0; z-index: 99999999;"/>'
-            ).appendTo("body");
-            window.monduCheckout.render({
-                token,
-                onCancel: () => {
-                    $("#mondu-checkout-widget").remove();
-                    self.isPlaceOrderActionAllowed(true);
-                    $("body").trigger("processStop");
-                },
-                onSuccess: () => {
-                    self.getPlaceOrderDeferredObject()
-                      .fail(function () {
-                          self.isPlaceOrderActionAllowed(true);
-                          $("body").trigger("processStop");
-                      })
-                      .done(function () {
-                          self.afterPlaceOrder();
-                          if (self.redirectAfterPlaceOrder) {
-                              redirectOnSuccessAction.execute();
-                          }
-                      });
-                    $("#mondu-checkout-widget").remove();
-                    $("body").trigger("processStop");
-                },
-                onClose: () => {},
-            });
-        },
-
         placeOrder: function (data, event) {
             var self = this;
-            if (!additionalValidators.validate()) return;
-            if(!self.isPlaceOrderActionAllowed() === true) return;
+            if (!additionalValidators.validate()) {
+                return;
+            }
+            if (!self.isPlaceOrderActionAllowed() === true) {
+                return;
+            }
             if (event) {
                 event.preventDefault();
             }
@@ -140,7 +100,9 @@ define([
                     },
                 }).always(function (res) {
                     if (res && res.token && !res.error) {
-                        self.openCheckout(res.token);
+                        customerData.invalidate(['cart']);
+
+                        $.mage.redirect(res.hosted_checkout_url);
                         return;
                     } else {
                         self.isPlaceOrderActionAllowed(true);
