@@ -51,7 +51,7 @@ abstract class CommonRequest implements RequestInterface
      * Sends Request
      *
      * @param mixed $params
-     * @return null
+     * @return mixed
      * @throws Exception
      */
     public function process($params = null)
