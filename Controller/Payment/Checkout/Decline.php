@@ -9,6 +9,6 @@ class Decline extends AbstractPaymentController
      */
     public function execute()
     {
-        $this->redirectWithErrorMessage('Mondu: Order has been declined');
+        return $this->redirectWithErrorMessage('Mondu: Order has been declined');
     }
 }

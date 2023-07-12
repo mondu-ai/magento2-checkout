@@ -42,12 +42,12 @@ class Success extends AbstractSuccessController
                     $this->orderSender->send($order);
                 }
             }
-            $this->redirect('checkout/onepage/success/');
+            return $this->redirect('checkout/onepage/success/');
 
         } catch (LocalizedException $e) {
-            $this->processException($e, 'Mondu: An error occurred while trying to confirm the order');
+            return $this->processException($e, 'Mondu: An error occurred while trying to confirm the order');
         } catch (\Exception $e) {
-            $this->processException($e, 'Mondu: Error during the order process');
+            return $this->processException($e, 'Mondu: Error during the order process');
         }
     }
 }

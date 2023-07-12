@@ -89,15 +89,17 @@ abstract class AbstractPaymentController implements ActionInterface
         $this->jsonResultFactory = $jsonResultFactory;
     }
 
+
     /**
-     * Redirect user to url
+     * Redirect to url
      *
      * @param string $path
-     * @return void
+     * @return ResponseInterface
      */
     protected function redirect($path)
     {
         $this->redirect->redirect($this->response, $path);
+        return $this->response;
     }
 
     /**
@@ -105,23 +107,23 @@ abstract class AbstractPaymentController implements ActionInterface
      *
      * @param \Exception $e
      * @param string $message
-     * @return void
+     * @return ResponseInterface
      */
     protected function processException(\Exception $e, $message)
     {
         $this->messageManager->addExceptionMessage($e, __($message));
-        $this->redirect('checkout/cart');
+        return $this->redirect('checkout/cart');
     }
 
     /**
      * Redirect with error message
      *
      * @param string $message
-     * @return void
+     * @return ResponseInterface
      */
     protected function redirectWithErrorMessage($message)
     {
         $this->messageManager->addErrorMessage(__($message));
-        $this->redirect('checkout/cart');
+        return $this->redirect('checkout/cart');
     }
 }
