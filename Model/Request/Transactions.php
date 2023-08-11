@@ -5,6 +5,7 @@ use \Magento\Framework\HTTP\Client\Curl;
 use \Magento\Quote\Model\Cart\CartTotalRepository;
 use \Magento\Checkout\Model\Session as CheckoutSession;
 use \Magento\Quote\Model\Quote;
+use Mondu\Mondu\Helpers\BuyerParams\BuyerParamsInterface;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\UrlInterface;
@@ -47,12 +48,18 @@ class Transactions extends CommonRequest implements RequestInterface
     private $urlBuilder;
 
     /**
+     * @var BuyerParamsInterface
+     */
+    private $buyerParams;
+
+    /**
      * @param Curl $curl
      * @param CartTotalRepository $cartTotalRepository
      * @param CheckoutSession $checkoutSession
      * @param ConfigProvider $configProvider
      * @param OrderHelper $orderHelper
      * @param UrlInterface $urlBuilder
+     * @param BuyerParamsInterface $buyerParams
      */
     public function __construct(
         Curl $curl,
@@ -60,7 +67,8 @@ class Transactions extends CommonRequest implements RequestInterface
         CheckoutSession $checkoutSession,
         ConfigProvider $configProvider,
         OrderHelper $orderHelper,
-        UrlInterface $urlBuilder
+        UrlInterface $urlBuilder,
+        BuyerParamsInterface $buyerParams
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_cartTotalRepository = $cartTotalRepository;
@@ -68,6 +76,7 @@ class Transactions extends CommonRequest implements RequestInterface
         $this->curl = $curl;
         $this->orderHelper = $orderHelper;
         $this->urlBuilder = $urlBuilder;
+        $this->buyerParams = $buyerParams;
     }
 
     /**
@@ -179,6 +188,8 @@ class Transactions extends CommonRequest implements RequestInterface
                 'last_name' => $billing->getLastname(),
                 'phone' => $billing->getTelephone()
             ];
+
+            $params = $this->buyerParams->getBuyerParams($params, $quote);
         }
         return $params;
     }
