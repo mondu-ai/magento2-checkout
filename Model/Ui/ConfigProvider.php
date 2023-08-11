@@ -16,7 +16,7 @@ class ConfigProvider implements ConfigProviderInterface
     public const CODE = 'mondu';
 
     public const API_URL = 'https://api.mondu.ai/api/v1';
-    public const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
+    public const SANDBOX_API_URL = 'http://localhost:3000/api/v1';
 
     public const AUTHORIZATION_STATE_FLOW = 'authorization_flow';
 
