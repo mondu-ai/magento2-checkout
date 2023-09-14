@@ -9,6 +9,7 @@ use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
@@ -53,6 +54,10 @@ abstract class AbstractPaymentController implements ActionInterface
     protected $jsonResultFactory;
 
     /**
+     * @var ABTesting
+     */
+    protected $aBTesting;
+    /**
      * Execute
      *
      * @return ResponseInterface|\Magento\Framework\Controller\ResultInterface
@@ -77,7 +82,8 @@ abstract class AbstractPaymentController implements ActionInterface
         MessageManagerInterface $messageManager,
         MonduFileLogger $monduFileLogger,
         RequestFactory $requestFactory,
-        JsonFactory $jsonResultFactory
+        JsonFactory $jsonResultFactory,
+        ABTesting $aBTesting
     ) {
         $this->request = $request;
         $this->response = $response;
@@ -87,6 +93,7 @@ abstract class AbstractPaymentController implements ActionInterface
         $this->monduFileLogger = $monduFileLogger;
         $this->requestFactory = $requestFactory;
         $this->jsonResultFactory = $jsonResultFactory;
+        $this->aBTesting = $aBTesting;
     }
 
 

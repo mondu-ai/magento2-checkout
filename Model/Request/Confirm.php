@@ -8,7 +8,7 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Confirm extends CommonRequest
 {
-    public const ORDER_STATE = ['pending', 'confirmed'];
+    public const ORDER_STATE = ['pending', 'confirmed', 'authorized'];
 
     /**
      * @var Curl
