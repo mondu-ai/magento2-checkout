@@ -5,7 +5,6 @@ define([
     "Magento_Checkout/js/action/redirect-on-success",
     "Magento_Ui/js/model/messages",
     "Magento_Checkout/js/model/payment/additional-validators",
-    "Magento_Checkout/js/view/billing-address",
     "Magento_Checkout/js/action/set-payment-information",
     'Magento_Customer/js/customer-data'
 ], function (
@@ -15,7 +14,6 @@ define([
     redirectOnSuccessAction,
     Messages,
     additionalValidators,
-    billingAddress,
     SetPaymentInformationAction,
     customerData
 ) {
@@ -25,15 +23,9 @@ define([
             template: "Mondu_Mondu/payment/form",
             monduSkdLoaded: false,
         },
-        isBillingSameAsShipping: true,
 
         initObservable: function () {
             var self = this;
-            billingAddress().isAddressSameAsShipping.subscribe(function (
-                isSame
-            ) {
-                self.isBillingSameAsShipping = isSame;
-            });
 
             this.messageContainer = new Messages();
 
@@ -70,9 +62,6 @@ define([
             }
             if (event) {
                 event.preventDefault();
-            }
-            if (self.isBillingSameAsShipping) {
-                quote.billingAddress(quote.shippingAddress());
             }
             $("body").trigger("processStart");
             self.isPlaceOrderActionAllowed(false);
