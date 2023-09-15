@@ -9,6 +9,7 @@ use Mondu\Mondu\Helpers\BuyerParams\BuyerParamsInterface;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Locale\Resolver;
 
 class Transactions extends CommonRequest implements RequestInterface
 {
@@ -53,6 +54,11 @@ class Transactions extends CommonRequest implements RequestInterface
     private $buyerParams;
 
     /**
+     * @var Resolver
+     */
+    private $store;
+
+    /**
      * @param Curl $curl
      * @param CartTotalRepository $cartTotalRepository
      * @param CheckoutSession $checkoutSession
@@ -68,7 +74,8 @@ class Transactions extends CommonRequest implements RequestInterface
         ConfigProvider $configProvider,
         OrderHelper $orderHelper,
         UrlInterface $urlBuilder,
-        BuyerParamsInterface $buyerParams
+        BuyerParamsInterface $buyerParams,
+        Resolver $store
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_cartTotalRepository = $cartTotalRepository;
@@ -77,6 +84,7 @@ class Transactions extends CommonRequest implements RequestInterface
         $this->orderHelper = $orderHelper;
         $this->urlBuilder = $urlBuilder;
         $this->buyerParams = $buyerParams;
+        $this->store = $store;
     }
 
     /**
@@ -140,7 +148,6 @@ class Transactions extends CommonRequest implements RequestInterface
     {
         $quote = $this->_checkoutSession->getQuote();
         $quote->collectTotals();
-        $requiresShipping = $quote->getShippingAddress() !== null ? 1 : 0;
 
         $quoteTotals = $this->_cartTotalRepository->get($quote->getId());
 
@@ -150,7 +157,11 @@ class Transactions extends CommonRequest implements RequestInterface
         $cancelUrl = $this->urlBuilder->getUrl('mondu/payment_checkout/cancel');
         $declinedUrl = $this->urlBuilder->getUrl('mondu/payment_checkout/decline');
 
+        $locale = $this->store->getLocale();
+        $language = $locale ? strstr($locale, '_', true) : 'de';
+
         $order = [
+            'language' => $language,
             'currency' => $quote->getBaseCurrencyCode(),
             'state_flow' => ConfigProvider::AUTHORIZATION_STATE_FLOW,
             'success_url' => $successUrl,
