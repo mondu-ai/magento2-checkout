@@ -89,7 +89,7 @@ define([
                     },
                 }).always(function (res) {
                     if (res && res.token && !res.error) {
-                        customerData.invalidate(['cart']);
+                        customerData.invalidate(['cart', 'checkout-data']);
 
                         $.mage.redirect(res.hosted_checkout_url);
                         return;
