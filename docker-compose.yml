@@ -22,6 +22,7 @@ services:
     volumes:
       - magento_data:/bitnami/magento
       - .:/bitnami/magento/vendor/mondu/magento2-payment/
+      - ./auth.json:/bitnami/magento/auth.json
     depends_on:
       mariadb:
         condition: service_healthy

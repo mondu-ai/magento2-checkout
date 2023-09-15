@@ -17,8 +17,10 @@
 
 <ol>
 <li> Install docker and docker-compose.
-<li> Run the following script: <code><em>docker-compose up</em></code> </li>
-<li> Wait the container to start (it may take a while)</li>
+<li> Create a `auth.json` file copying it from `auth.json.example` according to https://experienceleague.adobe.com/docs/commerce-cloud-service/user-guide/develop/authentication-keys.html?lang=en.</li>
+<li> Run the following script: <code><em>docker-compose up</em></code>.</li>
+<li> Wait the container to start (it may take a while).</li>
+<li> Run `composer install` inside the magento container.<li>
 </ol>
 
 ### Install manually
