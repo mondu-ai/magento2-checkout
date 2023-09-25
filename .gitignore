@@ -1,1 +1,4 @@
 .DS_Store
+
+# Magento authentication file
+auth.json
