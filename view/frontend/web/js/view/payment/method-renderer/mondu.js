@@ -27,7 +27,7 @@ define([
         initObservable: function () {
             var self = this;
 
-            if(!window.monduLoading) {
+            if (!window.monduLoading) {
                 window.monduLoading = true;
                 var monduSkd = document.createElement("script");
                 monduSkd.onload = function () {
@@ -127,15 +127,15 @@ define([
             })
         },
 
-        handlePayment: function(source, res) {
+        handlePayment: function (source, res) {
             var self = this;
-            if(source === 'hosted') {
+            if (source === 'hosted') {
                 customerData.invalidate(['cart', 'checkout-data']);
                 $.mage.redirect(res.hosted_checkout_url);
                 return;
             }
 
-            if(source === 'widget') {
+            if (source === 'widget') {
                 self.openWidget(res.token);
             }
         },

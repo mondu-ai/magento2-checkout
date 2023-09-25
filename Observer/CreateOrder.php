@@ -145,9 +145,11 @@ class CreateOrder extends MonduObserver
                 ->process(['orderUid' => $orderUid]);
 
             $orderData = $orderData['order'];
-            $this->confirmAuthorizedOrder($orderData, $order->getIncrementId());
+            $authorizationData = $this->confirmAuthorizedOrder($orderData, $order->getIncrementId());
+            $orderData['state'] = $authorizationData['state'];
 
             $order->setData('mondu_reference_id', $orderUid);
+            $order->addStatusHistoryComment(__('Mondu: order id %1', $orderData['uuid']));
 
             $order->save();
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
@@ -169,15 +171,17 @@ class CreateOrder extends MonduObserver
 
     /**
      * Confirm Authorized Order
-     * 
+     *
      * @param array $orderData
      * @param string $orderNumber
      */
     protected function confirmAuthorizedOrder($orderData, $orderNumber)
     {
-        if($orderData['state'] === 'authorized') {
-            $this->_requestFactory->create(RequestFactory::CONFIRM_ORDER)
+        if ($orderData['state'] === 'authorized') {
+            $authorizationData = $this->_requestFactory->create(RequestFactory::CONFIRM_ORDER)
                 ->process(['orderUid' => $orderData['uuid'], 'referenceId' => $orderNumber]);
+            return $authorizationData['order'];
         }
+        return $orderData;
     }
 }

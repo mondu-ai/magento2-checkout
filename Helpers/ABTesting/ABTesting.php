@@ -6,6 +6,12 @@ class ABTesting
     protected const HOSTED_SOURCE = 'hosted';
     protected const WIDGET_SOURCE = 'widget';
 
+    /**
+     * FormatApiResult
+     *
+     * @param array $result
+     * @return array
+     */
     public function formatApiResult($result)
     {
         $body = $result['body'];
@@ -26,9 +32,14 @@ class ABTesting
         return $response;
     }
 
-    protected function isHostedCheckout($monduOrder)
+    /**
+     * IsHostedCheckout
+     *
+     * @param array $monduOrder
+     * @return bool
+     */
+    protected function isHostedCheckout($monduOrder): bool
     {
-        return true;
-        return $monduOrder['hosted_checkout_url'] !== null;
+        return isset($monduOrder['hosted_checkout_url']);
     }
 }

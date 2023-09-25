@@ -80,6 +80,7 @@ class ShipOrder extends MonduObserver
         }
 
         $monduId = $order->getData('mondu_reference_id');
+        $this->monduLogger->syncOrder($monduId);
 
         if (!$this->monduLogger->canShipOrder($monduId)) {
             throw new LocalizedException(

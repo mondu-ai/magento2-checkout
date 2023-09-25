@@ -2,7 +2,7 @@
   "name": "mondu_gmbh/magento2-payment",
   "description": "Mondu payment method for magento 2",
   "type": "magento2-module",
-  "version": "2.1.3",
+  "version": "2.1.4-AB",
   "license": [
     "MIT"
   ],
