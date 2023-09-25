@@ -27,6 +27,16 @@ define([
         initObservable: function () {
             var self = this;
 
+            if (!window.monduLoading) {
+                window.monduLoading = true;
+                var monduSkd = document.createElement("script");
+                monduSkd.onload = function () {
+                    self.monduSdkLoaded = true;
+                };
+                monduSkd.src = self.getMonduSdkUrl();
+                document.head.appendChild(monduSkd);
+            }
+
             this.messageContainer = new Messages();
 
             return self;
@@ -42,6 +52,11 @@ define([
             var self = this;
             return window.checkoutConfig.payment[self.getCode()]
               .monduCheckoutTokenUrl;
+        },
+
+        getMonduSdkUrl: function () {
+            var self = this;
+            return window.checkoutConfig.payment[self.getCode()].sdkUrl;
         },
 
         getCustomerEmail: function () {
@@ -89,9 +104,7 @@ define([
                     },
                 }).always(function (res) {
                     if (res && res.token && !res.error) {
-                        customerData.invalidate(['cart', 'checkout-data']);
-
-                        $.mage.redirect(res.hosted_checkout_url);
+                        self.handlePayment(res.source, res);
                         return;
                     } else {
                         self.isPlaceOrderActionAllowed(true);
@@ -112,6 +125,50 @@ define([
                 self.isPlaceOrderActionAllowed(true);
                 $("body").trigger("processStop");
             })
+        },
+
+        handlePayment: function (source, res) {
+            var self = this;
+            if (source === 'hosted') {
+                customerData.invalidate(['cart', 'checkout-data']);
+                $.mage.redirect(res.hosted_checkout_url);
+                return;
+            }
+
+            if (source === 'widget') {
+                self.openWidget(res.token);
+            }
+        },
+
+        openWidget: function (token) {
+            var self = this;
+            $(
+              '<div id="mondu-checkout-widget" style="position: fixed; top: 0;right: 0;left: 0;bottom: 0; z-index: 99999999;"/>'
+            ).appendTo("body");
+            window.monduCheckout.render({
+                token,
+                onCancel: () => {
+                    $("#mondu-checkout-widget").remove();
+                    self.isPlaceOrderActionAllowed(true);
+                    $("body").trigger("processStop");
+                },
+                onSuccess: () => {
+                    self.getPlaceOrderDeferredObject()
+                      .fail(function () {
+                          self.isPlaceOrderActionAllowed(true);
+                          $("body").trigger("processStop");
+                      })
+                      .done(function () {
+                          self.afterPlaceOrder();
+                          if (self.redirectAfterPlaceOrder) {
+                              redirectOnSuccessAction.execute();
+                          }
+                      });
+                    $("#mondu-checkout-widget").remove();
+                    $("body").trigger("processStop");
+                },
+                onClose: () => {},
+            });
         },
     });
 });

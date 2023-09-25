@@ -13,6 +13,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Checkout\Helper\Data as CheckoutData;
 use Magento\Quote\Api\CartManagementInterface;
+use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
@@ -64,7 +65,8 @@ abstract class AbstractSuccessController extends AbstractPaymentController
         \Magento\Customer\Model\Session $customerSession,
         OrderSender $orderSender,
         CheckoutData $checkoutData,
-        CartManagementInterface $quoteManagement
+        CartManagementInterface $quoteManagement,
+        ABTesting $aBTesting
     ) {
         parent::__construct(
             $request,
@@ -75,6 +77,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
             $monduFileLogger,
             $requestFactory,
             $jsonResultFactory,
+            $aBTesting
         );
         $this->customerSession = $customerSession;
         $this->orderSender = $orderSender;

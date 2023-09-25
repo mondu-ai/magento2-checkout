@@ -3,6 +3,7 @@
 namespace Mondu\Mondu\Controller\Payment\Checkout;
 
 use Magento\Framework\Webapi\Response;
+use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class Token extends AbstractPaymentController
@@ -22,12 +23,7 @@ class Token extends AbstractPaymentController
                 'payment_method' => $paymentMethod
             ]);
 
-        $response = [
-            'error' => $result['error'],
-            'message' => $result['message'],
-            'token' => $result['body']['order']['token'] ?? null,
-            'hosted_checkout_url' => $result['body']['order']['hosted_checkout_url'] ?? null
-        ];
+        $response = $this->aBTesting->formatApiResult($result);
 
         $this->monduFileLogger->info('Token controller got a result ', $response);
         if (!$response['error']) {

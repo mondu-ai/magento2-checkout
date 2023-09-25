@@ -14,11 +14,16 @@ use Magento\Store\Model\ScopeInterface;
 class ConfigProvider implements ConfigProviderInterface
 {
     public const CODE = 'mondu';
+    public const SEPA_CODE = 'mondusepa';
+    public const INSTALLMENT_CODE = 'monduinstallment';
 
     public const API_URL = 'https://api.mondu.ai/api/v1';
     public const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
 
     public const AUTHORIZATION_STATE_FLOW = 'authorization_flow';
+
+    public const SDK_URL = 'https://checkout.mondu.ai/widget.js';
+    public const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.ai/widget.js';
 
     /**
      * @var UrlInterface
@@ -94,6 +99,19 @@ class ConfigProvider implements ConfigProviderInterface
         }
 
         return $baseUrl . ($path ? '/'.$path : '');
+    }
+
+        /**
+     * Returns mondu.js url
+     *
+     * @return string
+     */
+    public function getSdkUrl(): string
+    {
+        if ($this->scopeConfig->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode)) {
+            return self::SANDBOX_SDK_URL;
+        }
+        return self::SDK_URL;
     }
 
     /**
@@ -206,16 +224,19 @@ class ConfigProvider implements ConfigProviderInterface
         return [
             'payment' => [
                 self::CODE => [
+                    'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondu,
                     'title' => __($this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE))
                 ],
-                'mondusepa' => [
+                self::SEPA_CODE => [
+                    'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondusepa,
                     'title' => __($this->scopeConfig->getValue('payment/mondusepa/title', ScopeInterface::SCOPE_STORE))
                 ],
-                'monduinstallment' => [
+                self::INSTALLMENT_CODE => [
+                    'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMonduinstallment,
                     'title' => __($this->scopeConfig

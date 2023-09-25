@@ -139,12 +139,17 @@ class CreateOrder extends MonduObserver
         try {
             $this->monduFileLogger
                 ->info('Validating order status in Mondu. ', ['orderNumber' => $order->getIncrementId()]);
+
             $orderData = $this->_requestFactory->create(RequestFactory::TRANSACTION_CONFIRM_METHOD)
                 ->setValidate(true)
                 ->process(['orderUid' => $orderUid]);
 
             $orderData = $orderData['order'];
+            $authorizationData = $this->confirmAuthorizedOrder($orderData, $order->getIncrementId());
+            $orderData['state'] = $authorizationData['state'];
+
             $order->setData('mondu_reference_id', $orderUid);
+            $order->addStatusHistoryComment(__('Mondu: order id %1', $orderData['uuid']));
 
             $order->save();
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
@@ -162,5 +167,21 @@ class CreateOrder extends MonduObserver
             $this->monduFileLogger->info('Error in CreateOrder observer', ['orderNumber' => $order->getIncrementId()]);
             throw new LocalizedException(__($e->getMessage()));
         }
+    }
+
+    /**
+     * Confirm Authorized Order
+     *
+     * @param array $orderData
+     * @param string $orderNumber
+     */
+    protected function confirmAuthorizedOrder($orderData, $orderNumber)
+    {
+        if ($orderData['state'] === 'authorized') {
+            $authorizationData = $this->_requestFactory->create(RequestFactory::CONFIRM_ORDER)
+                ->process(['orderUid' => $orderData['uuid'], 'referenceId' => $orderNumber]);
+            return $authorizationData['order'];
+        }
+        return $orderData;
     }
 }
