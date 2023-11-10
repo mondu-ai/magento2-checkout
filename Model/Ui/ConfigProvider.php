@@ -101,7 +101,7 @@ class ConfigProvider implements ConfigProviderInterface
         return $baseUrl . ($path ? '/'.$path : '');
     }
 
-    /**
+        /**
      * Returns mondu.js url
      *
      * @return string
