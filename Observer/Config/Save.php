@@ -76,32 +76,27 @@ class Save implements ObserverInterface
                     $storeId = $this->storeManager->getStore()->getId();
                     $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
                        ->process()
-                       ->setStore($storeId)
                        ->checkSuccess()
                        ->update();
 
                     $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setStore($storeId)
                        ->setTopic('order/confirmed')
                        ->process();
 
                     $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/pending')
-                       ->setStore($storeId)
                        ->process();
 
                     $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/declined')
-                       ->setStore($storeId)
                        ->process();
 
                     $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/canceled')
-                       ->setStore($storeId)
                        ->process();
 
                     $this->monduConfig->clearConfigurationCache();
