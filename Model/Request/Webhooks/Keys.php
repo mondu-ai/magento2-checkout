@@ -89,7 +89,7 @@ class Keys extends CommonRequest implements RequestInterface
      */
     public function update(): Keys
     {
-        $this->configProvider->updateWebhookSecret($this->getWebhookSecret(), $this->storeId);
+        $this->configProvider->updateWebhookSecret($this->getWebhookSecret());
         return $this;
     }
 
@@ -101,17 +101,5 @@ class Keys extends CommonRequest implements RequestInterface
     public function getWebhookSecret()
     {
         return $this->webhookSecret;
-    }
-
-    /**
-     * Set store
-     *
-     * @param int $storeId
-     * @return $this
-     */
-    public function setStore($storeId)
-    {
-        $this->storeId = $storeId;
-        return $this;
     }
 }

@@ -138,14 +138,10 @@ class ConfigProvider implements ConfigProviderInterface
     /**
      * Get Webhook url
      *
-     * @param string|mixed $storeId
      * @return string
      */
-    public function getWebhookUrl($storeId): string
+    public function getWebhookUrl(): string
     {
-        if ($storeId) {
-            return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index?storeId='.$storeId;
-        }
         return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index';
     }
 
@@ -253,13 +249,11 @@ class ConfigProvider implements ConfigProviderInterface
      * @param string $storeId
      * @return $this
      */
-    public function updateWebhookSecret($webhookSecret = "", $storeId = 0): ConfigProvider
+    public function updateWebhookSecret($webhookSecret = ""): ConfigProvider
     {
         $this->resourceConfig->saveConfig(
             'payment/mondu/'.$this->getMode(). '_webhook_secret',
-            $this->encryptor->encrypt($webhookSecret),
-            ScopeInterface::SCOPE_STORE,
-            $storeId
+            $this->encryptor->encrypt($webhookSecret)
         );
 
         return $this;
@@ -297,9 +291,7 @@ class ConfigProvider implements ConfigProviderInterface
     {
         $val = $this->scopeConfig
             ->getValue(
-                'payment/mondu/' . $this->getMode().'_webhook_secret',
-                ScopeInterface::SCOPE_STORE,
-                $this->contextCode
+                'payment/mondu/' . $this->getMode().'_webhook_secret'
             );
         return $this->encryptor->decrypt($val);
     }
