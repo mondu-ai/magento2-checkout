@@ -77,7 +77,7 @@ class Index extends Action implements ActionInterface
 
         try {
             $content = $this->getRequest()->getContent();
-            
+
             $headers = $this->getRequest()->getHeaders()->toArray();
             $signature = hash_hmac('sha256', $content, $this->_monduConfig->getWebhookSecret());
             if ($signature !== ($headers['X-Mondu-Signature'] ?? null)) {
@@ -94,7 +94,6 @@ class Index extends Action implements ActionInterface
                 case 'order/pending':
                     [$resBody, $resStatus] = $this->handlePending($params);
                     break;
-                case 'order/canceled':
                 case 'order/declined':
                     [$resBody, $resStatus] = $this->handleDeclinedOrCanceled($params);
                     break;
