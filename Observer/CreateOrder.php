@@ -150,7 +150,7 @@ class CreateOrder extends MonduObserver
 
             $order->setData('mondu_reference_id', $orderUid);
             $order->addStatusHistoryComment(__('Mondu: order id %1', $orderData['uuid']));
-
+            $order = $this->assignMagentoStatus($order, $orderData['state']);
             $order->save();
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
 
@@ -183,5 +183,20 @@ class CreateOrder extends MonduObserver
             return $authorizationData['order'];
         }
         return $orderData;
+    }
+
+    /**
+     * AssignMagentoStatus
+     *
+     * @param Order $order
+     * @param string $monduOrderState
+     * @return Order
+     */
+    protected function assignMagentoStatus($order, $monduOrderState)
+    {
+        if ($monduOrderState === 'pending') {
+            $order->setStatus(Order::STATE_PAYMENT_REVIEW);
+        }
+        return $order;
     }
 }
