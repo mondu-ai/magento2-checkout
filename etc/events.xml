@@ -5,6 +5,9 @@
     <event name="sales_order_place_before">
         <observer name="sales_order_place_before_mondu" instance="Mondu\Mondu\Observer\CreateOrder"/>
     </event>
+    <event name="sales_order_place_after">
+        <observer name="sales_order_place_after_mondu" instance="Mondu\Mondu\Observer\AfterPlaceOrder"/>
+    </event>
 
     <event name="order_cancel_after">
         <observer name="mondu_order_cancel_after"
