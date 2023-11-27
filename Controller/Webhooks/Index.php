@@ -134,7 +134,11 @@ class Index extends Action implements ActionInterface
         if (empty($order->getData())) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
+        $order->setState(Order::STATE_PAYMENT_REVIEW);
         $order->setStatus(Order::STATE_PAYMENT_REVIEW);
+        $order->addStatusHistoryComment(
+            __('Mondu: Order Status changed to Payment Review by a webhook')
+        );
         $order->save();
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
 
@@ -163,7 +167,11 @@ class Index extends Action implements ActionInterface
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
+        $order->setState(Order::STATE_PROCESSING);
         $order->setStatus(Order::STATE_PROCESSING);
+        $order->addStatusHistoryComment(
+            __('Mondu: Order Status changed to Processing by a webhook')
+        );
         $order->save();
         $this->_monduLogger->updateLogMonduData($monduId, $params['order_state'], $viban);
 
@@ -191,6 +199,10 @@ class Index extends Action implements ActionInterface
         if (empty($order->getData())) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
+
+        $order->addStatusHistoryComment(
+            __('Mondu: Order has been declined')
+        );
 
         if ($orderState === 'canceled') {
             $order->setStatus(Order::STATE_CANCELED)->save();
