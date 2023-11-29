@@ -31,8 +31,7 @@ class Save implements ObserverInterface
     private $subscriptions = [
         'order/confirmed',
         'order/declined',
-        'order/pending',
-        'order/canceled'
+        'order/pending'
     ];
 
     /**
@@ -92,11 +91,6 @@ class Save implements ObserverInterface
                     $this->requestFactory
                        ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
                        ->setTopic('order/declined')
-                       ->process();
-
-                    $this->requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/canceled')
                        ->process();
 
                     $this->monduConfig->clearConfigurationCache();

@@ -7,17 +7,19 @@ services:
     ports:
       - 80:8080
     environment:
+      - BITNAMI_DEBUG=true
       - MAGENTO_HOST=localhost
       - MAGENTO_MODE=developer
       - MAGENTO_DATABASE_HOST=mariadb
       - MAGENTO_DATABASE_PORT_NUMBER=3306
       - MAGENTO_DATABASE_USER=bn_magento
       - MAGENTO_DATABASE_NAME=bitnami_magento
+      - MAGENTO_ELASTICSEARCH_HOST=elasticsearch
+      - MAGENTO_ELASTICSEARCH_PORT_NUMBER=9200
       - MAGENTO_USERNAME=mondu
-      - MAGENTO_PASSWORD=mondu
+      - MAGENTO_PASSWORD=mondu123
+      - MAGENTO_EMAIL=mondu@mondu.ai
       - ALLOW_EMPTY_PASSWORD=yes
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT_NUMBER=9200
       - PHP_MEMORY_LIMIT=5120M
     volumes:
       - magento_data:/bitnami/magento

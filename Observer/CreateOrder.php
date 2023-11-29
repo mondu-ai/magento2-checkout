@@ -150,7 +150,6 @@ class CreateOrder extends MonduObserver
 
             $order->setData('mondu_reference_id', $orderUid);
             $order->addStatusHistoryComment(__('Mondu: order id %1', $orderData['uuid']));
-
             $order->save();
             $this->monduFileLogger->info('Saved the order in Magento ', ['orderNumber' => $order->getIncrementId()]);
 
