@@ -16,6 +16,7 @@ class ConfigProvider implements ConfigProviderInterface
     public const CODE = 'mondu';
     public const SEPA_CODE = 'mondusepa';
     public const INSTALLMENT_CODE = 'monduinstallment';
+    public const INSTALLMENT_BY_INVOICE_CODE = 'monduinstallmentbyinvoice';
 
     public const API_URL = 'https://api.mondu.ai/api/v1';
     public const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
@@ -164,7 +165,8 @@ class ConfigProvider implements ConfigProviderInterface
     {
         return $this->scopeConfig->getValue('payment/mondu/active') ||
             $this->scopeConfig->getValue('payment/mondusepa/active') ||
-            $this->scopeConfig->getValue('payment/monduinstallment/active');
+            $this->scopeConfig->getValue('payment/monduinstallment/active') ||
+            $this->scopeConfig->getValue('payment/monduinstallmentbyinvoice/active');
     }
 
     /**
@@ -206,6 +208,8 @@ class ConfigProvider implements ConfigProviderInterface
             ->getValue('payment/mondusepa/description', ScopeInterface::SCOPE_STORE);
         $descriptionConfigMonduinstallment = $this->scopeConfig
             ->getValue('payment/monduinstallment/description', ScopeInterface::SCOPE_STORE);
+        $descriptionConfigMonduinstallmentByInvoice = $this->scopeConfig
+            ->getValue('payment/monduinstallmentbyinvoice/description', ScopeInterface::SCOPE_STORE);
 
         $descriptionMondu = $descriptionConfigMondu ?
             __($descriptionConfigMondu) . '<br><br>' . $privacyText :
@@ -215,6 +219,9 @@ class ConfigProvider implements ConfigProviderInterface
             $privacyText;
         $descriptionMonduinstallment = $descriptionConfigMonduinstallment ?
             __($descriptionConfigMonduinstallment) . '<br><br>' . $privacyText :
+            $privacyText;
+        $descriptionMonduinstallmentByInvoice = $descriptionConfigMonduinstallmentByInvoice ?
+            __($descriptionConfigMonduinstallmentByInvoice) . '<br><br>' . $privacyText :
             $privacyText;
 
         return [
@@ -237,6 +244,13 @@ class ConfigProvider implements ConfigProviderInterface
                     'description' => $descriptionMonduinstallment,
                     'title' => __($this->scopeConfig
                         ->getValue('payment/monduinstallment/title', ScopeInterface::SCOPE_STORE))
+                ],
+                self::INSTALLMENT_BY_INVOICE_CODE => [
+                    'sdkUrl' => $this->getSdkUrl(),
+                    'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
+                    'description' => $descriptionMonduinstallmentByInvoice,
+                    'title' => __($this->scopeConfig
+                        ->getValue('payment/monduinstallmentbyinvoice/title', ScopeInterface::SCOPE_STORE))
                 ]
             ]
         ];
@@ -280,6 +294,7 @@ class ConfigProvider implements ConfigProviderInterface
 
         $this->configWriter->save('payment/mondusepa/order_status', $status);
         $this->configWriter->save('payment/monduinstallment/order_status', $status);
+        $this->configWriter->save('payment/monduinstallmentbyinvoice/order_status', $status);
     }
 
     /**

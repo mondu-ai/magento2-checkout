@@ -87,30 +87,46 @@
                         <label>Split Payments Description</label>
                         <config_path>payment/monduinstallment/description</config_path>
                     </field>
-                    <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <field id="activeinstallmentbyinvoice" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Enable Installments By Invoice</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/monduinstallmentbyinvoice/active</config_path>
+                    </field>
+                    <field id="installment_by_invoice_title" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Installments by Invoice Title</label>
+                        <config_path>payment/monduinstallmentbyinvoice/title</config_path>
+                    </field>
+                    <field id="installment_by_invoice_description" translate="label" type="textarea" sortOrder="12" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Installments by Invoice Description</label>
+                        <config_path>payment/monduinstallmentbyinvoice/description</config_path>
+                    </field>
+                    <field id="order_status" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" canRestore="1">
                         <label>New Order Status</label>
                         <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
                         <config_path>payment/mondu/order_status</config_path>
                     </field>
-                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="11" showInDefault="9"
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="14" showInDefault="9"
                            showInWebsite="1" showInStore="1">
                         <label>Payment From Applicable Countries</label>
                         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                         <config_path>payment/mondu/allowspecific</config_path>
                     </field>
-                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="12" showInDefault="1"
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="15" showInDefault="1"
                            showInWebsite="1" showInStore="1">
                         <label>Payment From Specific Countries</label>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/mondu/specificcountry</config_path>
                     </field>
-                    <field id="cron" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1"
+                    <field id="cron" translate="label" type="select" sortOrder="16" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Enable automatic order processing</label>
                         <config_path>payment/mondu/cron</config_path>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
-                    <field id="debug" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1"
+                    <field id="debug" translate="label" type="select" sortOrder="17" showInDefault="1" showInWebsite="1"
                            showInStore="1">
                         <label>Enable Logs</label>
                         <config_path>payment/mondu/debug</config_path>
