@@ -26,6 +26,12 @@ define(
                 component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
             }
         );
+        rendererList.push(
+            {
+                type: 'monduinstallmentbyinvoice',
+                component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
+            }
+        );
 
         /** Add view logic here if needed */
         return Component.extend({});

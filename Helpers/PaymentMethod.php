@@ -6,18 +6,20 @@ use Mondu\Mondu\Model\Request\Factory;
 
 class PaymentMethod
 {
-    public const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment'];
+    public const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment', 'monduinstallmentbyinvoice'];
 
     public const LABELS = [
+        'mondu' => 'Rechnungskauf',
         'mondusepa' => 'SEPA Direct Debit',
         'monduinstallment' => 'Installment',
-        'mondu' => 'Rechnungskauf'
+        'monduinstallmentbyinvoice' => 'Installment By Invoice'
     ];
 
     public const MAPPING = [
-        'direct_debit' => 'mondusepa',
         'invoice' => 'mondu',
-        'installment' => 'monduinstallment'
+        'direct_debit' => 'mondusepa',
+        'installment' => 'monduinstallment',
+        'installment_by_invoice' => 'monduinstallmentbyinvoice'
     ];
     /**
      * @var Factory

@@ -89,6 +89,9 @@ define([
                 case 'monduinstallment':
                     payment_method = 'installment';
                     break;
+                case 'monduinstallmentbyinvoice':
+                    payment_method = 'installment_by_invoice';
+                    break;
                 default:
                     payment_method = 'invoice';
                     break;
