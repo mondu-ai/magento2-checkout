@@ -2,6 +2,7 @@
 namespace Mondu\Mondu\Observer;
 
 use Magento\Framework\Event\Observer;
+use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger;
 use Mondu\Mondu\Helpers\PaymentMethod;
@@ -45,8 +46,12 @@ class AfterPlaceOrder extends MonduObserver
             $order->addStatusHistoryComment(
                 __('Mondu: Order Status changed to Payment Review because it needs manual confirmation')
             );
-            $order->setState(\Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW);
-            $order->setStatus(\Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW);
+            $order->setState(Order::STATE_PAYMENT_REVIEW);
+            $order->setStatus(Order::STATE_PAYMENT_REVIEW);
+            $order->save();
+        } else {
+            $order->setState(Order::STATE_PROCESSING);
+            $order->setStatus(Order::STATE_PROCESSING);
             $order->save();
         }
     }
