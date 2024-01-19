@@ -10,6 +10,7 @@ use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Locale\Resolver;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 
 class Transactions extends CommonRequest implements RequestInterface
 {
@@ -59,6 +60,11 @@ class Transactions extends CommonRequest implements RequestInterface
     private $store;
 
     /**
+     * @var MonduFileLogger
+     */
+    private $monduFileLogger;
+
+    /**
      * @param Curl $curl
      * @param CartTotalRepository $cartTotalRepository
      * @param CheckoutSession $checkoutSession
@@ -75,7 +81,8 @@ class Transactions extends CommonRequest implements RequestInterface
         OrderHelper $orderHelper,
         UrlInterface $urlBuilder,
         BuyerParamsInterface $buyerParams,
-        Resolver $store
+        Resolver $store,
+        MonduFileLogger $monduFileLogger
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_cartTotalRepository = $cartTotalRepository;
@@ -85,6 +92,7 @@ class Transactions extends CommonRequest implements RequestInterface
         $this->urlBuilder = $urlBuilder;
         $this->buyerParams = $buyerParams;
         $this->store = $store;
+        $this->monduFileLogger = $monduFileLogger;
     }
 
     /**
@@ -129,6 +137,10 @@ class Transactions extends CommonRequest implements RequestInterface
                 ];
             }
         } catch (\Exception $e) {
+            $this->monduFileLogger->error('Error while creating an order', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTrace()
+            ]);
             return [
                 'error' => 1,
                 'body' => null,

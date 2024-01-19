@@ -16,6 +16,10 @@ class ABTesting
     {
         $body = $result['body'];
 
+        if ($result['error']) {
+            return $result;
+        }
+
         $response = [
             'error' => $result['error'],
             'message' => $result['message'],
