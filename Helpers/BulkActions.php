@@ -154,14 +154,34 @@ class BulkActions
      */
     private function bulkShipAction($order, $additionalData)
     {
+        if ($this->configProvider->getCronOrderStatus() &&
+            $this->configProvider->getCronOrderStatus() !== $order->getStatus()
+        ) {
+            $this->monduFileLogger->info(
+                'Order '. $order->getIncrementId() .
+                ' is not in '. $this->configProvider->getCronOrderStatus(). ' status yet. Skipping',
+            );
+
+            return null;
+        }
+
         $withLineItems = $additionalData['withLineItems'] ?? false;
         $monduLogData = $this->getMonduLogData($order);
+
+        if ($monduLogData['mondu_state'] === 'shipped') {
+            $this->monduFileLogger->info(
+                'Order '. $order->getIncrementId() .
+                ' is already in state shipped. Skipping',
+            );
+            return null;
+        }
+
         $this->monduFileLogger->info(
             'Order ' . $order->getIncrementId() .
             ' Trying to create invoice, entering shipOrder'
         );
 
-        if (!$this->configProvider->isInvoiceRequiredForShipping()) {
+        if (!$this->configProvider->isInvoiceRequiredCron()) {
             return $this->shipOrderWithoutInvoices($order);
         } elseif ($monduInvoice = $this->shipOrder($monduLogData, $order, $withLineItems)) {
             $this->monduFileLogger->info(
