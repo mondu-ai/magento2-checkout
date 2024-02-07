@@ -180,6 +180,26 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Order status for which the Cron job will process the order
+     *
+     * @return string
+     */
+    public function getCronOrderStatus(): ?string
+    {
+        return $this->scopeConfig->getValue('payment/mondu/cron_status');
+    }
+
+    /**
+     * Is Invoice required for processing the order by the Cron job
+     *
+     * @return bool
+     */
+    public function isInvoiceRequiredCron(): bool
+    {
+        return (bool) $this->scopeConfig->getValue('payment/mondu/cron_require_invoice');
+    }
+
+    /**
      * Get invoice url for order
      *
      * @param string $orderUid
