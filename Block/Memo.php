@@ -88,8 +88,7 @@ class Memo extends Template
      */
     public function invoices()
     {
-        $invoiceCollection = $this->getOrder()->getInvoiceCollection();
-        return $invoiceCollection;
+        return $this->getOrder()->getInvoiceCollection();
     }
 
     /**
