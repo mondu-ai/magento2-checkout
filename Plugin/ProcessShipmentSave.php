@@ -52,7 +52,14 @@ class ProcessShipmentSave
         $shipment
     ) {
         $order = $shipment->getOrder();
-        $monduLog = $this->monduLogger->getLogCollection($order->getData('mondu_reference_id'));
+
+        $monduId = $order->getData('mondu_reference_id');
+
+        if(!$monduId) {
+            return $shipment;
+        }
+
+        $monduLog = $this->monduLogger->getLogCollection($monduId);
 
         if ($monduLog->getSkipShipObserver()) {
             $this->monduFileLogger
@@ -64,7 +71,6 @@ class ProcessShipmentSave
             return $shipment;
         }
 
-        $monduId = $order->getData('mondu_reference_id');
         $this->monduLogger->syncOrder($monduId);
 
         if (!$this->monduLogger->canShipOrder($monduId)) {
