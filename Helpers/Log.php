@@ -3,16 +3,21 @@
 namespace Mondu\Mondu\Helpers;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use \Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use \Mondu\Mondu\Model\LogFactory;
+use Mondu\Mondu\Model\LogFactory;
 use Mondu\Mondu\Model\Request\Factory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Log extends AbstractHelper
 {
+    const MONDU_STATE_CONFIRMED = 'confirmed';
+    const MONDU_STATE_PARTIALLY_SHIPPED = 'partially_shipped';
+    const MONDU_STATE_PARTIALLY_COMPLETE = 'partially_complete';
+    const MONDU_STATE_SHIPPED = 'shipped';
+    const MONDU_STATE_COMPLETE = 'complete';
+
     /**
      * @var LogFactory
      */
@@ -81,9 +86,7 @@ class Log extends AbstractHelper
             ->addFieldToFilter('reference_id', ['eq' => $orderUid])
             ->load();
 
-        $log = $logCollection->getFirstItem();
-
-        return $log;
+        return $logCollection->getFirstItem();
     }
 
     /**
@@ -103,15 +106,14 @@ class Log extends AbstractHelper
             'store_id' => $order->getStoreId(),
             'order_id' => $order->getId() ? $order->getId() : $order->getEntityId(),
             'reference_id' => $order->getMonduReferenceId(),
-            // 'transaction_tstamp' => date('Y-m-d H:i:s',time()),
             'created_at' => $order->getCreatedAt(),
             'customer_id' => $order->getCustomerId(),
             'mondu_state' => $response['state'] ?? null,
-            // 'mode' => $this->helper->getMode() ? 'sandbox' : 'live',
             'mode' => $this->_configProvider->getMode(),
             'addons' => json_encode($addons),
             'payment_method' => $paymentMethod,
             'authorized_net_term' => $response['authorized_net_term'],
+            'is_confirmed' => true,
             'invoice_iban' => $response['merchant']['viban'] ?? null
         ];
         $monduLogger->addData($logData);
@@ -233,6 +235,10 @@ class Log extends AbstractHelper
         $data = [];
         if ($monduState) {
             $data['mondu_state'] = $monduState;
+
+            if ( $monduState == self::MONDU_STATE_CONFIRMED ) {
+                $data['is_confirmed'] = 1;
+            }
         }
 
         if ($viban) {
@@ -253,6 +259,7 @@ class Log extends AbstractHelper
 
         $log->addData($data);
         $log->save();
+
         return $log->getId();
     }
 
@@ -273,9 +280,9 @@ class Log extends AbstractHelper
         $log = $logCollection->getFirstItem()->getData();
 
         if (isset($log['mondu_state']) && (
-            $log['mondu_state'] === 'confirmed' ||
-                $log['mondu_state'] === 'partially_shipped' ||
-                $log['mondu_state'] === 'partially_complete'
+                $log['mondu_state'] === self::MONDU_STATE_CONFIRMED ||
+                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_SHIPPED ||
+                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE
         )) {
             return true;
         }
@@ -300,10 +307,10 @@ class Log extends AbstractHelper
         $log = $logCollection->getFirstItem()->getData();
 
         if (isset($log['mondu_state']) && (
-            $log['mondu_state'] === 'partially_shipped' ||
-                $log['mondu_state'] === 'shipped' ||
-                $log['mondu_state'] === 'partially_complete' ||
-                $log['mondu_state'] === 'complete'
+                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_SHIPPED ||
+                $log['mondu_state'] === self::MONDU_STATE_SHIPPED ||
+                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE ||
+                $log['mondu_state'] === self::MONDU_STATE_COMPLETE
         )
         ) {
             return true;
