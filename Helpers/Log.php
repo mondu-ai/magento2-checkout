@@ -113,7 +113,7 @@ class Log extends AbstractHelper
             'addons' => json_encode($addons),
             'payment_method' => $paymentMethod,
             'authorized_net_term' => $response['authorized_net_term'],
-            'is_confirmed' => true,
+            'is_confirmed' => 1,
             'invoice_iban' => $response['merchant']['viban'] ?? null
         ];
         $monduLogger->addData($logData);
@@ -236,7 +236,7 @@ class Log extends AbstractHelper
         if ($monduState) {
             $data['mondu_state'] = $monduState;
 
-            if ( $monduState == self::MONDU_STATE_CONFIRMED ) {
+            if ($monduState == self::MONDU_STATE_CONFIRMED) {
                 $data['is_confirmed'] = 1;
             }
         }
