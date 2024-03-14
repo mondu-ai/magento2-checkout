@@ -36,7 +36,4 @@
     <type name="Magento\Payment\Helper\Data">
         <plugin sortOrder="10" name="monduPaymentData" type="Mondu\Mondu\Helpers\DataPlugin"/>
     </type>
-    <type name="Magento\Sales\Model\Order\ShipmentRepository">
-        <plugin sortOrder="10" name="processShipmentSave" type="Mondu\Mondu\Plugin\ProcessShipmentSave" />
-    </type>
 </config>
