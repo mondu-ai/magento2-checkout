@@ -11,6 +11,7 @@
         <column xsi:type="text" name="addons" comment="Order addons"/>
         <column xsi:type="varchar" name="invoice_iban" comment="Iban"/>
         <column xsi:type="tinyint" name="skip_ship_observer" padding="2" comment="Skip ship observer"/>
+        <column xsi:type="smallint" name="is_confirmed" unsigned="true" nullable="false" default="0" comment="Is order was confirmed"/>
         <column xsi:type="varchar" name="payment_method" comment="Mondu payment method"/>
         <column xsi:type="int" name="authorized_net_term" unsigned="true" nullable="true" comment="Mondu authorized net term"/>
 
