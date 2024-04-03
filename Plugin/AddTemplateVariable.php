@@ -7,6 +7,8 @@ use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 
 class AddTemplateVariable
 {
+    public const VARIABLE_STRUCTURE = '<strong>%s:</strong> %s<br />';
+
     /**
      * @var MonduLogger
      */
@@ -51,35 +53,35 @@ class AddTemplateVariable
                 return [$vars];
             }
 
-            $vars['monduDetails'] = $this->prepareHtml($monduLog);
+            $vars['monduPaymentMethod'] = $vars['monduInvoiceIban'] = $vars['monduNetTerms'] = '';
+
+            if ($monduLog['payment_method']) {
+                $vars['monduPaymentMethod'] = sprintf(
+                    self::VARIABLE_STRUCTURE,
+                    __('Payment Method'),
+                    ucwords(strtolower($monduLog['payment_method']))
+                );
+            }
+
+            if ($monduLog['invoice_iban']) {
+                $vars['monduInvoiceIban'] = sprintf(
+                    self::VARIABLE_STRUCTURE,
+                    __('IBAN'),
+                    ucwords(strtolower($monduLog['invoice_iban']))
+                );
+            }
+
+            if ($monduLog['authorized_net_term']) {
+                $vars['monduNetTerms'] = sprintf(
+                    self::VARIABLE_STRUCTURE,
+                    __('Payment term'),
+                    $monduLog['authorized_net_term'] . ' ' . __('days')
+                );
+            }
         } catch (\Exception $e) {
             $this->monduFileLogger->critical($e->getMessage());
         }
 
         return [$vars];
-    }
-
-    /**
-     * @param $monduLog
-     *
-     * @return string
-     */
-    protected function prepareHtml($monduLog)
-    {
-        $html = '';
-
-        if ($monduLog['payment_method']) {
-            $html .= '<strong>Payment Method:</strong> ' . ucwords(strtolower($monduLog['payment_method'])) . '<br />';
-        }
-
-        if ($monduLog['invoice_iban']) {
-            $html .= '<strong>IBAN:</strong> ' . $monduLog['invoice_iban'] . '<br />';
-        }
-
-        if ($monduLog['authorized_net_term']) {
-            $html .= '<strong>Net Terms:</strong> ' . $monduLog['authorized_net_term'] . '<br />';
-        }
-
-        return $html;
     }
 }

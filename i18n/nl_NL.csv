@@ -61,3 +61,5 @@ Actions,Acties
 "Pay later via bank transfer","Aankoop op rekening - nu kopen, later betalen"
 "Pay later via SEPA Direct Debit","SEPA automatische incasso - nu kopen, later betalen"
 "Split Payments","Gespreid betalen, betaal gemakkelijk in termijnen via automatische incasso"
+Payment term,Betalingstermijn
+days,dagen

@@ -61,3 +61,5 @@ Actions,Actions
 Pay later via bank transfer,"Payez plus tard par virement"
 Pay later via SEPA Direct Debit,"SEPA - Payer plus tard par prélèvement automatique"
 Split Payments,Paiements Fractionnés - Payer facilement en plusieurs fois par prélèvement automatique
+Payment term,Date limite de paiement
+days,jours
