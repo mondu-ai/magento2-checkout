@@ -113,8 +113,13 @@ class Log extends AbstractHelper
             'addons' => json_encode($addons),
             'payment_method' => $paymentMethod,
             'authorized_net_term' => $response['authorized_net_term'],
-            'is_confirmed' => 1,
-            'invoice_iban' => $response['merchant']['viban'] ?? null
+            'is_confirmed' => true,
+            'invoice_iban' => $response['merchant']['viban'] ?? null,
+            'external_data' => json_encode([
+                'merchant_company_name' => $response['merchant']['company_name'] ?: null,
+                'buyer_country_code'    => $response['content_configuration']['buyer_country_code'] ?: null,
+                'bank_account'          => $response['bank_account'] ?: null
+            ])
         ];
         $monduLogger->addData($logData);
         $monduLogger->save();
@@ -311,8 +316,7 @@ class Log extends AbstractHelper
                 $log['mondu_state'] === self::MONDU_STATE_SHIPPED ||
                 $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE ||
                 $log['mondu_state'] === self::MONDU_STATE_COMPLETE
-        )
-        ) {
+        )) {
             return true;
         }
 

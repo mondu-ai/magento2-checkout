@@ -14,7 +14,8 @@
             "skip_ship_observer": true,
             "is_confirmed": true,
             "payment_method": true,
-            "authorized_net_term": true
+            "authorized_net_term": true,
+            "external_data": true
         },
         "index": {
             "MONDU_TRANSACTIONS_CUSTOMER_ID": true
