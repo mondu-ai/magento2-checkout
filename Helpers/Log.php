@@ -113,7 +113,7 @@ class Log extends AbstractHelper
             'addons' => json_encode($addons),
             'payment_method' => $paymentMethod,
             'authorized_net_term' => $response['authorized_net_term'],
-            'is_confirmed' => true,
+            'is_confirmed' => 1,
             'invoice_iban' => $response['merchant']['viban'] ?? null,
             'external_data' => json_encode([
                 'merchant_company_name' => $response['merchant']['company_name'] ?: null,
