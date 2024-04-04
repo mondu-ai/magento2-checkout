@@ -10,12 +10,14 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Checkout\Helper\Data as CheckoutData;
 use Magento\Quote\Api\CartManagementInterface;
 use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Helpers\Log as MonduTransactions;
 
 abstract class AbstractSuccessController extends AbstractPaymentController
 {
@@ -40,6 +42,11 @@ abstract class AbstractSuccessController extends AbstractPaymentController
     private $checkoutData;
 
     /**
+     * @var OrderRepositoryInterface
+     */
+    protected $orderRepository;
+
+    /**
      * @param RequestInterface $request
      * @param ResponseInterface $response
      * @param RedirectInterface $redirect
@@ -52,6 +59,9 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      * @param OrderSender $orderSender
      * @param CheckoutData $checkoutData
      * @param CartManagementInterface $quoteManagement
+     * @param ABTesting $aBTesting
+     * @param MonduTransactions $monduTransactions
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         RequestInterface $request,
@@ -66,7 +76,9 @@ abstract class AbstractSuccessController extends AbstractPaymentController
         OrderSender $orderSender,
         CheckoutData $checkoutData,
         CartManagementInterface $quoteManagement,
-        ABTesting $aBTesting
+        ABTesting $aBTesting,
+        MonduTransactions $monduTransactions,
+        OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct(
             $request,
@@ -77,13 +89,15 @@ abstract class AbstractSuccessController extends AbstractPaymentController
             $monduFileLogger,
             $requestFactory,
             $jsonResultFactory,
-            $aBTesting
+            $aBTesting,
+            $monduTransactions
         );
         $this->customerSession = $customerSession;
         $this->orderSender = $orderSender;
 
         $this->checkoutData = $checkoutData;
         $this->quoteManagement = $quoteManagement;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
