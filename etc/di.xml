@@ -36,4 +36,7 @@
     <type name="Magento\Payment\Helper\Data">
         <plugin sortOrder="10" name="monduPaymentData" type="Mondu\Mondu\Helpers\DataPlugin"/>
     </type>
+    <type name="Magento\Email\Model\Template">
+        <plugin sortOrder="10" name="addTemplateVariable" type="Mondu\Mondu\Plugin\AddTemplateVariable"/>
+    </type>
 </config>
