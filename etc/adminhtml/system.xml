@@ -145,25 +145,6 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
                 </group>
-                <group id="mondumerchant" translate="label" type="text" sortOrder="99" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Merchant configuration</label>
-                    <field id="title" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
-                           showInStore="1">
-                        <label>Merchant Title</label>
-                        <config_path>payment/mondu/merchant_title</config_path>
-                    </field>
-                    <field id="iban" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
-                           showInStore="1">
-                        <label>Merchant IBAN</label>
-                        <config_path>payment/mondu/merchant_iban</config_path>
-                    </field>
-                    <field id="account_number" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1"
-                           showInStore="1">
-                        <label>Merchant Account Number</label>
-                        <config_path>payment/mondu/merchant_account_number</config_path>
-                    </field>
-                </group>
             </group>
         </section>
     </system>

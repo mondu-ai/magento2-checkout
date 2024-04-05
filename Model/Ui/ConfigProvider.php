@@ -371,34 +371,4 @@ class ConfigProvider implements ConfigProviderInterface
     {
         $this->contextCode = $code;
     }
-
-    /**
-     * Get merchant title
-     *
-     * @return mixed
-     */
-    public function getMerchantTitle()
-    {
-        return $this->scopeConfig->getValue('payment/mondu/merchant_title');
-    }
-
-    /**
-     * Get merchant IBAN
-     *
-     * @return mixed
-     */
-    public function getMerchantIban()
-    {
-        return $this->scopeConfig->getValue('payment/mondu/merchant_iban');
-    }
-
-    /**
-     * Get merchant account number
-     *
-     * @return mixed
-     */
-    public function getMerchantAccountNumber()
-    {
-        return $this->scopeConfig->getValue('payment/mondu/merchant_account_number');
-    }
 }
