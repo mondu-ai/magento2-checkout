@@ -14,6 +14,7 @@
         <column xsi:type="smallint" name="is_confirmed" unsigned="true" nullable="false" default="0" comment="Is order was confirmed"/>
         <column xsi:type="varchar" name="payment_method" comment="Mondu payment method"/>
         <column xsi:type="int" name="authorized_net_term" unsigned="true" nullable="true" comment="Mondu authorized net term"/>
+        <column xsi:type="text" name="external_data" comment="External Data"/>
 
         <index referenceId="MONDU_TRANSACTIONS_CUSTOMER_ID" indexType="btree">
             <column name="customer_id"/>
