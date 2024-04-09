@@ -12,7 +12,7 @@ use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
-
+use Mondu\Mondu\Helpers\Log as MonduTransactions;
 abstract class AbstractPaymentController implements ActionInterface
 {
     /**
@@ -57,6 +57,12 @@ abstract class AbstractPaymentController implements ActionInterface
      * @var ABTesting
      */
     protected $aBTesting;
+
+    /**
+     * @var MonduTransactions
+     */
+    protected $monduTransactions;
+
     /**
      * Execute
      *
@@ -73,6 +79,8 @@ abstract class AbstractPaymentController implements ActionInterface
      * @param MonduFileLogger $monduFileLogger
      * @param RequestFactory $requestFactory
      * @param JsonFactory $jsonResultFactory
+     * @param ABTesting $aBTesting
+     * @param MonduTransactions $monduTransactions
      */
     public function __construct(
         RequestInterface $request,
@@ -83,7 +91,8 @@ abstract class AbstractPaymentController implements ActionInterface
         MonduFileLogger $monduFileLogger,
         RequestFactory $requestFactory,
         JsonFactory $jsonResultFactory,
-        ABTesting $aBTesting
+        ABTesting $aBTesting,
+        MonduTransactions $monduTransactions
     ) {
         $this->request = $request;
         $this->response = $response;
@@ -94,6 +103,7 @@ abstract class AbstractPaymentController implements ActionInterface
         $this->requestFactory = $requestFactory;
         $this->jsonResultFactory = $jsonResultFactory;
         $this->aBTesting = $aBTesting;
+        $this->monduTransactions = $monduTransactions;
     }
 
 

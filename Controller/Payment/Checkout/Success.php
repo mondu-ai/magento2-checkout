@@ -22,11 +22,23 @@ class Success extends AbstractSuccessController
         }
 
         try {
+            $monduTransaction = $this->monduTransactions->getTransactionByOrderUid($monduId);
+
+            if ($monduTransaction && $monduTransaction['is_confirmed']) {
+                $order = $this->orderRepository->get($monduTransaction['order_id']);
+                $this->checkoutSession->setLastOrderId($order->getId())
+                    ->setLastRealOrderId($order->getIncrementId())
+                    ->setLastOrderStatus($order->getStatus())
+                    ->setLastSuccessQuoteId($order->getQuoteId())
+                    ->setLastQuoteId($order->getQuoteId());
+
+                return $this->redirect('checkout/onepage/success/');
+            }
+
             $quote = $this->checkoutSession->getQuote();
             $this->authorizeMonduOrder($monduId, $this->getExternalReferenceId($quote));
 
             $order = $this->placeOrder($quote);
-
             $this->checkoutSession->clearHelperData();
             $quoteId = $this->checkoutSession->getQuoteId();
             $this->checkoutSession->setLastQuoteId($quoteId)->setLastSuccessQuoteId($quoteId);
@@ -43,7 +55,6 @@ class Success extends AbstractSuccessController
                 }
             }
             return $this->redirect('checkout/onepage/success/');
-
         } catch (LocalizedException $e) {
             return $this->processException($e, 'Mondu: An error occurred while trying to confirm the order');
         } catch (\Exception $e) {
