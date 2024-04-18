@@ -38,9 +38,9 @@ class AddTemplateVariable
     private ScopeConfigInterface $scopeConfig;
 
     /**
-     * @param  MonduLogger           $monduLogger
-     * @param  MonduFileLogger       $monduFileLogger
-     * @param  ScopeConfigInterface  $scopeConfig
+     * @param  MonduLogger          $monduLogger
+     * @param  MonduFileLogger      $monduFileLogger
+     * @param  ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         MonduLogger $monduLogger,
@@ -53,8 +53,8 @@ class AddTemplateVariable
     }
 
     /**
-     * @param  \Magento\Email\Model\Template  $subject
-     * @param  array                          $vars
+     * @param  \Magento\Email\Model\Template $subject
+     * @param  array                         $vars
      *
      * @return array[]
      */
@@ -62,7 +62,10 @@ class AddTemplateVariable
         \Magento\Email\Model\Template $subject,
         array $vars
     ) {
-        if (!$vars['order'] || !$vars['order']->getMonduReferenceId()) {
+        if (
+            !isset($vars['order']) ||
+            !$vars['order']->getMonduReferenceId()
+        ) {
             return [$vars];
         }
 
@@ -102,7 +105,7 @@ class AddTemplateVariable
     }
 
     /**
-     * @param $invoiceDetails
+     * @param $invoiceData
      *
      * @return string
      */
@@ -132,7 +135,7 @@ class AddTemplateVariable
      *
      * @return string
      */
-    protected function getPayLaterViaBankTransferDetails($invoiceData)
+    protected function getPayLaterViaBankTransferDetails($invoiceData): string
     {
         $invoiceDetails = __('This invoice is created in accordance with the terms and conditions of <strong>%1</strong> modified by <strong>Mondu GmbH</strong> payment terms. Please pay to the following account:', $invoiceData['merchant_company_name']) . '<br/>';
 
