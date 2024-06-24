@@ -22,6 +22,14 @@ jobs:
     - name: Install dependencies
       run: composer install
 
+    - name: Install Magento 2 Code Sniffer and PHP Mess Detector
+      run: |
+        composer require magento/magento-coding-standard
+        composer require phpmd/phpmd
+
+    - name: Run PHP Mess Detector
+      run: vendor/bin/phpmd . text cleancode,codesize,controversial,design,naming,unusedcode
+
     - name: Run PHP CodeSniffer
       run: vendor/bin/phpcs --standard=PSR12,Magento2 .
 
