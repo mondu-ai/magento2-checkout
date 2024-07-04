@@ -1,0 +1,92 @@
+name: Code Quality Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  code_quality_phpstan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+
+      - name: Set up Magento authentication
+        run: composer config http-basic.repo.magento.com 5a828b358382e3a772039c11a81485c4 0c59305c4d6554d0087ff128f86602ee
+
+      - name: Install Magento 2
+        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:2.4.7 magento
+
+      - name: Configure Composer allow-plugins
+        working-directory: magento
+        run: composer config --no-plugins allow-plugins.phpstan/extension-installer true
+
+      - name: Install phpstan
+        working-directory: magento
+        run: composer require bitexpert/phpstan-magento
+
+      - name: Create phpstan.neon
+        run: echo -e "parameters:\n  excludePaths:\n    - ./magento/**" > phpstan.neon
+
+      - name: Run PHPStan
+        run: magento/vendor/bin/phpstan --level=9 analyse .
+
+  code_quality_phpmd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+
+      - name: Set up Magento authentication
+        run: composer config http-basic.repo.magento.com 5a828b358382e3a772039c11a81485c4 0c59305c4d6554d0087ff128f86602ee
+
+      - name: Install Magento 2
+        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:2.4.7 magento
+
+      - name: Configure Composer allow-plugins
+        working-directory: magento
+        run: composer config --no-plugins allow-plugins.phpstan/extension-installer true
+
+      - name: Run PHP Mess Detector
+        run: magento/vendor/bin/phpmd . ansi cleancode,codesize,controversial,design,naming,unusedcode --exclude magento/
+
+  code_quality_phpcs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+
+      - name: Set up Magento authentication
+        run: composer config http-basic.repo.magento.com 5a828b358382e3a772039c11a81485c4 0c59305c4d6554d0087ff128f86602ee
+
+      - name: Install Magento 2
+        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:2.4.7 magento
+
+      - name: Configure Composer allow-plugins
+        working-directory: magento
+        run: composer config --no-plugins allow-plugins.phpstan/extension-installer true
+
+      - name: Run PHP CodeSniffer
+        run: magento/vendor/bin/phpcs --standard=PSR12,Magento2 --ignore=magento/* .
