@@ -116,9 +116,9 @@ class Log extends AbstractHelper
             'is_confirmed' => 1,
             'invoice_iban' => $response['merchant']['viban'] ?? null,
             'external_data' => json_encode([
-                'merchant_company_name' => $response['merchant']['company_name'] ?: null,
-                'buyer_country_code'    => $response['content_configuration']['buyer_country_code'] ?: null,
-                'bank_account'          => $response['bank_account'] ?: null
+                'merchant_company_name' => isset($response['merchant']['company_name']) ? $response['merchant']['company_name'] : null,
+                'buyer_country_code'    => isset($response['content_configuration']['buyer_country_code']) ? $response['content_configuration']['buyer_country_code'] : null,
+                'bank_account'          => isset($response['bank_account']) ? $response['bank_account'] : null
             ])
         ];
         $monduLogger->addData($logData);
