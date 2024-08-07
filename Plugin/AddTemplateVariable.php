@@ -92,7 +92,7 @@ class AddTemplateVariable
                 'countryId' => $externalData['buyer_country_code'] ?: $billingAddress->getCountryId(),
                 'merchant_company_name' => $externalData['merchant_company_name'],
                 'bank_account' => $externalData['bank_account'],
-                'invoiceId' => $vars['invoice']->getIncrementId(),
+                'invoiceId' => isset($vars['invoice']) && $vars['invoice']->getIncrementId() ? $vars['invoice']->getIncrementId() : '',
                 'iban' => $monduLog['invoice_iban'],
                 'paymentMethod' => $vars['order']->getPayment()->getMethodInstance()->getTitle(),
                 'netTerms' => isset($monduLog['authorized_net_term']) ? $monduLog['authorized_net_term'] : ''
