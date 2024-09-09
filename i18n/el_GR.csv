@@ -1,0 +1,49 @@
+Error placing an order, please try again later., Σφάλμα στην τοποθέτηση παραγγελίας, παρακαλώ δοκιμάστε ξανά αργότερα.
+Error placing an order, Σφάλμα τοποθέτησης παραγγελίας
+Order has been declined, Η παραγγελία έχει απορριφθεί
+This order was not placed with Mondu, Αυτή η παραγγελία δεν τοποθετήθηκε στη Mondu
+Mondu: order with id %1 was adjusted, Mondu: η παραγγελία με αναγνωριστικό %1 προσαρμόστηκε
+Mondu api error: %1, Σφάλμα Mondu api: %1
+Mondu: The order with the id %1 was successfully canceled., Mondu: Η παραγγελία με το id %1 ακυρώθηκε επιτυχώς.
+Cant enable Mondu payments API key is missing, Δεν μπορείτε να ενεργοποιήσετε τις πληρωμές Mondu. Το κλειδί API λείπει
+Mondu: order id %1, Mondu: αναγνωριστικό παραγγελίας %1
+Mondu: Invalid shipment amount, Mondu:  Μη έγκυρο ποσό αποστολής
+Can't ship order: Mondu order state must be confirmed or partially_shipped, Δεν μπορώ να στείλω την παραγγελία: Η κατάσταση της παραγγελίας Mondu πρέπει να είναι επιβεβαιωμένη ή μερικώς απεσταλμένη
+Mondu: Invoice is required to ship the order., Mondu: Απαιτείται τιμολόγιο για την αποστολή της παραγγελίας.
+Mondu: invoice created with id %1, Mondu: τιμολόγιο δημιουργήθηκε με αναγνωριστικό %1
+Mondu: You cant partially refund order before shipment, Mondu: Δεν μπορείτε να επιστρέψετε εν μέρει την παραγγελία πριν από την αποστολή
+Mondu: Something went wrong, Mondu: Κάτι πήγε στραβά
+Mondu: The order with the id %1 was successfully canceled, Mondu: Η παραγγελία με το αναγνωριστικό %1 ακυρώθηκε επιτυχώς
+Api Configuration, Διαμόρφωση API
+Send order line items, Αποστολή στοιχείων παραγγελίας
+Sandbox mode, Λειτουργία Sandbox
+General configuration, Γενική διαμόρφωση
+Enable Bank Transfer, Ενεργοποίηση τραπεζικής μεταφοράς
+Enable SEPA Direct Debit, Ενεργοποίηση SEPA Direct Debit
+Enable Split Payments, Ενεργοποίηση χωριστών πληρωμών
+Bank Transfer Title, Τραπεζικό έμβασμα Τίτλος
+SEPA Direct Debit Title, Άμεση χρέωση SEPA Τίτλος
+Split Payments Title, Διαχωρισμός πληρωμών Τίτλος
+Enable automatic order processing, Ενεργοποίηση αυτόματης επεξεργασίας παραγγελιών
+Enable Logs, Ενεργοποίηση αρχείων καταγραφής
+Mondu: Invoice orders, Mondu: Παραγγελίες με τιμολόγια
+Mondu: Sync orders, Mondu: Συγχρονισμός παραγγελιών
+Not found, Δεν βρέθηκε
+Api key, Κλειδί API
+Pay later via bank transfer, Πληρώστε αργότερα μέσω τραπεζικού εμβάσματος
+Pay later via SEPA Direct Debit, Πληρώστε αργότερα μέσω άμεσης χρέωσης SEPA
+Split Payments, Χωριστές πληρωμές
+Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Πληροφορίες σχετικά με την επεξεργασία των προσωπικών σας δεδομένων από τη Mondu GmbH μπορείτε να βρείτε <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>εδώ.</a>
+"Require invoice for shipment", Απαιτείται τιμολόγιο για την αποστολή
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Αυτό το τιμολόγιο δημιουργήθηκε σύμφωνα με τους γενικούς όρους και προϋποθέσεις της <strong>%1</strong> και της <strong>Mondu</strong> GmbH για το μοντέλο πληρωμών αγοράς επί πιστώσει.
+"Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Εφόσον έχετε επιλέξει τη μέθοδο πληρωμής για αγορά επί πιστώσει με πληρωμή μέσω άμεσης χρέωσης SEPA μέσω της Mondu, το ποσό του τιμολογίου θα χρεωθεί από τον τραπεζικό σας λογαριασμό κατά την ημερομηνία λήξης.
+"Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Πριν από τη χρέωση του ποσού από το λογαριασμό σας, θα λάβετε ειδοποίηση για την άμεση χρέωση. Παρακαλούμε βεβαιωθείτε ότι έχετε επαρκές κεφάλαιο στον λογαριασμό σας.
+"This invoice is created in accordance with the terms and conditions of <strong>%1</strong> modified by <strong>Mondu GmbH</strong> payment terms. Please pay to the following account:", Αυτό το τιμολόγιο δημιουργήθηκε σύμφωνα με τους όρους και τις προϋποθέσεις της <strong>%1</strong> τροποποιημένους από τους όρους πληρωμής της <strong>Mondu GmbH</strong>. Παρακαλούμε να πληρώσετε στον ακόλουθο λογαριασμό:
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the instalment payment model.", Αυτό το τιμολόγιο δημιουργήθηκε σύμφωνα με τους γενικούς όρους και προϋποθέσεις της <strong>%1</strong> και της <strong>Mondu</strong> GmbH για το μοντέλο πληρωμής με δόσεις.
+"Since you have chosen the instalment payment method via SEPA direct debit through Mondu, the individual installments will be debited from your bank account on the due date.", Εφόσον έχετε επιλέξει τη μέθοδο πληρωμής με δόσεις μέσω άμεσης χρέωσης SEPA μέσω της Mondu, οι επιμέρους δόσεις θα χρεωθούν από τον τραπεζικό σας λογαριασμό κατά την ημερομηνία λήξης.
+"Before the amounts are debited from your account, you will receive notice regarding the direct debit. Kindly make sure you have sufficient funds in your account. In the event of changes to your order, the instalment plan will be adjusted to reflect the new order total.", Πριν από τη χρέωση των ποσών από το λογαριασμό σας, θα λάβετε ειδοποίηση σχετικά με την άμεση χρέωση. Παρακαλούμε βεβαιωθείτε ότι έχετε επαρκές κεφάλαιο στον λογαριασμό σας. Σε περίπτωση αλλαγών στην παραγγελία σας, το πρόγραμμα δόσεων θα προσαρμοστεί ώστε να αντικατοπτρίζει το νέο συνολικό ποσό της παραγγελίας σας.
+<strong>Account holder:</strong> %1, <strong>Κάτοχος λογαριασμού:</strong> %1
+<strong>IBAN:</strong> %1, <strong>IBAN:</strong> %1
+<strong>BIC:</strong> %1, <strong>BIC:</strong> %1
+<strong>Payment reference:</strong> %1, <strong>Αναφορά πληρωμής:</strong> %1
+<strong>Payment term:</strong> %1 days, <strong>Προθεσμία πληρωμής:</strong> %1 ημέρες

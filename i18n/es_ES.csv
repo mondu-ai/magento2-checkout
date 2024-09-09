@@ -1,0 +1,49 @@
+Error placing an order, please try again later., Error al realizar un pedido, por favor inténtelo más tarde.
+Error placing an order, Error al realizar un pedido
+Order has been declined, Pedido rechazado
+This order was not placed with Mondu, Este pedido no se ha hecho con Mondu
+Mondu: order with id %1 was adjusted, Mondu: pedido con id %1 ajustado
+Mondu api error: %1, Error Mondu api: %1
+Mondu: The order with the id %1 was successfully canceled., Mondu: La orden con el id %1 ha sido cancelada con éxito.
+Cant enable Mondu payments API key is missing, No se puede habilitar los pagos Mondu falta la clave API
+Mondu: order id %1, Mondu: id pedido %1
+Mondu: Invalid shipment amount, Mondu: Importe de envío no válido
+Can't ship order: Mondu order state must be confirmed or partially_shipped, No se puede enviar el pedido: el estado del pedido en Mondu debe ser confirmado o partially_shipped
+Mondu: Invoice is required to ship the order., Mondu: Se requiere factura para enviar el pedido.
+Mondu: invoice created with id %1, Mondu: factura creada con id %1
+Mondu: You cant partially refund order before shipment, Mondu: No se puede reembolsar parcialmente el pedido antes del envío
+Mondu: Something went wrong, Mondu: Algo salió mal
+Mondu: The order with the id %1 was successfully canceled, Mondu: La orden con el id %1 ha sido cancelada con éxito
+Api Configuration, Configuración de la API
+Send order line items, Enviar partidas de pedido
+Sandbox mode, Modo Sandbox
+General configuration, Configuración general
+Enable Bank Transfer, Activar transferencia bancaria
+Enable SEPA Direct Debit, Activar domiciliación bancaria
+Enable Split Payments, Activar pagos fraccionados
+Bank Transfer Title, Tìtulo de la Transferencia bancaria
+SEPA Direct Debit Title, Título de la domiciación bancaria
+Split Payments Title, Titulo de los pagos fraccionados
+Enable automatic order processing, Activar el procesamiento automático de pedidos
+Enable Logs, Activar registros
+Mondu: Invoice orders, Mondu: Pedidos de facturas
+Mondu: Sync orders, Mondu: Sincronizar pedidos
+Not found, No se ha encontrado
+Api key, Clave API
+Pay later via bank transfer, Pague más tarde por transferencia bancaria
+Pay later via SEPA Direct Debit, Pague más tarde mediante domiciliación bancaria
+Split Payments, Pagos fraccionados
+Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>Aquí</a> encontrará información sobre el tratamiento de sus datos personales por parte de Mondu GmbH <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>.</a>
+"Require invoice for shipment", "Requerir factura para el envío"
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", "Esta factura ha sido creada de acuerdo con las condiciones generales de <strong>%1</strong> y <strong>Mondu GmbH</strong> para el modelo de pago de compra a cuenta."
+"Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", "Dado que ha elegido la modalidad de pago de compra a cuenta con pago mediante domiciliación SEPA a través de Mondu, el importe de la factura se cargará en su cuenta bancaria en la fecha de vencimiento."
+"Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", "Antes de que se cargue el importe en su cuenta, recibirá un aviso de domiciliación bancaria. Por favor, asegúrese de que tiene fondos suficientes en su cuenta".
+"This invoice is created in accordance with the terms and conditions of <strong>%1</strong> modified by <strong>Mondu GmbH</strong> payment terms. Please pay to the following account:", "Esta factura se crea de acuerdo con los términos y condiciones de <strong>%1</strong> modificado por <strong>Mondu GmbH</strong> condiciones de pago. Por favor, pague a la siguiente cuenta:"
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the instalment payment model.", "Esta factura ha sido creada de acuerdo con las condiciones generales de <strong>%1</strong> y <strong>Mondu</strong> GmbH para el modelo de pago a plazos."
+"Since you have chosen the instalment payment method via SEPA direct debit through Mondu, the individual installments will be debited from your bank account on the due date.", "Dado que ha elegido la modalidad de pago fraccionado mediante domiciliación SEPA a través de Mondu, las cuotas individuales se cargarán en su cuenta bancaria en la fecha de vencimiento."
+"Before the amounts are debited from your account, you will receive notice regarding the direct debit. Kindly make sure you have sufficient funds in your account. In the event of changes to your order, the instalment plan will be adjusted to reflect the new order total.", "Antes de que se carguen los importes en su cuenta, recibirá un aviso relativo a la domiciliación bancaria. Asegúrese de que dispone de fondos suficientes en su cuenta. En caso de que se produzcan cambios en su pedido, el plan de pago a plazos se ajustará para reflejar el total del nuevo pedido."
+<strong>Account holder:</strong> %1, <strong>Titular de la cuenta:</strong> %1
+<strong>IBAN:</strong> %1, <strong>IBAN:</strong> %1
+<strong>BIC:</strong> %1, <strong>BIC:</strong> %1
+<strong>Payment reference:</strong> %1, <strong>Referencia del pago:</strong> %1
+<strong>Payment term:</strong> %1 days, <strong>Plazo de pago:</strong> %1 días

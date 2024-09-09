@@ -1,0 +1,49 @@
+Error placing an order, please try again later., Грешка при подаване на поръчката, моля, опитайте отново по-късно.
+Error placing an order, Грешка при подаване на поръчка
+Order has been declined, Поръчката е отказана
+This order was not placed with Mondu, Тази поръчка не е направена в Mondu
+Mondu: order with id %1 was adjusted, Mondu: поръчка с id %1 е коригирана
+Mondu api error: %1, Грешка в интерфейса на Mondu: %1
+Mondu: The order with the id %1 was successfully canceled., Mondu: Поръчката с идентификатор %1 беше успешно анулирана.
+Cant enable Mondu payments API key is missing, Не мога да разреша плащанията на Mondu Липсва API ключ
+Mondu: order id %1, Mondu: идентификатор на поръчката %1
+Mondu: Invalid shipment amount, Mondu: Невалидна сума на пратката
+Can't ship order: Mondu order state must be confirmed or partially_shipped, Не мога да изпратя поръчката: Състоянието на поръчката на Mondu трябва да бъде потвърдено или частично_изпратено
+Mondu: Invoice is required to ship the order., Мондю: За изпращане на поръчката се изисква фактура.
+Mondu: invoice created with id %1, Mondu: създадена е фактура с идентификатор %1
+Mondu: You cant partially refund order before shipment, Мондю: Не можете да възстановите частично поръчката преди изпращането
+Mondu: Something went wrong, Мондю: Нещо се обърка
+Mondu: The order with the id %1 was successfully canceled, Мондю: Поръчката с идентификатор %1 беше успешно анулирана
+Api Configuration, Конфигурация на Api
+Send order line items, Изпращане на елементите на поръчката
+Sandbox mode, Режим Sandbox
+General configuration, Обща конфигурация
+Enable Bank Transfer, Активиране на банков превод
+Enable SEPA Direct Debit, Ensble SEPA директен дебит
+Enable Split Payments, Активиране на разделени плащания
+Bank Transfer Title, Банков превод Заглавие
+SEPA Direct Debit Title, Заглавие на директния дебит SEPA
+Split Payments Title, Разделени плащания Заглавие
+Enable automatic order processing, Активиране на автоматична обработка на поръчки
+Enable Logs, Активиране на дневници
+Mondu: Invoice orders, Mondu: Поръчки на фактури
+Mondu: Sync orders, Mondu: Синхронизиране на поръчки
+Not found, Не е намерен
+Api key, Ключ на интерфейса
+Pay later via bank transfer, Платете по-късно чрез банков превод
+Pay later via SEPA Direct Debit, Платете по-късно чрез директен дебит SEPA
+Split Payments, Разделени плащания
+Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Информация за обработката на Вашите лични данни от Mondu GmbH можете да намерите <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>тук</a>.
+"Require invoice for shipment", Изискване на фактура за изпращане
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Тази фактура е създадена в съответствие с общите условия на <strong>%1</strong> и <strong>Mondu GmbH</strong> за модела на плащане покупка по сметка"."
+"Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Тъй като сте избрали метода на плащане за покупка по сметка с плащане чрез SEPA директен дебит чрез Mondu, сумата по фактурата ще бъде дебитирана от банковата ви сметка на датата на падежа.
+"Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Преди сумата да бъде дебитирана от сметката ви, ще получите уведомление за директния дебит. Моля, уверете се, че разполагате с достатъчно средства в сметката си.
+"This invoice is created in accordance with the terms and conditions of <strong>%1</strong> modified by <strong>Mondu GmbH</strong> payment terms. Please pay to the following account:", Тази фактура е създадена в съответствие с условията на <strong>%1</strong>, променени от условията за плащане на <strong>Mondu GmbH</strong>. Моля, платете по следната сметка:
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the instalment payment model.", Тази фактура е създадена в съответствие с общите условия на <strong>%1</strong> и <strong>Mondu GmbH</strong> за модела на разсрочено плащане.
+"Since you have chosen the instalment payment method via SEPA direct debit through Mondu, the individual installments will be debited from your bank account on the due date.", Тъй като сте избрали метода за разсрочено плащане чрез директен дебит SEPA чрез Mondu, отделните вноски ще бъдат дебитирани от банковата ви сметка на датата на падежа.
+"Before the amounts are debited from your account, you will receive notice regarding the direct debit. Kindly make sure you have sufficient funds in your account. In the event of changes to your order, the instalment plan will be adjusted to reflect the new order total.", Преди да бъдат дебитирани сумите от сметката ви, ще получите уведомление за директния дебит. Моля, уверете се, че разполагате с достатъчно средства в сметката си. В случай на промени в поръчката ви, планът за разсрочено плащане ще бъде коригиран, за да отрази новата обща сума на поръчката.
+<strong>Account holder:</strong> %1, <strong>Титуляр на сметката:</strong> %1
+<strong>IBAN:</strong> %1, <strong>IBAN:</strong> %1
+<strong>BIC:</strong> %1, <strong>BIC:</strong> %1
+<strong>Payment reference:</strong> %1, <strong>Референция за плащане:</strong> %1
+<strong>Payment term:</strong> %1 days, <strong>Срок на плащане:</strong> %1 дни
