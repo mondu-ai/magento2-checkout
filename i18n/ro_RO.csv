@@ -1,0 +1,49 @@
+Error placing an order, please try again later., Eroare plasarea unei comenzi, vă rugăm să încercați din nou mai târziu.
+Error placing an order, Eroare la plasarea unei comenzi
+Order has been declined, Comanda a fost refuzată
+This order was not placed with Mondu, Această comandă nu a fost plasată cu Mondu
+Mondu: order with id %1 was adjusted, Mondu: comanda cu id %1 a fost ajustată
+Mondu api error: %1, Eroare api Mondu: %1
+Mondu: The order with the id %1 was successfully canceled., Mondu: Comanda cu ID-ul %1 a fost anulată cu succes.
+Cant enable Mondu payments API key is missing, Nu pot activa plățile Mondu Lipsește cheia API
+Mondu: order id %1, Mondu: id comandă %1
+Mondu: Invalid shipment amount, Mondu: Suma de expediere invalidă
+Can't ship order: Mondu order state must be confirmed or partially_shipped, Nu se poate expedia comanda: Starea comenzii Mondu trebuie să fie confirmată sau parțial_expediată
+Mondu: Invoice is required to ship the order., Mondu: Factura este necesară pentru a expedia comanda.
+Mondu: invoice created with id %1, Mondu: factură creată cu ID %1
+Mondu: You cant partially refund order before shipment, Mondu: Nu puteți rambursa parțial comanda înainte de expediere
+Mondu: Something went wrong, Mondu: Ceva nu a mers bine
+Mondu: The order with the id %1 was successfully canceled, Mondu: Comanda cu ID-ul %1 a fost anulată cu succes
+Api Configuration, Configurarea Api
+Send order line items, Trimiteți articole de linie de comandă
+Sandbox mode, Modul Sandbox
+General configuration, Configurație generală
+Enable Bank Transfer, Activați transferul bancar
+Enable SEPA Direct Debit, Debit direct SEPA Ensble
+Enable Split Payments, Activați plățile fracționate
+Bank Transfer Title, Transfer bancar Titlu
+SEPA Direct Debit Title, SEPA Direct Debit Titlu
+Split Payments Title, Plăți fracționate Titlu
+Enable automatic order processing, Activați procesarea automată a comenzilor
+Enable Logs, Activarea jurnalelor
+Mondu: Invoice orders, Mondu: Ordine de facturare
+Mondu: Sync orders, Mondu: Comenzi de sincronizare
+Not found, Nu a fost găsit
+Api key, Cheia Api
+Pay later via bank transfer, Plătiți mai târziu prin transfer bancar
+Pay later via SEPA Direct Debit, Plătiți mai târziu prin intermediul SEPA Direct Debit
+Split Payments, Plăți fracționate
+Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Informații privind prelucrarea datelor dvs. personale de către Mondu GmbH pot fi găsite <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>aici.</a>
+"Require invoice for shipment", Cer factură pentru expediere
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Această factură a fost creată în conformitate cu termenii și condițiile generale ale <strong>%1</strong> și <strong>Mondu GmbH</strong> pentru modelul de plată cumpărare în cont.
+"Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Deoarece ați ales metoda de plată achiziție în cont cu plată prin debit direct SEPA prin Mondu, valoarea facturii va fi debitată din contul dvs. bancar la data scadenței.
+"Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Înainte ca suma să fie debitată din contul dvs., veți primi o notificare de debitare directă. Vă rugăm să vă asigurați că aveți suficiente fonduri în cont.
+"This invoice is created in accordance with the terms and conditions of <strong>%1</strong> modified by <strong>Mondu GmbH</strong> payment terms. Please pay to the following account:", Această factură este creată în conformitate cu termenii și condițiile de <strong>%1</strong> modificate de termenii de plată <strong>Mondu GmbH</strong>. Vă rugăm să plătiți în următorul cont:
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the instalment payment model.", Această factură a fost creată în conformitate cu termenii și condițiile generale ale <strong>%1</strong> și <strong>Mondu GmbH</strong> pentru modelul de plată în rate.
+"Since you have chosen the instalment payment method via SEPA direct debit through Mondu, the individual installments will be debited from your bank account on the due date.", Deoarece ați ales metoda de plată în rate prin debitare directă SEPA prin Mondu, ratele individuale vor fi debitate din contul dvs. bancar la data scadenței.
+"Before the amounts are debited from your account, you will receive notice regarding the direct debit. Kindly make sure you have sufficient funds in your account. In the event of changes to your order, the instalment plan will be adjusted to reflect the new order total.", Înainte ca sumele să fie debitate din contul dumneavoastră, veți primi o notificare cu privire la debitarea directă. Vă rugăm să vă asigurați că aveți suficiente fonduri în cont. În cazul unor modificări ale comenzii dumneavoastră, planul de rate va fi ajustat pentru a reflecta noul total al comenzii.
+<strong>Account holder:</strong> %1, <strong>Titularul contului:</strong> %1
+<strong>IBAN:</strong> %1, <strong>IBAN:</strong> %1
+<strong>BIC:</strong> %1, <strong>BIC:</strong> %1
+<strong>Payment reference:</strong> %1, <strong>Referința plății:</strong> %1
+<strong>Payment term:</strong> %1 days, <strong>Termen de plată:</strong> %1 zile

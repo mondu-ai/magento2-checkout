@@ -92,11 +92,6 @@
 <!--                <label translate="true">Iban</label>-->
 <!--            </settings>-->
 <!--        </column>-->
-        <actionsColumn name="actions" class="Mondu\Mondu\Ui\Component\Actions">
-            <settings>
-                <label translate="true">Actions</label>
-            </settings>
-        </actionsColumn>
         <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date">
             <settings>
                 <filter>dateRange</filter>

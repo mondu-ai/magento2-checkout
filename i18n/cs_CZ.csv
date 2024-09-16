@@ -1,0 +1,49 @@
+Error placing an order, please try again later., Chyba při zadávání objednávky, zkuste to prosím později.
+Error placing an order, Chyba při zadávání objednávky
+Order has been declined, Objednávka byla odmítnuta
+This order was not placed with Mondu, Tato objednávka nebyla zadána společnosti Mondu
+Mondu: order with id %1 was adjusted, Mondu: objednávka s id %1 byla upravena
+Mondu api error: %1, Chyba API Mondu: %1
+Mondu: The order with the id %1 was successfully canceled., Mondu: Objednávka s id %1 byla úspěšně zrušena.
+Cant enable Mondu payments API key is missing, Nelze povolit platby Mondu Chybí klíč API
+Mondu: order id %1, Mondu: id objednávky %1
+Mondu: Invalid shipment amount, Mondu: Neplatná částka zásilky
+Can't ship order: Mondu order state must be confirmed or partially_shipped, Nelze odeslat objednávku: Stav objednávky Mondu musí být potvrzen nebo částečně_odeslán
+Mondu: Invoice is required to ship the order., Mondu: K odeslání objednávky je nutná faktura.
+Mondu: invoice created with id %1, Mondu: vytvořena faktura s id %1
+Mondu: You cant partially refund order before shipment, Mondu: Nemůžete částečně refundovat objednávku před odesláním
+Mondu: Something went wrong, Mondu: Něco se pokazilo
+Mondu: The order with the id %1 was successfully canceled, Mondu: Objednávka s id %1 byla úspěšně zrušena.
+Api Configuration, Konfigurace rozhraní Api
+Send order line items, Odeslat položky objednávky
+Sandbox mode, Režim Sandbox
+General configuration, Obecná konfigurace
+Enable Bank Transfer, Povolit bankovní převod
+Enable SEPA Direct Debit, Ensble SEPA Direct Debit
+Enable Split Payments, Povolení rozdělených plateb
+Bank Transfer Title, Název bankovního převodu
+SEPA Direct Debit Title, Přímé inkaso SEPA Název
+Split Payments Title, Dělené platby Název
+Enable automatic order processing, Povolení automatického zpracování objednávek
+Enable Logs, Povolení protokolů
+Mondu: Invoice orders, Mondu: Objednávky faktur
+Mondu: Sync orders, Mondu: Synchronizace objednávek
+Not found, Nenalezeno
+Api key, Klíč API
+Pay later via bank transfer, Zaplaťte později bankovním převodem
+Pay later via SEPA Direct Debit, Plaťte později prostřednictvím přímého inkasa SEPA
+Split Payments, Rozdělené platby
+Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Informace o zpracování vašich osobních údajů společností Mondu GmbH naleznete <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>zde.</a>
+"Require invoice for shipment", Vyžadovat fakturu za přepravu
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Tato faktura byla vytvořena v souladu s všeobecnými obchodními podmínkami <strong>%1</strong> a <strong>Mondu GmbH</strong> pro platební model nákupu na účet.
+"Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Vzhledem k tomu, že jste zvolili způsob platby nákup na účet s platbou prostřednictvím SEPA inkasa přes Mondu, bude částka na faktuře odepsána z vašeho bankovního účtu v den splatnosti.
+"Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Před odepsáním částky z vašeho účtu obdržíte oznámení o inkasu. Laskavě se ujistěte, že máte na účtu dostatek finančních prostředků.
+"This invoice is created in accordance with the terms and conditions of <strong>%1</strong> modified by <strong>Mondu GmbH</strong> payment terms. Please pay to the following account:", Tato faktura je vystavena v souladu s platebními podmínkami <strong>%1</strong> upravenými <strong>společností Mondu GmbH</strong>. Prosíme, zaplaťte na následující účet:
+"This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the instalment payment model.", Tato faktura byla vystavena v souladu se všeobecnými obchodními podmínkami společností <strong>%1</strong> a <strong>Mondu GmbH</strong> pro model splátek.
+"Since you have chosen the instalment payment method via SEPA direct debit through Mondu, the individual installments will be debited from your bank account on the due date.", Vzhledem k tomu, že jste si zvolili splátkový způsob platby prostřednictvím SEPA inkasa přes Mondu, budou jednotlivé splátky odepsány z vašeho bankovního účtu v den splatnosti.
+"Before the amounts are debited from your account, you will receive notice regarding the direct debit. Kindly make sure you have sufficient funds in your account. In the event of changes to your order, the instalment plan will be adjusted to reflect the new order total.", Před odepsáním částek z vašeho účtu obdržíte oznámení o inkasu. Laskavě se ujistěte, že máte na účtu dostatek finančních prostředků. V případě změny vaší objednávky bude splátkový kalendář upraven tak, aby odrážel novou celkovou částku objednávky.
+<strong>Account holder:</strong> %1, <strong>Držitel účtu:</strong> %1
+<strong>IBAN:</strong> %1, <strong>IBAN:</strong> %1
+<strong>BIC:</strong> %1, <strong>BIC:</strong> %1
+<strong>Payment reference:</strong> %1, <strong>Odkaz na platbu:</strong> %1
+<strong>Payment term:</strong> %1 days, <strong>Doba splatnosti:</strong> %1 dnů
