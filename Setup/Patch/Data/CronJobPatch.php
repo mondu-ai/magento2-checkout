@@ -27,14 +27,15 @@ class CronJobPatch implements DataPatchInterface
     {
         $this->moduleDataSetup->getConnection()->startSetup();
 
-        $previousValue = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM core_config_data WHERE path = "payment/mondu/require_invoice"');
+        $tableName = $this->moduleDataSetup->getTable('core_config_data');
+        $previousValue = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM ' . $tableName . ' WHERE `path` = "payment/mondu/require_invoice"');
 
         if ($previousValue) {
             $this->moduleDataSetup
                 ->getConnection()
-                ->delete('core_config_data', ['path = "payment/mondu/cron_require_invoice"']);
+                ->delete($tableName, ['path = "payment/mondu/cron_require_invoice"']);
 
-            $this->moduleDataSetup->getConnection()->insert('core_config_data', [
+            $this->moduleDataSetup->getConnection()->insert($tableName, [
                 'scope' => 'default',
                 'scope_id' => 0,
                 'path' => 'payment/mondu/cron_require_invoice',

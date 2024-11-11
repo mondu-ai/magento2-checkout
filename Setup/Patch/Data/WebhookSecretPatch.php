@@ -24,20 +24,21 @@ class WebhookSecretPatch implements DataPatchInterface
     {
         $this->moduleDataSetup->getConnection()->startSetup();
 
-        $liveWebhookSecret = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM core_config_data WHERE path = "payment/mondu/live_webhook_secret"');
-        $sandboxWebhookSecret = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM core_config_data WHERE path = "payment/mondu/sandbox_webhook_secret"');
+        $tableName = $this->moduleDataSetup->getTable('core_config_data');
+        $liveWebhookSecret = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM ' . $tableName . ' WHERE `path` = "payment/mondu/live_webhook_secret"');
+        $sandboxWebhookSecret = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM ' . $tableName . ' WHERE `path` = "payment/mondu/sandbox_webhook_secret"');
 
-        $this->moduleDataSetup->getConnection()->delete('core_config_data', ['path = "payment/mondu/sandbox_webhook_secret"']);
-        $this->moduleDataSetup->getConnection()->delete('core_config_data', ['path = "payment/mondu/live_webhook_secret"']);
+        $this->moduleDataSetup->getConnection()->delete($tableName, ['path = "payment/mondu/sandbox_webhook_secret"']);
+        $this->moduleDataSetup->getConnection()->delete($tableName, ['path = "payment/mondu/live_webhook_secret"']);
 
-        $this->moduleDataSetup->getConnection()->insert('core_config_data', [
+        $this->moduleDataSetup->getConnection()->insert($tableName, [
             'scope' => 'default',
             'scope_id' => 0,
             'path' => 'payment/mondu/sandbox_webhook_secret',
             'value' => $sandboxWebhookSecret,
         ]);
 
-        $this->moduleDataSetup->getConnection()->insert('core_config_data', [
+        $this->moduleDataSetup->getConnection()->insert($tableName, [
             'scope' => 'default',
             'scope_id' => 0,
             'path' => 'payment/mondu/live_webhook_secret',
