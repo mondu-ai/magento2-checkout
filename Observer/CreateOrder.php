@@ -2,7 +2,7 @@
 namespace Mondu\Mondu\Observer;
 
 use Exception;
-use \Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\QuoteFactory;
@@ -171,12 +171,13 @@ class CreateOrder extends MonduObserver
     /**
      * Confirm Authorized Order
      *
-     * @param array $orderData
+     * @param array  $orderData
      * @param string $orderNumber
+     * @throws Exception
      */
     protected function confirmAuthorizedOrder($orderData, $orderNumber)
     {
-        if ($orderData['state'] === 'authorized') {
+        if ($orderData['state'] === OrderHelper::AUTHORIZED) {
             $authorizationData = $this->_requestFactory->create(RequestFactory::CONFIRM_ORDER)
                 ->process(['orderUid' => $orderData['uuid'], 'referenceId' => $orderNumber]);
             return $authorizationData['order'];

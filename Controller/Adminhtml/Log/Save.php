@@ -6,11 +6,11 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
-
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Helpers\OrderHelper;
 
 class Save extends Action
 {
@@ -81,10 +81,10 @@ class Save extends Action
             $this->monduLogger->syncOrder($data['reference_id']);
             return $resultRedirect->setPath('*/*/adjust', ['entity_id' => $this->getRequest()->getParam('entity_id')]);
         }
-        if (isset($response['order']['state']) && $response['order']['state'] === 'canceled') {
+        if (isset($response['order']['state']) && $response['order']['state'] === OrderHelper::CANCELED) {
             $order = $this->orderRepository->get($data['order_id']);
             $order->setStatus(Order::STATE_CANCELED)->save();
-        } elseif (isset($response['order']['state']) && $response['order']['state'] === 'shipped') {
+        } elseif (isset($response['order']['state']) && $response['order']['state'] === OrderHelper::SHIPPED) {
             $order = $this->orderRepository->get($data['order_id']);
             $order->setStatus(Order::STATE_COMPLETE)->save();
         }

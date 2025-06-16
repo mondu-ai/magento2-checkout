@@ -14,6 +14,11 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class OrderHelper
 {
+    public const DECLINED = 'declined';
+    public const CANCELED = 'canceled';
+    public const SHIPPED = 'shipped';
+    public const AUTHORIZED = 'authorized';
+
     /**
      * @var QuoteFactory
      */

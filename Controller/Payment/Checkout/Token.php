@@ -3,7 +3,7 @@
 namespace Mondu\Mondu\Controller\Payment\Checkout;
 
 use Magento\Framework\Webapi\Response;
-use Mondu\Mondu\Helpers\ABTesting\ABTesting;
+use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class Token extends AbstractPaymentController
@@ -49,7 +49,7 @@ class Token extends AbstractPaymentController
      */
     public function handleOrderDecline($monduOrder, &$response)
     {
-        if ($monduOrder['state'] === 'declined') {
+        if ($monduOrder['state'] === OrderHelper::DECLINED) {
             $response['error'] = 1;
             $response['message'] = __('Order has been declined');
         }
