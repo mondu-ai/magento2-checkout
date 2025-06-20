@@ -6,6 +6,10 @@ use Mondu\Mondu\Model\Request\Factory;
 
 class PaymentMethod
 {
+    public const DIRECT_DEBIT = 'direct_debit';
+    public const INSTALLMENT = 'installment';
+    public const INSTALLMENT_BY_INVOICE = 'installment_by_invoice';
+
     public const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment', 'monduinstallmentbyinvoice'];
 
     public const LABELS = [
@@ -16,11 +20,12 @@ class PaymentMethod
     ];
 
     public const MAPPING = [
-        'invoice' => 'mondu',
-        'direct_debit' => 'mondusepa',
-        'installment' => 'monduinstallment',
-        'installment_by_invoice' => 'monduinstallmentbyinvoice'
+        'invoice'                    => 'mondu',
+        self::DIRECT_DEBIT           => 'mondusepa',
+        self::INSTALLMENT            => 'monduinstallment',
+        self::INSTALLMENT_BY_INVOICE => 'monduinstallmentbyinvoice'
     ];
+
     /**
      * @var Factory
      */

@@ -15,5 +15,10 @@
                 <value id="mondu_io_wildcard_localhost" type="host">localhost:*/</value>
             </values>
         </policy>
+        <policy id="img-src">
+            <values>
+                <value id="mondu_io_wildcard" type="host">*.mondu.ai/</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>

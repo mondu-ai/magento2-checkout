@@ -1,12 +1,13 @@
 <?php
 namespace Mondu\Mondu\Model\Request;
 
-use \Magento\Framework\HTTP\Client\Curl;
-use \Magento\Quote\Model\Cart\CartTotalRepository;
-use \Magento\Checkout\Model\Session as CheckoutSession;
-use \Magento\Quote\Model\Quote;
+use Magento\Framework\HTTP\Client\Curl;
+use Magento\Quote\Model\Cart\CartTotalRepository;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Quote\Model\Quote;
 use Mondu\Mondu\Helpers\BuyerParams\BuyerParamsInterface;
 use Mondu\Mondu\Helpers\OrderHelper;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Locale\Resolver;
@@ -109,7 +110,10 @@ class Transactions extends CommonRequest implements RequestInterface
             }
             $params = $this->getRequestParams();
 
-            if (in_array( $_params['payment_method'], array('direct_debit', 'installment', 'installment_by_invoice'))) {
+            if (in_array(
+                $_params['payment_method'],
+                [PaymentMethod::DIRECT_DEBIT, PaymentMethod::INSTALLMENT, PaymentMethod::INSTALLMENT_BY_INVOICE])
+            ) {
                 $params['payment_method'] = $_params['payment_method'];
             }
 

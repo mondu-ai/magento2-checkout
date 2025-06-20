@@ -13,6 +13,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Mondu\Mondu\Helpers\Log;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Helpers\OrderHelper;
 
 class Index extends Action implements ActionInterface
 {
@@ -204,9 +205,9 @@ class Index extends Action implements ActionInterface
             __('Mondu: Order has been declined')
         );
 
-        if ($orderState === 'canceled') {
+        if ($orderState === OrderHelper::CANCELED) {
             $order->setStatus(Order::STATE_CANCELED)->save();
-        } elseif ($orderState === 'declined') {
+        } elseif ($orderState === OrderHelper::DECLINED) {
             if (isset($params['reason']) && $params['reason'] === 'buyer_fraud') {
                 $order->setStatus(Order::STATUS_FRAUD)->save();
             } else {
