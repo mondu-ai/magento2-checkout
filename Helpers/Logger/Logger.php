@@ -1,48 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers\Logger;
 
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Monolog\Logger as MonologLogger;
+use Stringable;
 
-class Logger extends \Monolog\Logger
+class Logger extends MonologLogger
 {
-    /**
-     * @var ConfigProvider
-     */
-    private $monduConfig;
-
-    /**
-     * @var string
-     */
-    protected $fallbackName = "MONDU";
+    private string $fallbackName = 'MONDU';
 
     /**
      * @param ConfigProvider $monduConfig
-     * @param string $name
+     * @param string|null $name
      * @param array $handlers
      * @param array $processors
      */
     public function __construct(
-        ConfigProvider $monduConfig,
-        $name,
+        private readonly ConfigProvider $monduConfig,
+        ?string $name = null,
         array $handlers = [],
-        array $processors = []
+        array $processors = [],
     ) {
-        $this->monduConfig = $monduConfig;
         parent::__construct($name ?? $this->fallbackName, $handlers, $processors);
     }
 
     /**
      *  Adds a log record at the INFO level.
      *
-     * @param string $message
+     * @param string|Stringable $message
      * @param array $context
      * @return void
      */
-    public function info($message, array $context = []): void
+    public function info(string|Stringable $message, array $context = []): void
     {
-        if ($this->monduConfig->getDebug()) {
-            parent::info($message, $context);
+        if (!$this->monduConfig->isDebugModeEnabled()) {
+            return;
         }
+
+        parent::info($message, $context);
     }
 }

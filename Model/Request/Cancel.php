@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\HTTP\Client\Curl;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 
 class Cancel extends CommonRequest implements RequestInterface
 {
@@ -13,28 +15,17 @@ class Cancel extends CommonRequest implements RequestInterface
     protected $curl;
 
     /**
-     * @var ConfigProvider
-     */
-    private $configProvider;
-
-    /**
      * @param Curl $curl
-     * @param ConfigProvider $configProvider
+     * @param UrlBuilder $urlBuilder
      */
-    public function __construct(
-        Curl $curl,
-        ConfigProvider $configProvider
-    ) {
-        $this->configProvider = $configProvider;
+    public function __construct(Curl $curl, private readonly UrlBuilder $urlBuilder)
+    {
         $this->curl = $curl;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function request($params)
     {
-        $url = $this->configProvider->getApiUrl('orders').'/'.$params['orderUid'].'/cancel';
+        $url = $this->urlBuilder->getOrderCancelUrl($params['orderUid']);
 
         unset($params['orderUid']);
         $resultJson = $this->sendRequestWithParams('post', $url, json_encode([]));

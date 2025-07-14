@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\HTTP\Client\Curl;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 
 class Ship extends CommonRequest implements RequestInterface
 {
@@ -13,26 +15,17 @@ class Ship extends CommonRequest implements RequestInterface
     protected $curl;
 
     /**
-     * @var ConfigProvider
-     */
-    protected $configProvider;
-
-    /**
      * @param Curl $curl
-     * @param ConfigProvider $configProvider
+     * @param UrlBuilder $urlBuilder
      */
-    public function __construct(Curl $curl, ConfigProvider $configProvider)
+    public function __construct(Curl $curl, private readonly UrlBuilder $urlBuilder)
     {
-        $this->configProvider = $configProvider;
         $this->curl = $curl;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function request($params)
     {
-        $url = $this->configProvider->getApiUrl('orders').'/' . $params['order_uid'] . '/invoices';
+        $url = $this->urlBuilder->getOrderInvoicesUrl($params['order_uid']);
         unset($params['orderUid']);
 
         $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));

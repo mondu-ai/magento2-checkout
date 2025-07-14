@@ -1,34 +1,19 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Model\Method\Factory;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Model\StoreResolver;
 use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Model\Payment\Mondu;
 
 class PaymentMethodList
 {
-    /**
-     * Factory for payment method models
-     *
-     * @var Factory
-     */
-    private $methodFactory;
-
-    /**
-     * @var \Mondu\Mondu\Model\Payment\Mondu[]
-     */
-    private $paymentMethods = [];
-
-    /**
-     * @var PaymentMethod
-     */
-    private $paymentMethodHelper;
-
-    /**
-     * @var StoreResolver
-     */
-    private $storeResolver;
+    private array $paymentMethods = [];
 
     /**
      * @param Factory $methodFactory
@@ -36,26 +21,23 @@ class PaymentMethodList
      * @param StoreResolver $storeResolver
      */
     public function __construct(
-        Factory $methodFactory,
-        PaymentMethod $paymentMethodHelper,
-        StoreResolver $storeResolver
+        private readonly Factory $methodFactory,
+        private readonly PaymentMethod $paymentMethodHelper,
+        private readonly StoreResolver $storeResolver,
     ) {
-        $this->methodFactory = $methodFactory;
-        $this->paymentMethodHelper = $paymentMethodHelper;
-        $this->storeResolver = $storeResolver;
     }
 
     /**
-     * GetPaymentMethod
+     * Returns Mondu payment method instance for the given code.
      *
      * @param string $method
-     * @return Payment\Mondu
      * @throws LocalizedException
+     * @return MethodInterface
      */
-    public function getPaymentMethod($method)
+    public function getPaymentMethod(string $method): MethodInterface
     {
         if (!isset($this->paymentMethods[$method])) {
-            $this->paymentMethods[$method] = $this->methodFactory->create(\Mondu\Mondu\Model\Payment\Mondu::class)
+            $this->paymentMethods[$method] = $this->methodFactory->create(Mondu::class)
                 ->setCode($method);
         }
 
@@ -63,18 +45,18 @@ class PaymentMethodList
     }
 
     /**
-     * FilterMonduPaymentMethods
+     * Filters payment methods allowed for the current store.
      *
-     * @param string $methods
+     * @param array $methods
      * @return array
      */
-    public function filterMonduPaymentMethods($methods)
+    public function filterMonduPaymentMethods(array $methods): array
     {
         $monduMethods = $this->paymentMethodHelper->getPayments();
-        $monduAllowedMethods = $this->paymentMethodHelper->getAllowed($this->storeResolver->getCurrentStoreId());
+        $monduAllowedMethods = $this->paymentMethodHelper->getAllowed((int) $this->storeResolver->getCurrentStoreId());
         $result = [];
         foreach ($methods as $key => $method) {
-            if (in_array($key, $monduMethods) && !in_array($key, $monduAllowedMethods)) {
+            if (in_array($key, $monduMethods, true) && !in_array($key, $monduAllowedMethods, true)) {
                 continue;
             }
             $result[$key] = $method;

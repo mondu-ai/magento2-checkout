@@ -1,38 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers;
 
-use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Module\ModuleListInterface;
 
 class ModuleHelper
 {
     public const MODULE_NAME = 'Mondu_Mondu';
 
     /**
-     * @var ModuleListInterface
-     */
-    private $moduleList;
-
-    /**
-     * @var ProductMetadataInterface
-     */
-    private $productMetadata;
-
-    /**
      * @param ModuleListInterface $moduleList
      * @param ProductMetadataInterface $productMetadata
      */
     public function __construct(
-        ModuleListInterface $moduleList,
-        ProductMetadataInterface $productMetadata
+        private readonly ModuleListInterface $moduleList,
+        private readonly ProductMetadataInterface $productMetadata,
     ) {
-        $this->moduleList = $moduleList;
-        $this->productMetadata = $productMetadata;
     }
 
     /**
-     * GetEnvironmentInformation
+     * Returns environment data.
      *
      * @return array
      */
@@ -41,13 +31,13 @@ class ModuleHelper
         return [
             'plugin' => $this->getModuleNameForApi(),
             'version' => $this->getModuleVersion(),
-            'language_version' => 'PHP '. phpversion(),
+            'language_version' => 'PHP ' . PHP_VERSION,
             'shop_version' => $this->productMetadata->getVersion(),
         ];
     }
 
     /**
-     * GetModuleVersion
+     * Returns the Mondu module version.
      *
      * @return string
      */
@@ -57,7 +47,7 @@ class ModuleHelper
     }
 
     /**
-     * GetModuleNameForApi
+     * Returns the Mondu integration name for API identification.
      *
      * @return string
      */

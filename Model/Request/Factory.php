@@ -1,10 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Mondu\Mondu\Helpers\HeadersHelper;
-use Mondu\Mondu\Helpers\Logger\Logger;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\ModuleHelper;
 
 class Factory
@@ -23,82 +26,52 @@ class Factory
     public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
 
-    /**
-     * @var Logger
-     */
-    private $monduFileLogger;
-    /**
-     * @var HeadersHelper
-     */
-    private $headersHelper;
-
-    /**
-     * @var ModuleHelper
-     */
-    private $moduleHelper;
-
-    /**
-     * @var string[]
-     */
-    private $invokableClasses = [
-        self::TRANSACTIONS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Transactions::class,
-        self::TRANSACTION_CONFIRM_METHOD => \Mondu\Mondu\Model\Request\Confirm::class,
-        self::SHIP_ORDER => \Mondu\Mondu\Model\Request\Ship::class,
-        self::CANCEL => \Mondu\Mondu\Model\Request\Cancel::class,
-        self::MEMO => \Mondu\Mondu\Model\Request\Memo::class,
-        self::WEBHOOKS_KEYS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks\Keys::class,
-        self::WEBHOOKS_REQUEST_METHOD => \Mondu\Mondu\Model\Request\Webhooks::class,
-        self::ADJUST_ORDER => \Mondu\Mondu\Model\Request\Adjust::class,
-        self::EDIT_ORDER => \Mondu\Mondu\Model\Request\Edit::class,
-        self::PAYMENT_METHODS => \Mondu\Mondu\Model\Request\PaymentMethods::class,
-        self::ORDER_INVOICES => \Mondu\Mondu\Model\Request\OrderInvoices::class,
-        self::ERROR_EVENTS => \Mondu\Mondu\Model\Request\ErrorEvents::class,
-        self::CONFIRM_ORDER => \Mondu\Mondu\Model\Request\ConfirmOrder::class
+    private array $invokableClasses = [
+        self::TRANSACTIONS_REQUEST_METHOD => Transactions::class,
+        self::TRANSACTION_CONFIRM_METHOD => Confirm::class,
+        self::SHIP_ORDER => Ship::class,
+        self::CANCEL => Cancel::class,
+        self::MEMO => Memo::class,
+        self::WEBHOOKS_KEYS_REQUEST_METHOD => Webhooks\Keys::class,
+        self::WEBHOOKS_REQUEST_METHOD => Webhooks::class,
+        self::ADJUST_ORDER => Adjust::class,
+        self::EDIT_ORDER => Edit::class,
+        self::PAYMENT_METHODS => PaymentMethods::class,
+        self::ORDER_INVOICES => OrderInvoices::class,
+        self::ERROR_EVENTS => ErrorEvents::class,
+        self::CONFIRM_ORDER => ConfirmOrder::class,
     ];
 
     /**
-     * @var ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
-     * @param ObjectManagerInterface $objectManager
-     * @param Logger $monduFileLogger
      * @param HeadersHelper $headersHelper
      * @param ModuleHelper $moduleHelper
+     * @param MonduFileLogger $monduFileLogger
+     * @param ObjectManagerInterface $objectManager
      */
     public function __construct(
-        ObjectManagerInterface $objectManager,
-        Logger $monduFileLogger,
-        HeadersHelper $headersHelper,
-        ModuleHelper $moduleHelper
+        private readonly HeadersHelper $headersHelper,
+        private readonly ModuleHelper $moduleHelper,
+        private readonly MonduFileLogger $monduFileLogger,
+        private readonly ObjectManagerInterface $objectManager,
     ) {
-        $this->objectManager = $objectManager;
-        $this->monduFileLogger = $monduFileLogger;
-        $this->headersHelper = $headersHelper;
-        $this->moduleHelper = $moduleHelper;
     }
 
     /**
-     * Create class using object manager
+     * Create class using object manager.
      *
-     * @param mixed $method
-     * @return CommonRequest
+     * @param string $method
      * @throws LocalizedException
+     * @return RequestInterface
      */
-    public function create($method)
+    public function create(string $method): RequestInterface
     {
-        $className = !empty($this->invokableClasses[$method])
-            ? $this->invokableClasses[$method]
-            : null;
-
+        $className = $this->invokableClasses[$method] ?? null;
         if ($className === null) {
-            throw new LocalizedException(
-                __('%1 method is not supported.')
-            );
+            throw new LocalizedException(__('%1 method is not supported.'));
         }
 
-        $this->monduFileLogger->info('Sending a request to mondu api, action: '. $method);
+        $this->monduFileLogger->info('Sending a request to mondu api, action: ' . $method);
+        /** @var RequestInterface $model */
         $model = $this->objectManager->create($className);
         $model->setCommonHeaders($this->headersHelper->getHeaders())
             ->setEnvironmentInformation($this->moduleHelper->getEnvironmentInformation())

@@ -1,11 +1,11 @@
 define([
-    "jquery",
-    "Magento_Checkout/js/model/quote",
-    "Magento_Checkout/js/view/payment/default",
-    "Magento_Checkout/js/action/redirect-on-success",
-    "Magento_Ui/js/model/messages",
-    "Magento_Checkout/js/model/payment/additional-validators",
-    "Magento_Checkout/js/action/set-payment-information",
+    'jquery',
+    'Magento_Checkout/js/model/quote',
+    'Magento_Checkout/js/view/payment/default',
+    'Magento_Checkout/js/action/redirect-on-success',
+    'Magento_Ui/js/model/messages',
+    'Magento_Checkout/js/model/payment/additional-validators',
+    'Magento_Checkout/js/action/set-payment-information',
     'Magento_Customer/js/customer-data'
 ], function (
     $,
@@ -17,11 +17,12 @@ define([
     SetPaymentInformationAction,
     customerData
 ) {
-    "use strict";
+    'use strict';
+
     return Component.extend({
         defaults: {
-            template: "Mondu_Mondu/payment/form",
-            monduSkdLoaded: false,
+            template: 'Mondu_Mondu/payment/form',
+            monduSdkLoaded: false,
         },
 
         initObservable: function () {

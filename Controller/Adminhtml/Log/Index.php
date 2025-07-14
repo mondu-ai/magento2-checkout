@@ -1,56 +1,44 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Adminhtml\Log;
 
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\View\Result\Page;
+use Magento\Backend\Model\View\Result\Page as ResultPage;
+use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\View\Result\PageFactory;
 
-class Index extends \Magento\Backend\App\Action
+class Index extends Action implements HttpGetActionInterface
 {
     public const ADMIN_RESOURCE = 'Mondu_Mondu::log';
-
     public const PAGE_TITLE = 'Mondu orders';
-
-    /**
-     * @var PageFactory
-     */
-    protected $_pageFactory;
 
     /**
      * @param Context $context
      * @param PageFactory $pageFactory
      */
-    public function __construct(
-        Context $context,
-        PageFactory $pageFactory
-    ) {
-        $this->_pageFactory = $pageFactory;
+    public function __construct(Context $context, protected PageFactory $pageFactory)
+    {
         return parent::__construct($context);
     }
 
     /**
-     * Index action
+     * Creates the Mondu log grid page in the admin panel.
      *
-     * @return Page
+     * @return ResultInterface
      */
-    public function execute()
+    public function execute(): ResultInterface
     {
-        $resultPage = $this->_pageFactory->create();
-        $resultPage->setActiveMenu(static::ADMIN_RESOURCE);
-        $pageTitle = static::PAGE_TITLE;
-        $resultPage->addBreadcrumb(__($pageTitle), __($pageTitle));
-        $resultPage->getConfig()->getTitle()->prepend(__($pageTitle));
+        /** @var ResultPage $resultPage */
+        $resultPage = $this->pageFactory->create();
+        $resultPage->setActiveMenu(self::ADMIN_RESOURCE);
+        $pageTitle = self::PAGE_TITLE;
+        $resultPage->addBreadcrumb(__($pageTitle), __($pageTitle))
+            ->getConfig()->getTitle()->prepend(__($pageTitle));
 
         return $resultPage;
-    }
-
-    /**
-     * Is the user allowed to view the page.
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed(static::ADMIN_RESOURCE);
     }
 }

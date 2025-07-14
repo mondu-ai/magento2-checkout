@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Adminhtml\Bulk;
 
 use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Ui\Component\MassAction\Filter;
@@ -16,47 +19,24 @@ abstract class BulkAction extends Action
     public const ADMIN_RESOURCE = 'Magento_Sales::sales_order';
 
     /**
-     * @var BulkActions
-     */
-    private $bulkActions;
-
-    /**
-     * @var OrderCollectionFactory
-     */
-    protected $orderCollectionFactory;
-
-    /**
-     * @var Logger
-     */
-    private $monduFileLogger;
-
-    /**
-     * @var Filter
-     */
-    private $filter;
-
-    /**
-     * @param Action\Context $context
-     * @param OrderCollectionFactory $orderCollectionFactory
+     * @param Context $context
      * @param BulkActions $bulkActions
-     * @param Logger $monduFileLogger
      * @param Filter $filter
+     * @param Logger $monduFileLogger
+     * @param OrderCollectionFactory $orderCollectionFactory
      */
     public function __construct(
-        Action\Context $context,
-        OrderCollectionFactory $orderCollectionFactory,
-        BulkActions $bulkActions,
-        Logger $monduFileLogger,
-        Filter $filter
+        Context $context,
+        protected BulkActions $bulkActions,
+        protected Filter $filter,
+        protected Logger $monduFileLogger,
+        protected OrderCollectionFactory $orderCollectionFactory,
     ) {
-        $this->bulkActions = $bulkActions;
-        $this->orderCollectionFactory = $orderCollectionFactory;
-        $this->monduFileLogger = $monduFileLogger;
-        $this->filter = $filter;
         parent::__construct($context);
     }
+
     /**
-     * Execute
+     * Executes the controller action.
      *
      * @throws LocalizedException
      */

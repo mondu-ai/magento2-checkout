@@ -1,10 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Block;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Registry;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
-use Mondu\Mondu\Helpers\Log;
+use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 
 class Memo extends Template
 {
@@ -14,42 +19,32 @@ class Memo extends Template
     protected $_template = 'Mondu_Mondu::order/creditmemo/create/mondumemo.phtml';
 
     /**
-     * @var Log
-     */
-    protected $monduLogger;
-
-    /**
-     * @var Registry
-     */
-    private $_coreRegistry;
-
-    /**
      * @param Context $context
+     * @param MonduLogHelper $monduLogHelper
      * @param Registry $registry
-     * @param Log $logger
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         Context $context,
-        Registry $registry,
-        Log $logger
+        private readonly MonduLogHelper $monduLogHelper,
+        private readonly Registry $registry,
+        private readonly SerializerInterface $serializer,
     ) {
-        $this->_coreRegistry = $registry;
-        $this->monduLogger = $logger;
         parent::__construct($context);
     }
 
     /**
-     * GetCreditMemo
+     * Returns the current credit memo from the registry.
      *
      * @return mixed|null
      */
     public function getCreditMemo()
     {
-        return $this->_coreRegistry->registry('current_creditmemo');
+        return $this->registry->registry('current_creditmemo');
     }
 
     /**
-     * Render
+     * Returns the Mondu reference ID of the order.
      *
      * @return string
      */
@@ -59,7 +54,7 @@ class Memo extends Template
     }
 
     /**
-     * GetOrder
+     * Returns the order associated with the current credit memo.
      *
      * @return mixed
      */
@@ -69,11 +64,11 @@ class Memo extends Template
     }
 
     /**
-     * GetOrderMonduId
+     * Returns Mondu reference ID of the order.
      *
      * @return string
      */
-    public function getOrderMonduId()
+    public function getOrderMonduId(): string
     {
         $memo = $this->getCreditMemo();
         $order = $memo->getOrder();
@@ -82,30 +77,30 @@ class Memo extends Template
     }
 
     /**
-     * Invoice collection for specific order
+     * Returns invoice collection for the order.
      *
      * @return mixed
      */
     public function invoices()
     {
-        $invoiceCollection = $this->getOrder()->getInvoiceCollection();
-        return $invoiceCollection;
+        return $this->getOrder()->getInvoiceCollection();
     }
 
     /**
-     * GetInvoiceMappings
+     * Returns invoice mapping data from Mondu log addons.
      *
-     * @return array|mixed
+     * @throws LocalizedException
+     * @return array
      */
-    public function getInvoiceMappings()
+    public function getInvoiceMappings(): array
     {
         $monduId = $this->getOrderMonduId();
-        $log = $this->monduLogger->getTransactionByOrderUid($monduId);
+        $log = $this->monduLogHelper->getTransactionByOrderUid($monduId);
 
         if (!$log) {
             return [];
         }
 
-        return $log['addons'] ? (json_decode($log['addons'], true) ?? []) : [];
+        return $log['addons'] ? ($this->serializer->unserialize($log['addons']) ?? []) : [];
     }
 }

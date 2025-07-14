@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\HTTP\Client\Curl;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Webhooks extends CommonRequest implements RequestInterface
@@ -18,42 +21,36 @@ class Webhooks extends CommonRequest implements RequestInterface
     protected $curl;
 
     /**
-     * @var ConfigProvider
-     */
-    protected $configProvider;
-
-    /**
      * @param Curl $curl
      * @param ConfigProvider $configProvider
+     * @param UrlBuilder $urlBuilder
      */
     public function __construct(
         Curl $curl,
-        ConfigProvider $configProvider
+        private readonly ConfigProvider $configProvider,
+        private readonly UrlBuilder $urlBuilder,
     ) {
         $this->curl = $curl;
-        $this->configProvider = $configProvider;
     }
 
     /**
-     * Request
+     * Request.
      *
      * @param array|null $params
      * @return $this
      */
     public function request($params = null): Webhooks
     {
-        $url = $this->configProvider->getApiUrl('webhooks');
-
-        $this->sendRequestWithParams('post', $url, json_encode([
+        $this->sendRequestWithParams('post', $this->urlBuilder->getWebhooksUrl(), json_encode([
             'address' => $this->configProvider->getWebhookUrl(),
-            'topic' => $this->getTopic()
+            'topic' => $this->getTopic(),
         ]));
 
         return $this;
     }
 
     /**
-     * Set webhook topic
+     * Set webhook topic.
      *
      * @param string $topic
      * @return $this
@@ -65,7 +62,7 @@ class Webhooks extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Get webhook topic
+     * Get webhook topic.
      *
      * @return string
      */

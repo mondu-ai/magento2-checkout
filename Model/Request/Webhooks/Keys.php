@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request\Webhooks;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\Request\CommonRequest;
 use Mondu\Mondu\Model\Request\RequestInterface;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -14,11 +17,6 @@ class Keys extends CommonRequest implements RequestInterface
      * @var Curl
      */
     protected $curl;
-
-    /**
-     * @var ConfigProvider
-     */
-    protected $configProvider;
 
     /**
      * @var int
@@ -37,24 +35,26 @@ class Keys extends CommonRequest implements RequestInterface
 
     /**
      * @param Curl $curl
+     * @param UrlBuilder $urlBuilder
      * @param ConfigProvider $configProvider
      */
-    public function __construct(Curl $curl, ConfigProvider $configProvider)
-    {
+    public function __construct(
+        Curl $curl,
+        private readonly UrlBuilder $urlBuilder,
+        private readonly ConfigProvider $configProvider,
+    ) {
         $this->curl = $curl;
-        $this->configProvider = $configProvider;
     }
 
     /**
-     * Request
+     * Request.
      *
      * @param array|null $params
      * @return $this
      */
     protected function request($params = null): Keys
     {
-        $url = $this->configProvider->getApiUrl('webhooks/keys');
-        $resultJson = $this->sendRequestWithParams('get', $url);
+        $resultJson = $this->sendRequestWithParams('get', $this->urlBuilder->getWebhookKeysUrl());
 
         if ($resultJson) {
             $result = json_decode($resultJson, true);
@@ -67,10 +67,10 @@ class Keys extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Check if request was successful
+     * Check if request was successful.
      *
-     * @return $this
      * @throws LocalizedException
+     * @return $this
      */
     public function checkSuccess(): Keys
     {
@@ -79,11 +79,12 @@ class Keys extends CommonRequest implements RequestInterface
                 'Could\'t register webhooks, check to see if you entered Mondu api key correctly'
             ));
         }
+
         return $this;
     }
 
     /**
-     * Update
+     * Update.
      *
      * @return $this
      */
@@ -94,11 +95,11 @@ class Keys extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Get Webhook Secret
+     * Get Webhook Secret.
      *
      * @return string
      */
-    public function getWebhookSecret()
+    public function getWebhookSecret(): string
     {
         return $this->webhookSecret;
     }

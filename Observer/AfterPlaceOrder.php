@@ -1,58 +1,60 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Observer;
 
+use Exception;
 use Magento\Framework\Event\Observer;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\ContextHelper;
-use Mondu\Mondu\Helpers\Logger\Logger;
-use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Helpers\Log as MonduLogHelper;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
 
 class AfterPlaceOrder extends MonduObserver
 {
     /**
-     * @var \Mondu\Mondu\Helpers\Log
-     */
-    protected $monduLogger;
-
-    /**
-     * @param PaymentMethod $paymentMethodHelper
-     * @param Logger $monduFileLogger
      * @param ContextHelper $contextHelper
-     * @param \Mondu\Mondu\Helpers\Log $monduLogger
+     * @param MonduFileLogger $monduFileLogger
+     * @param PaymentMethodHelper $paymentMethodHelper
+     * @param MonduLogHelper $monduLogHelper
      */
     public function __construct(
-        PaymentMethod $paymentMethodHelper,
-        Logger $monduFileLogger,
         ContextHelper $contextHelper,
-        \Mondu\Mondu\Helpers\Log $monduLogger
+        MonduFileLogger $monduFileLogger,
+        PaymentMethodHelper $paymentMethodHelper,
+        private readonly MonduLogHelper $monduLogHelper,
     ) {
-        parent::__construct($paymentMethodHelper, $monduFileLogger, $contextHelper);
-        $this->monduLogger = $monduLogger;
+        parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
 
     /**
-     * Execute
+     * Execute.
      *
      * @param Observer $observer
+     * @throws Exception
      * @return void
      */
-    public function _execute(Observer $observer)
+    public function _execute(Observer $observer): void
     {
+        /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
-        $monduUuid = $order->getMonduReferenceId();
-        $orderData = $this->monduLogger->getTransactionByOrderUid($monduUuid);
+        $orderData = $this->monduLogHelper->getTransactionByOrderUid($order->getMonduReferenceId());
 
         if (isset($orderData['mondu_state']) && $orderData['mondu_state'] === 'pending') {
-            $order->addStatusHistoryComment(
+            $order->addCommentToStatusHistory(
                 __('Mondu: Order Status changed to Payment Review because it needs manual confirmation')
             );
             $order->setState(Order::STATE_PAYMENT_REVIEW);
             $order->setStatus(Order::STATE_PAYMENT_REVIEW);
             $order->save();
-        } else {
-            $order->setState(Order::STATE_PROCESSING);
-            $order->setStatus(Order::STATE_PROCESSING);
-            $order->save();
+            return;
         }
+
+        $order->setState(Order::STATE_PROCESSING);
+        $order->setStatus(Order::STATE_PROCESSING);
+        $order->save();
     }
 }

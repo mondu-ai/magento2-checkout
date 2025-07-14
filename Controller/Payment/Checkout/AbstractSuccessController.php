@@ -1,115 +1,92 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Payment\Checkout;
 
-use Magento\Checkout\Model\Session;
+use Exception;
+use Magento\Checkout\Helper\Data as CheckoutData;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Checkout\Model\Type\Onepage;
+use Magento\Customer\Model\Group as CustomerGroup;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Checkout\Helper\Data as CheckoutData;
-use Magento\Quote\Api\CartManagementInterface;
 use Mondu\Mondu\Helpers\ABTesting\ABTesting;
+use Mondu\Mondu\Helpers\Log as MonduTransactions;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
-use Mondu\Mondu\Helpers\Log as MonduTransactions;
 
 abstract class AbstractSuccessController extends AbstractPaymentController
 {
     /**
-     * @var \Magento\Customer\Model\Session
-     */
-    protected $customerSession;
-
-    /**
-     * @var OrderSender
-     */
-    protected $orderSender;
-
-    /**
-     * @var CartManagementInterface
-     */
-    private $quoteManagement;
-
-    /**
-     * @var CheckoutData
-     */
-    private $checkoutData;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    protected $orderRepository;
-
-    /**
-     * @param RequestInterface $request
-     * @param ResponseInterface $response
-     * @param RedirectInterface $redirect
-     * @param Session $checkoutSession
+     * @param ABTesting $aBTesting
+     * @param JsonFactory $jsonResultFactory
      * @param MessageManagerInterface $messageManager
      * @param MonduFileLogger $monduFileLogger
-     * @param RequestFactory $requestFactory
-     * @param JsonFactory $jsonResultFactory
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param OrderSender $orderSender
-     * @param CheckoutData $checkoutData
-     * @param CartManagementInterface $quoteManagement
-     * @param ABTesting $aBTesting
      * @param MonduTransactions $monduTransactions
+     * @param RedirectInterface $redirect
+     * @param RequestFactory $requestFactory
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @param CheckoutSession $checkoutSession
+     * @param CartManagementInterface $quoteManagement
+     * @param CheckoutData $checkoutData
+     * @param CustomerSession $customerSession
      * @param OrderRepositoryInterface $orderRepository
+     * @param OrderSender $orderSender
      */
     public function __construct(
-        RequestInterface $request,
-        ResponseInterface $response,
-        RedirectInterface $redirect,
-        Session $checkoutSession,
+        ABTesting $aBTesting,
+        JsonFactory $jsonResultFactory,
         MessageManagerInterface $messageManager,
         MonduFileLogger $monduFileLogger,
-        RequestFactory $requestFactory,
-        JsonFactory $jsonResultFactory,
-        \Magento\Customer\Model\Session $customerSession,
-        OrderSender $orderSender,
-        CheckoutData $checkoutData,
-        CartManagementInterface $quoteManagement,
-        ABTesting $aBTesting,
         MonduTransactions $monduTransactions,
-        OrderRepositoryInterface $orderRepository
+        RedirectInterface $redirect,
+        RequestFactory $requestFactory,
+        RequestInterface $request,
+        ResponseInterface $response,
+        CheckoutSession $checkoutSession,
+        protected CartManagementInterface $quoteManagement,
+        protected CheckoutData $checkoutData,
+        protected CustomerSession $customerSession,
+        protected OrderRepositoryInterface $orderRepository,
+        protected OrderSender $orderSender,
     ) {
         parent::__construct(
-            $request,
-            $response,
-            $redirect,
-            $checkoutSession,
+            $aBTesting,
+            $jsonResultFactory,
             $messageManager,
             $monduFileLogger,
+            $monduTransactions,
+            $redirect,
             $requestFactory,
-            $jsonResultFactory,
-            $aBTesting,
-            $monduTransactions
+            $request,
+            $response,
+            $checkoutSession
         );
-        $this->customerSession = $customerSession;
-        $this->orderSender = $orderSender;
-
-        $this->checkoutData = $checkoutData;
-        $this->quoteManagement = $quoteManagement;
-        $this->orderRepository = $orderRepository;
     }
 
     /**
-     * Authorize Mondu Order
+     * Authorize Mondu Order.
      *
      * @param string $monduId
      * @param string $referenceId
-     * @return mixed
      * @throws LocalizedException
-     * @throws \Exception
+     * @throws Exception
+     * @return mixed
      */
-    protected function authorizeMonduOrder($monduId, $referenceId)
+    protected function authorizeMonduOrder(string $monduId, string $referenceId)
     {
         $authorizeRequest = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER);
 
@@ -117,60 +94,59 @@ abstract class AbstractSuccessController extends AbstractPaymentController
     }
 
     /**
-     * Prepare quote for guest checkout order submit
+     * Prepare quote for guest checkout order submit.
      *
-     * @param Quote $quote
-     * @return Quote
+     * @param CartInterface $quote
+     * @return CartInterface
      */
-    protected function prepareGuestQuote(Quote $quote)
+    protected function prepareGuestQuote(CartInterface $quote): CartInterface
     {
         $billingAddress = $quote->getBillingAddress();
-
-        $email = $billingAddress->getOrigData('email') !== null
-            ? $billingAddress->getOrigData('email') : $billingAddress->getEmail();
+        $email = $billingAddress->getOrigData('email') ?? $billingAddress->getEmail();
 
         $quote->setCustomerId(null)
             ->setCustomerEmail($email)
             ->setCustomerIsGuest(true)
-            ->setCustomerGroupId(\Magento\Customer\Model\Group::NOT_LOGGED_IN_ID);
+            ->setCustomerGroupId(CustomerGroup::NOT_LOGGED_IN_ID);
 
         return $quote;
     }
 
     /**
-     * Get magento checkut method
+     * Get magento checkut method.
      *
-     * @return string
      * @throws LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
+     * @return string
      */
-    protected function getCheckoutMethod()
+    protected function getCheckoutMethod(): string
     {
         $quote = $this->checkoutSession->getQuote();
 
         if ($this->customerSession->isLoggedIn()) {
-            return \Magento\Checkout\Model\Type\Onepage::METHOD_CUSTOMER;
+            return Onepage::METHOD_CUSTOMER;
         }
         if (!$quote->getCheckoutMethod()) {
             if ($this->checkoutData->isAllowedGuestCheckout($quote)) {
-                $quote->setCheckoutMethod(\Magento\Checkout\Model\Type\Onepage::METHOD_GUEST);
+                $quote->setCheckoutMethod(Onepage::METHOD_GUEST);
             } else {
-                $quote->setCheckoutMethod(\Magento\Checkout\Model\Type\Onepage::METHOD_REGISTER);
+                $quote->setCheckoutMethod(Onepage::METHOD_REGISTER);
             }
         }
+
         return $quote->getCheckoutMethod();
     }
 
     /**
-     * Place order in magento
+     * Place order in magento.
      *
      * @param Quote $quote
-     * @return mixed
      * @throws LocalizedException
+     * @return mixed
      */
-    protected function placeOrder($quote)
+    protected function placeOrder(CartInterface $quote)
     {
-        if ($this->getCheckoutMethod() == \Magento\Checkout\Model\Type\Onepage::METHOD_GUEST) {
+        if ($this->getCheckoutMethod() === Onepage::METHOD_GUEST) {
             $this->prepareGuestQuote($quote);
         }
 
@@ -180,19 +156,20 @@ abstract class AbstractSuccessController extends AbstractPaymentController
     }
 
     /**
-     * Get External reference id to be used
+     * Get External reference id to be used.
      *
-     * @param Quote $quote
+     * @param CartInterface $quote
+     * @throws Exception
      * @return string
-     * @throws \Exception
      */
-    protected function getExternalReferenceId(Quote $quote)
+    protected function getExternalReferenceId(CartInterface $quote): string
     {
         $reservedOrderId = $quote->getReservedOrderId();
         if (!$reservedOrderId) {
             $quote->reserveOrderId()->save();
             $reservedOrderId = $quote->getReservedOrderId();
         }
+
         return $reservedOrderId;
     }
 }

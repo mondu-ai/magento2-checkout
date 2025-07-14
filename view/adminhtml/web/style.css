@@ -1,11 +1,11 @@
 .mondu-section .mondu-payment-logo {
-    background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0 10px;
     background-size: 18rem;
+    background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0 10px;
+    display: inline-block;
     height: 60px;
-    width: auto;
     padding-left: 20rem;
-    display:inline-block;
     vertical-align: middle;
+    width: auto;
 }
 
 .mondu-section .button-container {
@@ -15,5 +15,5 @@
 .mondu-section .mondu-payment-text {
     display: inline-block;
     vertical-align: middle;
-    width: 50%
+    width: 50%;
 }
