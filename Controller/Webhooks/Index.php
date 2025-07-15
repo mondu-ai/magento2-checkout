@@ -1,90 +1,62 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Webhooks;
 
 use Exception;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\AuthorizationException;
-use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Webapi\Response;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
-use Mondu\Mondu\Helpers\Log;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\OrderHelper;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class Index extends Action implements ActionInterface
+class Index implements ActionInterface
 {
     /**
-     * @var JsonFactory
-     */
-    private $_jsonFactory;
-
-    /**
-     * @var Json
-     */
-    private $_json;
-
-    /**
-     * @var OrderFactory
-     */
-    private $_orderFactory;
-
-    /**
-     * @var Log
-     */
-    private $_monduLogger;
-
-    /**
-     * @var ConfigProvider
-     */
-    private $_monduConfig;
-
-    /**
-     * @param Context $context
-     * @param JsonFactory $jsonFactory
-     * @param Json $json
-     * @param OrderFactory $orderFactory
-     * @param Log $logger
      * @param ConfigProvider $monduConfig
+     * @param JsonFactory $resultJson
+     * @param MonduLogHelper $monduLogHelper
+     * @param OrderFactory $orderFactory
+     * @param RequestInterface $request
+     * @param SerializerInterface $serializer
      */
     public function __construct(
-        Context $context,
-        JsonFactory $jsonFactory,
-        Json $json,
-        OrderFactory $orderFactory,
-        Log $logger,
-        ConfigProvider $monduConfig
+        private readonly ConfigProvider $monduConfig,
+        private readonly JsonFactory $resultJson,
+        private readonly MonduLogHelper $monduLogHelper,
+        private readonly OrderFactory $orderFactory,
+        private readonly RequestInterface $request,
+        private readonly SerializerInterface $serializer,
     ) {
-        parent::__construct($context);
-        $this->_jsonFactory = $jsonFactory;
-        $this->_json = $json;
-        $this->_orderFactory = $orderFactory;
-        $this->_monduLogger = $logger;
-        $this->_monduConfig = $monduConfig;
     }
 
     /**
-     * Execute
+     * Dispatches incoming webhook requests and processes them based on Mondu topic.
      *
-     * @return \Magento\Framework\Controller\Result\Json
+     * @return ResultInterface
      */
-    public function execute()
+    public function execute(): ResultInterface
     {
         $resBody = [];
-        $resStatus = \Magento\Framework\Webapi\Response::HTTP_OK;
+        $resStatus = Response::HTTP_OK;
 
         try {
-            $content = $this->getRequest()->getContent();
-
-            $headers = $this->getRequest()->getHeaders()->toArray();
-            $signature = hash_hmac('sha256', $content, $this->_monduConfig->getWebhookSecret());
+            $content = $this->request->getContent();
+            $headers = $this->request->getHeaders()->toArray();
+            $signature = hash_hmac('sha256', $content, $this->monduConfig->getWebhookSecret());
             if ($signature !== ($headers['X-Mondu-Signature'] ?? null)) {
                 throw new AuthorizationException(__('Signature mismatch'));
             }
-            $params = $this->_json->unserialize($content);
+            $params = $this->serializer->unserialize($content);
 
             $topic = $params['topic'];
 
@@ -101,32 +73,27 @@ class Index extends Action implements ActionInterface
                 default:
                     throw new AuthorizationException(__('Unregistered topic'));
             }
-        } catch (AuthorizationException|Exception $e) {
-            $resBody = [
-                'error' => 1,
-                'message' => $e->getMessage()
-            ];
+        } catch (Exception $e) {
+            $resBody = ['error' => 1, 'message' => $e->getMessage()];
             $resStatus = 400;
         }
 
-        return $this->_jsonFactory->create()
-            ->setHttpResponseCode($resStatus)
-            ->setData($resBody);
+        return $this->resultJson->create()->setHttpResponseCode($resStatus)->setData($resBody);
     }
 
     /**
-     * HandlePending
+     * Processes the 'order/pending' topic and moves order to payment review state.
      *
      * @param array|null $params
-     * @return array
      * @throws Exception
+     * @return array
      */
-    public function handlePending($params): array
+    public function handlePending(?array $params): array
     {
         $externalReferenceId = $params['external_reference_id'] ?? null;
 
         $monduId = $params['order_uuid'] ?? null;
-        $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
+        $order = $this->orderFactory->create()->loadByIncrementId($externalReferenceId);
 
         if (!$externalReferenceId || !$monduId) {
             throw new Exception('Required params missing');
@@ -137,28 +104,29 @@ class Index extends Action implements ActionInterface
         }
         $order->setState(Order::STATE_PAYMENT_REVIEW);
         $order->setStatus(Order::STATE_PAYMENT_REVIEW);
-        $order->addStatusHistoryComment(
+        $order->addCommentToStatusHistory(
             __('Mondu: Order Status changed to Payment Review by a webhook')
         );
         $order->save();
-        $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
+        $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
 
     /**
-     * HandleConfirmed
+     * Processes the 'order/confirmed' topic and updates the order to processing state.
      *
      * @param array|null $params
-     * @return array
      * @throws Exception
+     * @return array
      */
-    public function handleConfirmed($params): array
+    public function handleConfirmed(?array $params): array
     {
         $viban = $params['bank_account']['iban'] ?? null;
         $monduId = $params['order_uuid'] ?? null;
         $externalReferenceId = $params['external_reference_id'] ?? null;
-        $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
+        /** @var OrderInterface $order */
+        $order = $this->orderFactory->create()->loadByIncrementId($externalReferenceId);
 
         if (!$viban || !$externalReferenceId) {
             throw new Exception('Required params missing');
@@ -170,28 +138,28 @@ class Index extends Action implements ActionInterface
 
         $order->setState(Order::STATE_PROCESSING);
         $order->setStatus(Order::STATE_PROCESSING);
-        $order->addStatusHistoryComment(
+        $order->addCommentToStatusHistory(
             __('Mondu: Order Status changed to Processing by a webhook')
         );
         $order->save();
-        $this->_monduLogger->updateLogMonduData($monduId, $params['order_state'], $viban);
+        $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'], $viban);
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
 
     /**
-     * HandleDeclinedOrCanceled
+     * Processes the 'order/declined' or 'order/canceled' topic and cancels or flags the order as fraud.
      *
      * @param array|null $params
-     * @return array
      * @throws Exception
+     * @return array
      */
-    public function handleDeclinedOrCanceled($params): array
+    public function handleDeclinedOrCanceled(?array $params): array
     {
         $monduId = $params['order_uuid'] ?? null;
         $externalReferenceId = $params['external_reference_id'] ?? null;
         $orderState = $params['order_state'] ?? null;
-        $order = $this->_orderFactory->create()->loadByIncrementId($externalReferenceId);
+        $order = $this->orderFactory->create()->loadByIncrementId($externalReferenceId);
 
         if (!$monduId || !$externalReferenceId || !$orderState) {
             throw new Exception('Required params missing');
@@ -201,7 +169,7 @@ class Index extends Action implements ActionInterface
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
-        $order->addStatusHistoryComment(
+        $order->addCommentToStatusHistory(
             __('Mondu: Order has been declined')
         );
 
@@ -215,16 +183,16 @@ class Index extends Action implements ActionInterface
             }
         }
 
-        $this->_monduLogger->updateLogMonduData($monduId, $params['order_state']);
+        $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
 
     /**
-     * ValidateForCsrf
+     * Skips CSRF validation for webhook endpoint.
      *
      * @param RequestInterface $request
-     * @return bool|null
+     * @return bool
      */
     public function validateForCsrf(RequestInterface $request): bool
     {

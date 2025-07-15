@@ -1,119 +1,93 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Index;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Sales\Model\Order\Pdf\Invoice as PdfInvoiceModel;
+use Magento\Sales\Api\Data\InvoiceInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order\Pdf\Invoice as PdfInvoiceModel;
 use Zend_Pdf_Exception;
 
 class Invoice implements ActionInterface
 {
     /**
-     * @var RequestInterface
-     */
-    private $request;
-
-    /**
-     * @var PdfInvoiceModel
-     */
-    private $_pdfInvoiceModel;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-    /**
-     * @var RawFactory
-     */
-    private $resultRawFactory;
-
-    /**
-     * @param RequestInterface $request
-     * @param PdfInvoiceModel $pdfInvoiceModel
      * @param OrderRepositoryInterface $orderRepository
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param PdfInvoiceModel $pdfInvoiceModel
      * @param RawFactory $resultRawFactory
+     * @param RequestInterface $request
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
-        RequestInterface $request,
-        PdfInvoiceModel $pdfInvoiceModel,
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        RawFactory $resultRawFactory
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly PdfInvoiceModel $pdfInvoiceModel,
+        private readonly RawFactory $resultRawFactory,
+        private readonly RequestInterface $request,
+        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
     ) {
-        $this->request = $request;
-        $this->_pdfInvoiceModel = $pdfInvoiceModel;
-        $this->orderRepository = $orderRepository;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->resultRawFactory = $resultRawFactory;
     }
 
     /**
-     * GetRequest
+     * Generates and returns the PDF content for a Mondu invoice by its reference ID.
      *
-     * @return RequestInterface
-     */
-    private function getRequest()
-    {
-        return $this->request;
-    }
-
-    /**
-     * Execute
-     *
-     * @return Raw
      * @throws NotFoundException
      * @throws Zend_Pdf_Exception
+     * @return ResultInterface
      */
-    public function execute()
+    public function execute(): ResultInterface
     {
-        $orderIdentifierMondu = $this->getRequest()->getParam('id');
-        $invoiceReference = $this->getRequest()->getParam('r');
-
+        $orderIdentifierMondu = $this->request->getParam('id');
+        $invoiceReference = $this->request->getParam('r');
         if (!$orderIdentifierMondu || !$invoiceReference) {
             throw new NotFoundException(__('Not found'));
         }
 
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-            'mondu_reference_id',
-            $orderIdentifierMondu
-        )->create();
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('mondu_reference_id', $orderIdentifierMondu)
+            ->create();
 
-        $result = $this->orderRepository->getList($searchCriteria);
-        $orders = $result->getItems();
-
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
         if (empty($orders)) {
             throw new NotFoundException(__('Not found'));
         }
 
+        /** @var OrderInterface $order */
         $order = end($orders);
-        $invoice = null;
-        foreach ($order->getInvoiceCollection() as $i) {
-            if ($i->getIncrementId() === $invoiceReference) {
-                $invoice = $i;
-            }
-        }
+        $invoice = $this->getInvoiceByIncrementId($order, $invoiceReference);
         if (!$invoice) {
             throw new NotFoundException(__('Not found'));
         }
-        $pdfContent = $this->_pdfInvoiceModel->getPdf([$invoice])->render();
 
-        $resultRaw = $this->resultRawFactory->create();
-        $resultRaw->setHeader('Content-type', 'application/pdf');
-        $resultRaw->setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
-        $resultRaw->setContents($pdfContent);
+        $pdfContent = $this->pdfInvoiceModel->getPdf([$invoice])->render();
 
-        return $resultRaw;
+        return $this->resultRawFactory->create()
+            ->setHeader('Content-type', 'application/pdf')
+            ->setHeader('Content-Disposition', 'attachment; filename=invoice.pdf')
+            ->setContents($pdfContent);
+    }
+
+    /**
+     * Retrieves the invoice from an order by increment ID.
+     *
+     * @param OrderInterface $order
+     * @param string $invoiceRef
+     * @return InvoiceInterface|null
+     */
+    private function getInvoiceByIncrementId(OrderInterface $order, string $invoiceRef): ?InvoiceInterface
+    {
+        foreach ($order->getInvoiceCollection() as $invoice) {
+            if ($invoice->getIncrementId() === $invoiceRef) {
+                return $invoice;
+            }
+        }
+
+        return null;
     }
 }

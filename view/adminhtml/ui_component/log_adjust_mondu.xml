@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
             <item name="provider" xsi:type="string">log_adjust_mondu.log_listing_data_source_mondu</item>
@@ -12,12 +13,17 @@
         </item>
         <item name="template" xsi:type="string">templates/form/collapsible</item>
         <item name="buttons" xsi:type="array">
-            <item name="save" xsi:type="string">Mondu\Mondu\Block\Log\Edit\SaveButton</item>
+            <item name="save" xsi:type="array">
+                <item name="name" xsi:type="string">save</item>
+                <item name="label" xsi:type="string" translate="true">Adjust</item>
+                <item name="class" xsi:type="string">save primary</item>
+                <item name="url" xsi:type="string">*/*/</item>
+            </item>
         </item>
     </argument>
     <dataSource name="log_listing_data_source_mondu">
         <argument name="dataProvider" xsi:type="configurableObject">
-            <argument name="class" xsi:type="string">Mondu\Mondu\Model\DataProvider</argument>
+            <argument name="class" xsi:type="string">Mondu\Mondu\Ui\DataProvider\Form\LogDataProvider</argument>
             <argument name="name" xsi:type="string">log_listing_data_source_mondu</argument>
             <argument name="primaryFieldName" xsi:type="string">entity_id</argument>
             <argument name="requestFieldName" xsi:type="string">entity_id</argument>
@@ -70,33 +76,5 @@
                 </select>
             </formElements>
         </field>
-<!--        <field name="net_price_cents">-->
-<!--            <argument name="data" xsi:type="array">-->
-<!--                <item name="config" xsi:type="array">-->
-<!--                    <item name="dataType" xsi:type="string">price</item>-->
-<!--                    <item name="label" xsi:type="string" translate="true">Net price in cents</item>-->
-<!--                    <item name="formElement" xsi:type="string">input</item>-->
-<!--                    <item name="source" xsi:type="string">log</item>-->
-<!--                    <item name="dataScope" xsi:type="string">net_price_cents</item>-->
-<!--                    <item name="validation" xsi:type="array">-->
-<!--                        <item name="required-entry" xsi:type="boolean">true</item>-->
-<!--                    </item>-->
-<!--                </item>-->
-<!--            </argument>-->
-<!--        </field>-->
-<!--        <field name="tax_cent">-->
-<!--            <argument name="data" xsi:type="array">-->
-<!--                <item name="config" xsi:type="array">-->
-<!--                    <item name="dataType" xsi:type="string">price</item>-->
-<!--                    <item name="label" xsi:type="string" translate="true">Tax in cents</item>-->
-<!--                    <item name="formElement" xsi:type="string">input</item>-->
-<!--                    <item name="source" xsi:type="string">log</item>-->
-<!--                    <item name="dataScope" xsi:type="string">tax_cents</item>-->
-<!--                    <item name="validation" xsi:type="array">-->
-<!--                        <item name="required-entry" xsi:type="boolean">true</item>-->
-<!--                    </item>-->
-<!--                </item>-->
-<!--            </argument>-->
-<!--        </field>-->
     </fieldset>
 </form>

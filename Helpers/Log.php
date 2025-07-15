@@ -1,86 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers;
 
+use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order;
 use Mondu\Mondu\Model\LogFactory;
 use Mondu\Mondu\Model\Request\Factory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
-class Log extends AbstractHelper
+class Log
 {
-    const MONDU_STATE_CONFIRMED = 'confirmed';
-    const MONDU_STATE_PARTIALLY_SHIPPED = 'partially_shipped';
-    const MONDU_STATE_PARTIALLY_COMPLETE = 'partially_complete';
-    const MONDU_STATE_SHIPPED = 'shipped';
-    const MONDU_STATE_COMPLETE = 'complete';
+    public const MONDU_STATE_CONFIRMED = 'confirmed';
+    public const MONDU_STATE_PARTIALLY_SHIPPED = 'partially_shipped';
+    public const MONDU_STATE_PARTIALLY_COMPLETE = 'partially_complete';
+    public const MONDU_STATE_SHIPPED = 'shipped';
+    public const MONDU_STATE_COMPLETE = 'complete';
 
     /**
-     * @var LogFactory
-     */
-    protected $_logger;
-
-    /**
-     * @var ConfigProvider
-     */
-    private $_configProvider;
-
-    /**
-     * @var Factory
-     */
-    private $_requestFactory;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
-     * @var MonduTransactionItem
-     */
-    private $monduTransactionItem;
-
-    /**
-     * @param LogFactory $monduLogger
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ConfigProvider $configProvider
      * @param Factory $requestFactory
-     * @param OrderRepositoryInterface $orderRepository
+     * @param LogFactory $monduLogger
      * @param MonduTransactionItem $monduTransactionItem
+     * @param OrderRepositoryInterface $orderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param SerializerInterface $serializer
      */
     public function __construct(
-        LogFactory $monduLogger,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        ConfigProvider $configProvider,
-        Factory $requestFactory,
-        OrderRepositoryInterface $orderRepository,
-        MonduTransactionItem $monduTransactionItem
+        private readonly ConfigProvider $configProvider,
+        private readonly Factory $requestFactory,
+        private readonly LogFactory $monduLogger,
+        private readonly MonduTransactionItem $monduTransactionItem,
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly SerializerInterface $serializer,
     ) {
-        $this->_logger = $monduLogger;
-        $this->_configProvider = $configProvider;
-        $this->_requestFactory = $requestFactory;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->orderRepository = $orderRepository;
-        $this->monduTransactionItem = $monduTransactionItem;
     }
 
     /**
-     * Get first DB record
+     * Returns the first log record by order UUID.
      *
      * @param string $orderUid
-     * @return \Magento\Framework\DataObject
+     * @throws LocalizedException
+     * @return DataObject
      */
-    public function getLogCollection($orderUid)
+    public function getLogCollection(string $orderUid)
     {
-        $monduLogger = $this->_logger->create();
+        $monduLogger = $this->monduLogger->create();
 
         $logCollection = $monduLogger->getCollection()
             ->addFieldToFilter('reference_id', ['eq' => $orderUid])
@@ -90,18 +62,22 @@ class Log extends AbstractHelper
     }
 
     /**
-     * Save item to DB
+     * Saves Mondu transaction log for the order.
      *
-     * @param Order $order
+     * @param OrderInterface $order
      * @param array $response
      * @param array|null $addons
      * @param string $paymentMethod
+     * @throws Exception
      * @return void
-     * @throws \Exception
      */
-    public function logTransaction($order, $response, $addons = null, $paymentMethod = 'mondu')
-    {
-        $monduLogger = $this->_logger->create();
+    public function logTransaction(
+        OrderInterface $order,
+        array $response,
+        ?array $addons = null,
+        string $paymentMethod = 'mondu'
+    ): void {
+        $monduLogger = $this->monduLogger->create();
         $logData = [
             'store_id' => $order->getStoreId(),
             'order_id' => $order->getId() ? $order->getId() : $order->getEntityId(),
@@ -109,40 +85,41 @@ class Log extends AbstractHelper
             'created_at' => $order->getCreatedAt(),
             'customer_id' => $order->getCustomerId(),
             'mondu_state' => $response['state'] ?? null,
-            'mode' => $this->_configProvider->getMode(),
-            'addons' => json_encode($addons),
+            'mode' => $this->configProvider->getMode(),
+            'addons' => $this->serializer->serialize($addons),
             'payment_method' => $paymentMethod,
             'authorized_net_term' => $response['authorized_net_term'],
             'is_confirmed' => 1,
             'invoice_iban' => $response['merchant']['viban'] ?? null,
-            'external_data' => json_encode([
-                'merchant_company_name' => isset($response['merchant']['company_name']) ? $response['merchant']['company_name'] : null,
-                'buyer_country_code'    => isset($response['content_configuration']['buyer_country_code']) ? $response['content_configuration']['buyer_country_code'] : null,
-                'bank_account'          => isset($response['bank_account']) ? $response['bank_account'] : null
-            ])
+            'external_data' => $this->serializer->serialize([
+                'merchant_company_name' => $response['merchant']['company_name'] ?? null,
+                'buyer_country_code' => $response['content_configuration']['buyer_country_code'] ?? null,
+                'bank_account' => $response['bank_account'] ?? null,
+            ]),
         ];
         $monduLogger->addData($logData);
         $monduLogger->save();
 
-        $this->monduTransactionItem->createTransactionItemsForOrder($monduLogger->getId(), $order);
+        $this->monduTransactionItem->createTransactionItemsForOrder((int) $monduLogger->getId(), $order);
     }
 
     /**
-     * Get by order UUID
+     * Returns transaction by UUID.
      *
      * @param string $orderUid
-     * @param mixed $collection
-     * @return array|\Magento\Framework\DataObject|mixed|null
+     * @param bool $isCollection
+     * @throws LocalizedException
+     * @return DataObject
      */
-    public function getTransactionByOrderUid($orderUid, $collection = false)
+    public function getTransactionByOrderUid(string $orderUid, bool $isCollection = false)
     {
-        $monduLogger = $this->_logger->create();
+        $monduLogger = $this->monduLogger->create();
 
         $logCollection = $monduLogger->getCollection()
             ->addFieldToFilter('reference_id', ['eq' => $orderUid])
             ->load();
 
-        if ($collection) {
+        if ($isCollection) {
             return $logCollection->getFirstItem();
         }
 
@@ -150,56 +127,54 @@ class Log extends AbstractHelper
     }
 
     /**
-     * Get by increment ID
+     * Returns transaction by order id.
      *
-     * @param string $incrementId
+     * @param int $orderId
+     * @throws LocalizedException
      * @return array|mixed|null
      */
-    public function getTransactionByIncrementId($incrementId)
+    public function getTransactionByIncrementId(int $orderId)
     {
-        $monduLogger = $this->_logger->create();
+        $monduLogger = $this->monduLogger->create();
 
         $logCollection = $monduLogger->getCollection()
-            ->addFieldToFilter('order_id', ['eq' => $incrementId])
+            ->addFieldToFilter('order_id', ['eq' => $orderId])
             ->load();
 
-        $log = $logCollection->getFirstItem()->getData();
-        return $log;
+        return $logCollection->getFirstItem()->getData();
     }
 
     /**
-     * Update addons with invoice data
+     * Updates invoice mapping in the log.
      *
      * @param string $orderUid
      * @param array $addons
      * @param bool $skipObserver
+     * @throws LocalizedException
      * @return void
      */
-    public function updateLogInvoice($orderUid, $addons, $skipObserver = false)
+    public function updateLogInvoice(string $orderUid, array $addons, bool $skipObserver = false): void
     {
         $log = $this->getLogCollection($orderUid);
 
-        $log->addData([
-            'addons' => json_encode($addons)
-        ]);
+        $log->addData(['addons' => $this->serializer->serialize($addons)]);
 
         if ($skipObserver) {
-            $log->addData([
-                'skip_ship_observer' => true
-            ]);
+            $log->addData(['skip_ship_observer' => true]);
         }
 
         $log->save();
     }
 
     /**
-     * Update DB record skip_ship_observer field
+     * Marks the log to skip shipment observer.
      *
      * @param string $orderUid
      * @param bool $skipObserver
+     * @throws LocalizedException
      * @return void
      */
-    public function updateLogSkipObserver($orderUid, $skipObserver)
+    public function updateLogSkipObserver(string $orderUid, bool $skipObserver): void
     {
         $log = $this->getTransactionByOrderUid($orderUid, true);
 
@@ -213,20 +188,21 @@ class Log extends AbstractHelper
     }
 
     /**
-     * Update DB record by uuid
+     * Updates log fields such as state, IBAN, addons, and more.
      *
      * @param string $orderUid
-     * @param string $monduState
-     * @param string $viban
+     * @param string|null $monduState
+     * @param string|null $viban
      * @param array $addons
-     * @param string|int $orderId
+     * @param int|string $orderId
      * @param string $paymentMethod
+     * @throws LocalizedException
      * @return mixed
      */
     public function updateLogMonduData(
-        $orderUid,
-        $monduState = null,
-        $viban = null,
+        string $orderUid,
+        ?string $monduState = null,
+        ?string $viban = null,
         $addons = null,
         $orderId = null,
         $paymentMethod = null
@@ -241,7 +217,7 @@ class Log extends AbstractHelper
         if ($monduState) {
             $data['mondu_state'] = $monduState;
 
-            if ($monduState == self::MONDU_STATE_CONFIRMED) {
+            if ($monduState === self::MONDU_STATE_CONFIRMED) {
                 $data['is_confirmed'] = 1;
             }
         }
@@ -251,7 +227,7 @@ class Log extends AbstractHelper
         }
 
         if ($addons) {
-            $data['addons'] = json_encode($addons);
+            $data['addons'] = $this->serializer->serialize($addons);
         }
 
         if ($orderId) {
@@ -265,18 +241,19 @@ class Log extends AbstractHelper
         $log->addData($data);
         $log->save();
 
-        return $log->getId();
+        return (int) $log->getId();
     }
 
     /**
-     * Check if can Ship the order
+     * Check if the order can be shipped based on Mondu state.
      *
      * @param string $orderUid
+     * @throws LocalizedException
      * @return bool
      */
-    public function canShipOrder($orderUid)
+    public function canShipOrder(string $orderUid): bool
     {
-        $monduLogger = $this->_logger->create();
+        $monduLogger = $this->monduLogger->create();
 
         $logCollection = $monduLogger->getCollection()
             ->addFieldToFilter('reference_id', ['eq' => $orderUid])
@@ -284,26 +261,23 @@ class Log extends AbstractHelper
 
         $log = $logCollection->getFirstItem()->getData();
 
-        if (isset($log['mondu_state']) && (
-                $log['mondu_state'] === self::MONDU_STATE_CONFIRMED ||
-                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_SHIPPED ||
-                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE
-        )) {
-            return true;
-        }
-
-        return false;
+        return (bool) (isset($log['mondu_state']) && (
+            $log['mondu_state'] === self::MONDU_STATE_CONFIRMED
+                || $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_SHIPPED
+                || $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE
+        ));
     }
 
     /**
-     * Check if can create Credit Note
+     * Check if a credit memo can be created based on Mondu state.
      *
      * @param string $orderUid
+     * @throws LocalizedException
      * @return bool
      */
-    public function canCreditMemo($orderUid)
+    public function canCreditMemo(string $orderUid): bool
     {
-        $monduLogger = $this->_logger->create();
+        $monduLogger = $this->monduLogger->create();
 
         $logCollection = $monduLogger->getCollection()
             ->addFieldToFilter('reference_id', ['eq' => $orderUid])
@@ -311,43 +285,39 @@ class Log extends AbstractHelper
 
         $log = $logCollection->getFirstItem()->getData();
 
-        if (isset($log['mondu_state']) && (
-                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_SHIPPED ||
-                $log['mondu_state'] === self::MONDU_STATE_SHIPPED ||
-                $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE ||
-                $log['mondu_state'] === self::MONDU_STATE_COMPLETE
-        )) {
-            return true;
-        }
-
-        return false;
+        return (bool) (isset($log['mondu_state']) && (
+            $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_SHIPPED
+                || $log['mondu_state'] === self::MONDU_STATE_SHIPPED
+                || $log['mondu_state'] === self::MONDU_STATE_PARTIALLY_COMPLETE
+                || $log['mondu_state'] === self::MONDU_STATE_COMPLETE
+        ));
     }
 
     /**
-     * Sync local order data with Mondu Api
+     * Syncs order state with Mondu API and updates the log.
      *
      * @param string $orderUid
+     * @throws LocalizedException
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function syncOrder($orderUid)
+    public function syncOrder(string $orderUid): void
     {
-        $data = $this->_requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD)
+        $data = $this->requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD)
             ->setValidate(false)
             ->process(['orderUid' => $orderUid]);
         $this->updateLogMonduData($orderUid, $data['order']['state'], $data['order']['merchant']['viban'] ?? null);
     }
 
     /**
-     * Sync Order invoices with Mondu Api
+     * Syncs order invoices with Mondu API and updates the log.
      *
      * @param string $orderUid
+     * @throws LocalizedException
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function syncOrderInvoices($orderUid)
+    public function syncOrderInvoices(string $orderUid): void
     {
-        $data = $this->_requestFactory->create(Factory::ORDER_INVOICES)
+        $data = $this->requestFactory->create(Factory::ORDER_INVOICES)
             ->process(['order_uuid' => $orderUid]);
 
         if (!count($data)) {
@@ -374,7 +344,7 @@ class Log extends AbstractHelper
             $addons[$monduInvoice['invoice_number']] = [
                 'local_id' => $invoiceNumberIdMap[$monduInvoice['invoice_number']] ?? null,
                 'state' => $monduInvoice['state'],
-                'uuid' => $monduInvoice['uuid']
+                'uuid' => $monduInvoice['uuid'],
             ];
         }
 

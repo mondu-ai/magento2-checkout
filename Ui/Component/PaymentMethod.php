@@ -1,53 +1,35 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Ui\Component;
 
-use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
 
 class PaymentMethod extends Column
 {
     /**
-     * @var UrlInterface
-     */
-    private $urlBuilder;
-
-    /**
-     * @var mixed|string
-     */
-    private $viewUrl;
-    /**
-     * @var \Mondu\Mondu\Helpers\PaymentMethod
-     */
-    private $paymentMethodHelper;
-
-    /**
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
-     * @param UrlInterface $backendUrl
-     * @param \Mondu\Mondu\Helpers\PaymentMethod $paymentMethodHelper
-     * @param string $viewUrl
+     * @param PaymentMethodHelper $paymentMethodHelper
      * @param array $components
      * @param array $data
      */
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
-        UrlInterface $backendUrl,
-        \Mondu\Mondu\Helpers\PaymentMethod $paymentMethodHelper,
-        $viewUrl = '',
+        private readonly PaymentMethodHelper $paymentMethodHelper,
         array $components = [],
-        array $data = []
+        array $data = [],
     ) {
-        $this->urlBuilder = $backendUrl;
-        $this->viewUrl    = $viewUrl;
-        $this->paymentMethodHelper = $paymentMethodHelper;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
     /**
-     * Prepare Data Source
+     * Replaces raw payment method codes with readable labels in the listing grid.
      *
      * @param array $dataSource
      * @return array

@@ -1,22 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Payment\Checkout;
 
+use Exception;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Quote\Model\Quote;
 
 class Success extends AbstractSuccessController
 {
     /**
-     * @inheritDoc
+     * Confirms Mondu order and redirects to the success page.
      *
      * @throws NotFoundException
+     * @return ResponseInterface|ResultInterface
      */
-    public function execute()
+    public function execute(): ResponseInterface|ResultInterface
     {
         $monduId = $this->request->getParam('order_uuid');
-
         if (!$monduId) {
             throw new NotFoundException(__('Not found'));
         }
@@ -44,7 +48,7 @@ class Success extends AbstractSuccessController
             $this->checkoutSession->setLastQuoteId($quoteId)->setLastSuccessQuoteId($quoteId);
 
             if ($order) {
-                $order->addStatusHistoryComment(__('Mondu: order id %1', $monduId));
+                $order->addCommentToStatusHistory(__('Mondu: order id %1', $monduId));
                 $order->save();
                 $this->checkoutSession->setLastOrderId($order->getId())
                     ->setLastRealOrderId($order->getIncrementId())
@@ -57,7 +61,7 @@ class Success extends AbstractSuccessController
             return $this->redirect('checkout/onepage/success/');
         } catch (LocalizedException $e) {
             return $this->processException($e, 'Mondu: An error occurred while trying to confirm the order');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->processException($e, 'Mondu: Error during the order process');
         }
     }

@@ -1,53 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Ui\Component;
 
 use Magento\Framework\UrlInterface;
-use Magento\Framework\Url;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use Magento\Framework\View\Element\UiComponent\ContextInterface;
 
 class Actions extends Column
 {
     /**
-     * @var UrlInterface
-     */
-    private $urlBuilder;
-
-    /**
-     * @var mixed|string
-     */
-    private $viewUrl;
-
-    /**
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
-     * @param UrlInterface $backendUrl
-     * @param string $viewUrl
+     * @param UrlInterface $urlBuilder
      * @param array $components
      * @param array $data
      */
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
-        UrlInterface $backendUrl,
-        $viewUrl = '',
+        private readonly UrlInterface $urlBuilder,
         array $components = [],
-        array $data = []
+        array $data = [],
     ) {
-        $this->urlBuilder = $backendUrl;
-        $this->viewUrl    = $viewUrl;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
     /**
-     * Prepare Data Source
+     * Adds an "Adjust" action link to each data row in the grid.
      *
      * @param array $dataSource
      * @return array
      */
-    public function prepareDataSource(array $dataSource)
+    public function prepareDataSource(array $dataSource): array
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
@@ -55,10 +42,10 @@ class Actions extends Column
                 $item[$this->getData('name')] = [
                     'adjust' => [
                         'href' => $this->urlBuilder->getUrl('mondu/log/adjust', [
-                            'entity_id' => $item['entity_id']
+                            'entity_id' => $item['entity_id'],
                         ]),
-                        'label' => __('Adjust')
-                    ]
+                        'label' => __('Adjust'),
+                    ],
                 ];
             }
         }

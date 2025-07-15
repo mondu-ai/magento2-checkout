@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Adminhtml\Bulk;
 
 use Magento\Framework\Exception\LocalizedException;
@@ -8,12 +10,12 @@ use Mondu\Mondu\Helpers\BulkActions;
 class Sync extends BulkAction
 {
     /**
-     * Syncs selected orders
+     * Executes bulk sync for selected orders.
      *
-     * @return void
      * @throws LocalizedException
+     * @return void
      */
-    public function execute()
+    public function execute(): void
     {
         $this->executeAction(BulkActions::BULK_SYNC_ACTION);
     }

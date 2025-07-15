@@ -1,26 +1,30 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\ResourceModel;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
-class MonduTransactionItem extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class MonduTransactionItem extends AbstractDb
 {
     /**
-     * Construct
+     * Initializes the main table and primary key field.
      *
      * @return void
      */
-    protected function _construct()
+    protected function _construct(): void
     {
         $this->_init('mondu_transaction_items', 'entity_id');
     }
 
     /**
-     * Delete records
+     * Deletes all records related to the given Mondu transaction ID.
      *
      * @param string $transactionId
-     * @return int
      * @throws LocalizedException
+     * @return int
      */
     public function deleteRecords($transactionId)
     {

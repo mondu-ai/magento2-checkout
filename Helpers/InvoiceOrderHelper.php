@@ -1,100 +1,71 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers;
 
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Api\Data\InvoiceInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection;
+use Mondu\Mondu\Helpers\Log as MonduLogHelper;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Model\Log as MonduLogModel;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
-use Mondu\Mondu\Helpers\Log as MonduLogger;
-use Magento\Sales\Model\Order;
-use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 
 class InvoiceOrderHelper
 {
     /**
-     * @var ConfigProvider
-     */
-    private $configProvider;
-    /**
-     * @var RequestFactory
-     */
-    private $requestFactory;
-
-    /**
-     * @var MonduLogger
-     */
-    private $monduLogger;
-
-    /**
-     * @var OrderHelper
-     */
-    private $orderHelper;
-
-    /**
-     * @var ManagerInterface
-     */
-    private $messageManager;
-
-    /**
-     * @var MonduFileLogger
-     */
-    private $monduFileLogger;
-
-    /**
-     * @var MonduTransactionItem
-     */
-    private $monduTransactionItem;
-
-    /**
      * @param ConfigProvider $configProvider
-     * @param RequestFactory $requestFactory
-     * @param Log $monduLogger
-     * @param OrderHelper $orderHelper
      * @param ManagerInterface $messageManager
      * @param MonduFileLogger $monduFileLogger
-     * @param MonduTransactionItem $monduTransactionitem
+     * @param MonduLogHelper $monduLogHelper
+     * @param MonduTransactionItem $monduTransactionItem
+     * @param OrderHelper $orderHelper
+     * @param RequestFactory $requestFactory
+     * @param SerializerInterface $serializer
      */
     public function __construct(
-        ConfigProvider $configProvider,
-        RequestFactory $requestFactory,
-        MonduLogger $monduLogger,
-        OrderHelper $orderHelper,
-        ManagerInterface $messageManager,
-        MonduFileLogger $monduFileLogger,
-        MonduTransactionItem $monduTransactionitem
+        private readonly ConfigProvider $configProvider,
+        private readonly ManagerInterface $messageManager,
+        private readonly MonduFileLogger $monduFileLogger,
+        private readonly MonduLogHelper $monduLogHelper,
+        private readonly MonduTransactionItem $monduTransactionItem,
+        private readonly OrderHelper $orderHelper,
+        private readonly RequestFactory $requestFactory,
+        private readonly SerializerInterface $serializer,
     ) {
-        $this->configProvider = $configProvider;
-        $this->requestFactory = $requestFactory;
-        $this->monduLogger = $monduLogger;
-        $this->orderHelper = $orderHelper;
-        $this->messageManager = $messageManager;
-        $this->monduFileLogger = $monduFileLogger;
-        $this->monduTransactionItem = $monduTransactionitem;
     }
 
     /**
-     * HandleInvoiceOrder
+     * Handles invoice creation and shipping based on Mondu configuration.
      *
-     * @param Order $order
-     * @param mixed $shipment
-     * @param mixed $monduLog
-     * @return void
+     * @param OrderInterface $order
+     * @param ShipmentInterface $shipment
+     * @param MonduLogModel|null $monduLog
      * @throws LocalizedException
+     * @return void
      */
-    public function handleInvoiceOrder(Order $order, $shipment, $monduLog = null)
-    {
-        $monduId = $order->getData('mondu_reference_id');
-        $this->monduFileLogger
-            ->info(
-                'InvoiceOrderHelper: handleInvoiceOrder',
-                [
-                    'orderNumber' => $order->getIncrementId(),
-                    'monduId' => $monduId]
-            );
+    public function handleInvoiceOrder(
+        OrderInterface $order,
+        ShipmentInterface $shipment,
+        ?MonduLogModel $monduLog = null
+    ): void {
+        $monduId = $order->getMonduReferenceId();
+        $this->monduFileLogger->info(
+            'InvoiceOrderHelper: handleInvoiceOrder',
+            [
+                'orderNumber' => $order->getIncrementId(),
+                'monduId' => $monduId,
+            ]
+        );
 
         if (!$monduLog) {
-            $monduLog = $this->monduLogger->getLogCollection($monduId);
+            $monduLog = $this->monduLogHelper->getLogCollection($monduId);
         }
 
         if ($this->configProvider->isInvoiceRequiredForShipping()) {
@@ -114,75 +85,71 @@ class InvoiceOrderHelper
     }
 
     /**
-     * Creates invoice for whole order
+     * Creates a single invoice for the full order and sends it to Mondu.
      *
-     * @param Order $order
-     * @return mixed
+     * @param OrderInterface $order
      * @throws LocalizedException
+     * @return array
      */
-    public function createInvoiceForWholeOrder(Order $order)
+    public function createInvoiceForWholeOrder(OrderInterface $order): array
     {
         $monduId = $order->getMonduReferenceId();
         $body = [
             'order_uid' => $monduId,
             'invoice_url' => 'https://not.available',
             'external_reference_id' => $order->getIncrementId(),
-            'gross_amount_cents' => round($order->getBaseGrandTotal(), 2) * 100
+            'gross_amount_cents' => round($order->getBaseGrandTotal(), 2) * 100,
         ];
 
-        $this->monduFileLogger
-            ->info(
-                'InvoiceOrderHelper: createInvoiceForWholeOrder',
-                [
-                    'orderNumber' => $order->getIncrementId(),
-                    'body' => $body
-                ]
-            );
+        $this->monduFileLogger->info(
+            'InvoiceOrderHelper: createInvoiceForWholeOrder',
+            ['orderNumber' => $order->getIncrementId(), 'body' => $body]
+        );
 
-        $data = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
-            ->process($body);
+        $data = $this->requestFactory->create(RequestFactory::SHIP_ORDER)->process($body);
 
         if ($data && !isset($data['errors'])) {
-            $this->monduLogger->updateLogSkipObserver($monduId, true);
+            $this->monduLogHelper->updateLogSkipObserver($monduId, true);
 
             $invoiceMapping[$order->getIncrementId()] = [
                 'uuid' => $data['invoice']['uuid'],
                 'state' => $data['invoice']['state'],
-                'local_id' => $order->getIncrementId()
+                'local_id' => $order->getIncrementId(),
             ];
 
-            $this->monduLogger->updateLogInvoice($monduId, $invoiceMapping);
+            $this->monduLogHelper->updateLogInvoice($monduId, $invoiceMapping);
 
-            $this->monduLogger->syncOrder($monduId);
+            $this->monduLogHelper->syncOrder($monduId);
         }
 
         return $data;
     }
 
     /**
-     * Creates invoices for order
+     * Creates and sends invoices for each invoice item in the order.
      *
-     * @param Order $order
-     * @param mixed $shipment
-     * @param mixed $monduLog
+     * @param OrderInterface $order
+     * @param ShipmentInterface $shipment
+     * @param MonduLogModel $monduLog
+     * @throws LocalizedException
      * @return void
      */
-    public function createOrderInvoices($order, $shipment, $monduLog)
-    {
-        $this->monduFileLogger
-            ->info(
-                'InvoiceOrderHelper: createOrderInvoices',
-                [
-                    'orderNumber' => $order->getIncrementId()
-                ]
-            );
+    public function createOrderInvoices(
+        OrderInterface $order,
+        ShipmentInterface $shipment,
+        MonduLogModel $monduLog
+    ): void {
+        $this->monduFileLogger->info(
+            'InvoiceOrderHelper: createOrderInvoices',
+            ['orderNumber' => $order->getIncrementId()]
+        );
 
         $invoiceMapping = $this->getInvoiceMapping($monduLog);
-        $monduId = $order->getData('mondu_reference_id');
+        $monduId = $order->getMonduReferenceId();
         $invoiceCollection = $order->getInvoiceCollection();
         $createdInvoices = $this->getCreatedInvoices($monduLog);
 
-        $externalReferenceIdMapping = $this->getExternalReferenceIdMapping($monduLog->getId());
+        $externalReferenceIdMapping = $this->getExternalReferenceIdMapping((int) $monduLog->getId());
 
         $this->processInvoiceCollection(
             $monduId,
@@ -192,30 +159,31 @@ class InvoiceOrderHelper
             $invoiceMapping,
             $externalReferenceIdMapping
         );
-        $this->monduLogger->syncOrder($monduId);
+        $this->monduLogHelper->syncOrder($monduId);
     }
 
     /**
-     * ProcessInvoiceCollection
+     * Sends invoice items to Mondu if not already invoiced.
      *
      * @param string $monduId
      * @param Collection $invoiceCollection
-     * @param mixed $shipment
-     * @param mixed $createdInvoices
-     * @param mixed $invoiceMapping
+     * @param ShipmentInterface $shipment
+     * @param array $createdInvoices
+     * @param array $invoiceMapping
      * @param array $externalReferenceIdMapping
+     * @throws LocalizedException
      * @return void
      */
     private function processInvoiceCollection(
         string $monduId,
         Collection $invoiceCollection,
-        $shipment,
-        $createdInvoices,
-        $invoiceMapping,
-        $externalReferenceIdMapping
-    ) {
+        ShipmentInterface $shipment,
+        array $createdInvoices,
+        array $invoiceMapping,
+        array $externalReferenceIdMapping
+    ): void {
         foreach ($invoiceCollection as $invoiceItem) {
-            if (!in_array($invoiceItem->getEntityId(), $createdInvoices)) {
+            if (!in_array($invoiceItem->getEntityId(), $createdInvoices, true)) {
                 $this->createInvoiceForItem(
                     $monduId,
                     $invoiceItem,
@@ -224,45 +192,38 @@ class InvoiceOrderHelper
                     $externalReferenceIdMapping
                 );
 
-                $this->monduFileLogger
-                    ->info(
-                        'InvoiceOrderHelper: Invoice sent to mondu ' .
-                        $invoiceItem->getIncrementId()
-                    );
+                $this->monduFileLogger->info(
+                    'InvoiceOrderHelper: Invoice sent to mondu ' . $invoiceItem->getIncrementId()
+                );
             }
         }
     }
 
     /**
-     * CreateInvoiceForItem
+     * Sends a single invoice item to Mondu.
      *
      * @param string $monduId
-     * @param mixed $invoiceItem
-     * @param mixed $shipment
+     * @param InvoiceInterface $invoiceItem
+     * @param ShipmentInterface $shipment
      * @param array $invoiceMapping
      * @param array $externalReferenceIdMapping
-     * @return void
      * @throws LocalizedException
+     * @return mixed|void
      */
     private function createInvoiceForItem(
-        $monduId,
-        $invoiceItem,
-        $shipment,
-        &$invoiceMapping,
-        $externalReferenceIdMapping
+        string $monduId,
+        InvoiceInterface $invoiceItem,
+        ShipmentInterface $shipment,
+        array &$invoiceMapping,
+        array $externalReferenceIdMapping
     ) {
         $invoiceBody = $this->getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping);
-        $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)
-            ->process($invoiceBody);
+        $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)->process($invoiceBody);
 
-        $this->monduFileLogger
-            ->info(
-                'InvoiceOrderHelper: createInvoiceForItem',
-                [
-                    'monduId' => $monduId,
-                    'body' => $invoiceBody
-                ]
-            );
+        $this->monduFileLogger->info(
+            'InvoiceOrderHelper: createInvoiceForItem',
+            ['monduId' => $monduId, 'body' => $invoiceBody]
+        );
 
         if (!$this->handleInvoiceOrderErrors($monduId, $shipOrderData)) {
             return;
@@ -273,78 +234,80 @@ class InvoiceOrderHelper
         if ($shipment) {
             $shipment->addComment(__('Mondu: invoice created with id %1', $shipOrderData['invoice']['uuid']));
         }
+
         return $shipOrderData;
     }
 
     /**
-     * GetInvoiceItemBody
+     * Returns Mondu request body for a single invoice item.
      *
      * @param string $monduId
-     * @param mixed $invoiceItem
-     * @param mixed $externalReferenceIdMapping
-     * @return mixed
+     * @param InvoiceInterface $invoiceItem
+     * @param array $externalReferenceIdMapping
+     * @return array
      */
-    private function getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping)
-    {
-        $gross_amount_cents = round($invoiceItem->getBaseGrandTotal(), 2) * 100;
-        $invoice_url = $this->configProvider->getPdfUrl($monduId, $invoiceItem->getIncrementId());
+    private function getInvoiceItemBody(
+        string $monduId,
+        InvoiceInterface $invoiceItem,
+        array $externalReferenceIdMapping
+    ): array {
+        $grossAmountCents = round((float) $invoiceItem->getBaseGrandTotal(), 2) * 100;
+        $invoiceUrl = $this->configProvider->getPdfUrl($monduId, $invoiceItem->getIncrementId());
         $invoiceBody = [
             'order_uid' => $monduId,
             'external_reference_id' => $invoiceItem->getIncrementId(),
-            'gross_amount_cents' => $gross_amount_cents,
-            'invoice_url' => $invoice_url,
+            'gross_amount_cents' => $grossAmountCents,
+            'invoice_url' => $invoiceUrl,
         ];
 
         return $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody, $externalReferenceIdMapping);
     }
 
     /**
-     * GetInvoiceMapping
+     * Returns invoice mapping from Mondu log data.
      *
-     * @param mixed $monduLog
-     * @return array|mixed
+     * @param MonduLogModel $monduLog
+     * @return array
      */
-    private function getInvoiceMapping($monduLog)
+    private function getInvoiceMapping(MonduLogModel $monduLog): array
     {
         if ($monduLog->getAddons() && $monduLog->getAddons() !== 'null') {
-            return json_decode($monduLog->getAddons(), true);
+            return $this->serializer->unserialize($monduLog->getAddons());
         }
 
         return [];
     }
 
     /**
-     * Returns array of local invoice ids that are already saved in mondu system
+     * Returns invoice local IDs already sent to Mondu.
      *
-     * @param mixed $monduLog
+     * @param MonduLogModel $monduLog
      * @return array
      */
-    private function getCreatedInvoices($monduLog)
+    private function getCreatedInvoices(MonduLogModel $monduLog): array
     {
         $createdInvoices = [];
 
         if ($monduLog->getAddons() && $monduLog->getAddons() !== 'null') {
-            $invoices = json_decode($monduLog->getAddons(), true);
-            $createdInvoices = array_values(array_map(function ($item) {
-                return $item['local_id'];
-            }, $invoices));
+            $invoices = $this->serializer->unserialize($monduLog->getAddons());
+            $createdInvoices = array_values(array_map(static fn ($item) => $item['local_id'], $invoices));
         }
 
         return $createdInvoices;
     }
 
     /**
-     * HandleInvoiceOrderErrors
+     * Handles Mondu API errors for invoice creation.
      *
      * @param string $monduId
-     * @param mixed $data
-     * @return bool
+     * @param array $data
      * @throws LocalizedException
+     * @return bool
      */
-    private function handleInvoiceOrderErrors($monduId, $data)
+    private function handleInvoiceOrderErrors(string $monduId, array $data): bool
     {
         if (!$data) {
-            $this->monduLogger->updateLogSkipObserver($monduId, true);
+            $this->monduLogHelper->updateLogSkipObserver($monduId, true);
             $this->messageManager->addErrorMessage(
                 'Mondu: Unexpected error: Order could not be found, please contact Mondu Support to resolve this issue.'
             );
@@ -352,44 +315,56 @@ class InvoiceOrderHelper
         }
 
         if (isset($data['errors'])) {
-            $this->monduFileLogger->info('InvoiceOrderHelper: handleInvoiceOrderErrors', ['errors' => $data['errors']]);
-            throw new LocalizedException(__('Mondu: '. $data['errors'][0]['name']. ' '. $data['errors'][0]['details']));
+            $this->monduFileLogger->info(
+                'InvoiceOrderHelper: handleInvoiceOrderErrors',
+                ['errors' => $data['errors']]
+            );
+            throw new LocalizedException(
+                __('Mondu: ' . $data['errors'][0]['name'] . ' ' . $data['errors'][0]['details'])
+            );
         }
 
         return true;
     }
 
     /**
-     * UpdateInvoiceMapping
+     * Updates invoice mapping and syncs with Mondu log.
      *
      * @param string $monduId
-     * @param mixed $invoiceMapping
-     * @param mixed $invoiceItem
-     * @param mixed $invoiceData
+     * @param array $invoiceMapping
+     * @param InvoiceInterface $invoiceItem
+     * @param array $invoiceData
      * @return void
      */
-    private function updateInvoiceMapping($monduId, &$invoiceMapping, $invoiceItem, $invoiceData)
-    {
+    private function updateInvoiceMapping(
+        string $monduId,
+        array &$invoiceMapping,
+        InvoiceInterface $invoiceItem,
+        array $invoiceData
+    ): void {
         $invoiceMapping[$invoiceItem->getIncrementId()] = [
             'uuid' => $invoiceData['uuid'],
             'state' => $invoiceData['state'],
-            'local_id' => $invoiceItem->getId()
+            'local_id' => $invoiceItem->getId(),
         ];
 
-        $this->monduLogger->updateLogInvoice($monduId, $invoiceMapping);
+        $this->monduLogHelper->updateLogInvoice($monduId, $invoiceMapping);
     }
 
     /**
-     * ValidateQuantities
+     * Validates that shipment and invoice quantities match.
      *
-     * @param Order $order
-     * @param mixed $shipment
-     * @param mixed $createdInvoices
-     * @return void
+     * @param OrderInterface $order
+     * @param ShipmentInterface $shipment
+     * @param array $createdInvoices
      * @throws LocalizedException
+     * @return void
      */
-    private function validateQuantities($order, $shipment, $createdInvoices)
-    {
+    private function validateQuantities(
+        OrderInterface $order,
+        ShipmentInterface $shipment,
+        array $createdInvoices
+    ): void {
         $shipSkuQtyArray = [];
         $invoiceSkuQtyArray = [];
 
@@ -402,7 +377,7 @@ class InvoiceOrderHelper
         }
 
         foreach ($order->getInvoiceCollection()->getItems() as $invoice) {
-            if (in_array($invoice->getEntityId(), $createdInvoices)) {
+            if (in_array($invoice->getEntityId(), $createdInvoices, true)) {
                 continue;
             }
             foreach ($invoice->getAllItems() as $i) {
@@ -433,18 +408,20 @@ class InvoiceOrderHelper
     }
 
     /**
-     * GetExternalReferenceIdMapping
+     * Maps order items to Mondu external references.
      *
-     * @param string $monduTransactionId
+     * @param int $monduTransactionId
+     * @throws LocalizedException
      * @return array
      */
-    public function getExternalReferenceIdMapping($monduTransactionId)
+    public function getExternalReferenceIdMapping(int $monduTransactionId): array
     {
         $mapping = [];
         $items = $this->monduTransactionItem->getCollectionFromTransactionId($monduTransactionId);
         foreach ($items as $item) {
-            $mapping[$item->getOrderItemId()] = $item->getProductId(). '-'. $item->getQuoteItemId();
+            $mapping[$item->getOrderItemId()] = $item->getProductId() . '-' . $item->getQuoteItemId();
         }
+
         return $mapping;
     }
 }

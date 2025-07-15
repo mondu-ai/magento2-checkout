@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 
 class Edit extends CommonRequest
 {
@@ -14,33 +16,25 @@ class Edit extends CommonRequest
     protected $curl;
 
     /**
-     * @var ConfigProvider
+     * @var string|null
      */
-    protected $configProvider;
-
-    /**
-     * @var string
-     */
-    protected $uid;
+    protected ?string $uid = null;
 
     /**
      * @param Curl $curl
-     * @param ConfigProvider $configProvider
+     * @param UrlBuilder $urlBuilder
      */
-    public function __construct(
-        Curl $curl,
-        ConfigProvider $configProvider
-    ) {
-        $this->configProvider = $configProvider;
+    public function __construct(Curl $curl, private readonly UrlBuilder $urlBuilder)
+    {
         $this->curl = $curl;
     }
 
     /**
-     * Request
+     * Sends an adjustment request to Mondu for the order.
      *
      * @param array $params
-     * @return mixed
      * @throws LocalizedException
+     * @return mixed
      */
     protected function request($params)
     {
@@ -48,7 +42,7 @@ class Edit extends CommonRequest
             throw new LocalizedException(__('No order uid provided to adjust the order'));
         }
 
-        $url = $this->configProvider->getApiUrl('orders') . '/' . $this->uid . '/adjust';
+        $url = $this->urlBuilder->getOrderAdjustmentUrl($this->uid);
         $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
 
         if (!$resultJson) {
@@ -59,12 +53,12 @@ class Edit extends CommonRequest
     }
 
     /**
-     * Sets order uid ( used before sending the request )
+     * Sets the UID of the order to adjust.
      *
      * @param string $uid
      * @return $this
      */
-    public function setOrderUid($uid)
+    public function setOrderUid(string $uid): self
     {
         $this->uid = $uid;
         return $this;

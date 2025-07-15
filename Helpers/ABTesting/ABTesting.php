@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers\ABTesting;
 
 class ABTesting
@@ -7,42 +10,35 @@ class ABTesting
     protected const WIDGET_SOURCE = 'widget';
 
     /**
-     * FormatApiResult
+     * Formats the API response and extracts Mondu order data.
      *
      * @param array $result
      * @return array
      */
-    public function formatApiResult($result)
+    public function formatApiResult(array $result): array
     {
-        $body = $result['body'];
-
         if ($result['error']) {
             return $result;
         }
 
-        $response = [
-            'error' => $result['error'],
+        $order = $result['body']['order'] ?? [];
+
+        return [
+            'error' => false,
             'message' => $result['message'],
-            'token' => $result['body']['order']['token'] ?? null,
-            'hosted_checkout_url' => $result['body']['order']['hosted_checkout_url'] ?? null
+            'token' => $order['token'] ?? null,
+            'hosted_checkout_url' => $order['hosted_checkout_url'] ?? null,
+            'source' => $this->isHostedCheckout($order) ? self::HOSTED_SOURCE : self::WIDGET_SOURCE,
         ];
-
-        if ($this->isHostedCheckout($body['order'])) {
-            $response['source'] = self::HOSTED_SOURCE;
-        } else {
-            $response['source'] = self::WIDGET_SOURCE;
-        }
-
-        return $response;
     }
 
     /**
-     * IsHostedCheckout
+     * Checks if the order uses hosted checkout.
      *
      * @param array $monduOrder
      * @return bool
      */
-    protected function isHostedCheckout($monduOrder): bool
+    protected function isHostedCheckout(array $monduOrder): bool
     {
         return isset($monduOrder['hosted_checkout_url']);
     }

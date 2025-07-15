@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Adminhtml\Bulk;
 
 use Magento\Framework\App\ResponseInterface;
@@ -8,69 +10,66 @@ use Magento\Framework\Exception\LocalizedException;
 trait BulkActionHelpers
 {
     /**
-     * Adds message to MessageManager
+     * Adds result messages to message manager.
      *
      * @param array $success
      * @param array $incorrect
      * @param array $failed
      * @return ResponseInterface
      */
-    public function bulkActionResponse($success, $incorrect, $failed): ResponseInterface
+    public function bulkActionResponse(array $success, array $incorrect, array $failed): ResponseInterface
     {
         if (!empty($success)) {
-            $this->getMessageManager()
-                ->addSuccessMessage(
-                    'Mondu: Processed ' .
-                    count($success). ' orders - ' .
-                    join(', ', $success)
-                );
+            $this->getMessageManager()->addSuccessMessage(
+                'Mondu: Processed ' . count($success) . ' orders - ' . join(', ', $success)
+            );
         }
+
         if (!empty($incorrect)) {
-            $this->getMessageManager()
-                ->addErrorMessage(
-                    'Mondu: '.count($incorrect) .
-                    ' order(s) were placed using different payment method. orders - [ ' .
-                    join(', ', $incorrect). ' ]'
-                );
+            $this->getMessageManager()->addErrorMessage(
+                'Mondu: '
+                . count($incorrect)
+                . ' order(s) were placed using different payment method. orders - [ '
+                . join(', ', $incorrect) . ' ]'
+            );
         }
 
         if (!empty($failed)) {
-            $this->getMessageManager()
-                ->addErrorMessage(
-                    'Mondu: '.count($failed) .
-                    ' order(s) failed, please check debug logs for more info. orders - [ ' .
-                    join(', ', $failed). ' ]'
-                );
+            $this->getMessageManager()->addErrorMessage(
+                'Mondu: '
+                . count($failed)
+                . ' order(s) failed, please check debug logs for more info. orders - [ '
+                . join(', ', $failed) . ' ]'
+            );
         }
 
         return $this->_redirect('sales/order/index');
     }
 
     /**
-     * Get Resource ids selected for action
+     * Returns selected order IDs from mass action filter.
      *
      * @param string $action
-     * @return array
      * @throws LocalizedException
+     * @return array
      */
-    public function getResourceIds($action): array
+    public function getResourceIds(string $action): array
     {
-        $collection = $this->filter->getCollection($this->orderCollectionFactory->create());
-        $orderIds =  $collection->getAllIds();
-        $this->monduFileLogger->info("$action : Got ids ", ['orderIds' => $orderIds]);
+        $orderIds = $this->filter->getCollection($this->orderCollectionFactory->create())->getAllIds();
+        $this->monduFileLogger->info("{$action} : Got ids ", ['orderIds' => $orderIds]);
 
         return $orderIds;
     }
 
     /**
-     * Exectue action on selected elements
+     * Executes the specified bulk action on selected orders.
      *
      * @param string $action
-     * @param null|array $additionalData
-     * @return void
+     * @param array $additionalData
      * @throws LocalizedException
+     * @return void
      */
-    public function executeAction($action, $additionalData = null)
+    public function executeAction(string $action, array $additionalData = []): void
     {
         $orderIds = $this->getResourceIds($action);
 

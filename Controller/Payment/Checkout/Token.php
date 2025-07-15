@@ -1,76 +1,91 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Controller\Payment\Checkout;
 
+use Exception;
+use Laminas\Http\Response as ResponseAlias;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Response\RedirectInterface;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Framework\Webapi\Response;
-use Mondu\Mondu\Helpers\OrderHelper;
+use Mondu\Mondu\Helpers\ABTesting\ABTesting;
+use Mondu\Mondu\Helpers\Log as MonduTransactions;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Service\TransactionService;
 
 class Token extends AbstractPaymentController
 {
     /**
-     * @inheritDoc
+     * @param ABTesting $aBTesting
+     * @param JsonFactory $jsonResultFactory
+     * @param MessageManagerInterface $messageManager
+     * @param MonduFileLogger $monduFileLogger
+     * @param MonduTransactions $monduTransactions
+     * @param RedirectInterface $redirect
+     * @param RequestFactory $requestFactory
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @param CheckoutSession $checkoutSession
+     * @param TransactionService $transactionService
      */
-    public function execute()
+    public function __construct(
+        ABTesting $aBTesting,
+        JsonFactory $jsonResultFactory,
+        MessageManagerInterface $messageManager,
+        MonduFileLogger $monduFileLogger,
+        MonduTransactions $monduTransactions,
+        RedirectInterface $redirect,
+        RequestFactory $requestFactory,
+        RequestInterface $request,
+        ResponseInterface $response,
+        CheckoutSession $checkoutSession,
+        private readonly TransactionService $transactionService,
+    ) {
+        parent::__construct(
+            $aBTesting,
+            $jsonResultFactory,
+            $messageManager,
+            $monduFileLogger,
+            $monduTransactions,
+            $redirect,
+            $requestFactory,
+            $request,
+            $response,
+            $checkoutSession
+        );
+    }
+
+    /**
+     * Creates a Mondu transaction and returns the checkout token response.
+     *
+     * @return ResponseInterface|ResultInterface
+     */
+    public function execute(): ResponseInterface|ResultInterface
     {
-        $userAgent = $this->request->getHeaders()->toArray()['User-Agent'] ?? null;
-        $this->monduFileLogger->info('Token controller, trying to create the order');
-        $paymentMethod = $this->request->getParam('payment_method') ?? null;
-        $result = $this->requestFactory->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD)
-            ->process([
+        $result = $this->jsonResultFactory->create();
+
+        try {
+            $userAgent = $this->request->getHeaders()->toArray()['User-Agent'] ?? null;
+            $this->monduFileLogger->info('Token controller, trying to create the order');
+            $paymentMethod = $this->request->getParam('payment_method') ?? null;
+
+            $response = $this->transactionService->createTransaction([
                 'email' => $this->request->getParam('email'),
                 'user-agent' => $userAgent,
-                'payment_method' => $paymentMethod
+                'payment_method' => $paymentMethod,
             ]);
 
-        $response = $this->aBTesting->formatApiResult($result);
-
-        $this->monduFileLogger->info('Token controller got a result ', $response);
-        if (!$response['error']) {
-            $this->handleOrderDecline($result['body']['order'], $response);
-        } else {
-            $response['message'] = $this->handleOrderError($result);
+            return $result->setHttpResponseCode(Response::HTTP_OK)->setData($response);
+        } catch (Exception $e) {
+            return $result->setHttpResponseCode(ResponseAlias::STATUS_CODE_400)
+                ->setData(['error' => true, 'message' => $e->getMessage()]);
         }
-
-        if ($response['error'] && !$response['message']) {
-            $response['message'] = __('Error placing an order Please try again later.');
-        }
-        return $this->jsonResultFactory->create()
-            ->setHttpResponseCode(Response::HTTP_OK)
-            ->setData($response);
-    }
-
-    /**
-     * HandleOrderDecline
-     *
-     * @param array  $monduOrder
-     * @param array &$response
-     * @return void
-     */
-    public function handleOrderDecline($monduOrder, &$response)
-    {
-        if ($monduOrder['state'] === OrderHelper::DECLINED) {
-            $response['error'] = 1;
-            $response['message'] = __('Order has been declined');
-        }
-    }
-
-    /**
-     * HandleOrderError
-     *
-     * @param array $response
-     * @return string
-     */
-    public function handleOrderError($response): string
-    {
-        $message = '';
-        if (isset($response['body']['errors']) && isset($response['body']['errors'][0])) {
-            $message .= str_replace(
-                '.',
-                ' ',
-                $response['body']['errors'][0]['name']
-            ) . ' ' . $response['body']['errors'][0]['details'];
-        }
-        return $message;
     }
 }

@@ -1,8 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers;
 
+use Exception;
 use Magento\Framework\App\CacheInterface;
-use Mondu\Mondu\Model\Request\Factory;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class PaymentMethod
 {
@@ -16,114 +22,110 @@ class PaymentMethod
         'mondu' => 'Rechnungskauf',
         'mondusepa' => 'SEPA Direct Debit',
         'monduinstallment' => 'Installment',
-        'monduinstallmentbyinvoice' => 'Installment By Invoice'
+        'monduinstallmentbyinvoice' => 'Installment By Invoice',
     ];
 
     public const MAPPING = [
-        'invoice'                    => 'mondu',
-        self::DIRECT_DEBIT           => 'mondusepa',
-        self::INSTALLMENT            => 'monduinstallment',
-        self::INSTALLMENT_BY_INVOICE => 'monduinstallmentbyinvoice'
+        'invoice' => 'mondu',
+        self::DIRECT_DEBIT => 'mondusepa',
+        self::INSTALLMENT => 'monduinstallment',
+        self::INSTALLMENT_BY_INVOICE => 'monduinstallmentbyinvoice',
     ];
+    private const CACHE_KEY_PREFIX = 'mondu_payment_methods_';
+    private const CACHE_LIFETIME = 3600;
 
     /**
-     * @var Factory
-     */
-    private $requestFactory;
-
-    /**
-     * @var CacheInterface
-     */
-    private $cache;
-
-    /**
-     * @param Factory $requestFactory
      * @param CacheInterface $cache
+     * @param RequestFactory $requestFactory
+     * @param SerializerInterface $serializer
      */
     public function __construct(
-        Factory $requestFactory,
-        CacheInterface $cache
+        private readonly CacheInterface $cache,
+        private readonly RequestFactory $requestFactory,
+        private readonly SerializerInterface $serializer,
     ) {
-        $this->requestFactory = $requestFactory;
-        $this->cache = $cache;
     }
 
     /**
-     * GetPayments
+     * Returns all available Mondu payment method codes.
      *
      * @return string[]
      */
-    public function getPayments()
+    public function getPayments(): array
     {
         return self::PAYMENTS;
     }
 
     /**
-     * GetAllowed
+     * Returns allowed Mondu payment methods for the specified store.
      *
-     * @param float|int|null $storeId
+     * @param int $storeId
      * @return array
      */
-    public function getAllowed($storeId = null)
+    public function getAllowed(int $storeId): array
     {
+        $cacheKey = self::CACHE_KEY_PREFIX . $storeId;
+
         try {
-            if ($result = $this->cache->load('mondu_payment_methods_'.$storeId)) {
-                return json_decode($result, true);
+            if ($result = $this->cache->load($cacheKey)) {
+                return $this->serializer->unserialize($result);
             }
-            $paymentMethods = $this->requestFactory->create(Factory::PAYMENT_METHODS)->process();
+
+            $paymentMethods = $this->requestFactory->create(RequestFactory::PAYMENT_METHODS)->process();
             $result = [];
             foreach ($paymentMethods as $value) {
                 $result[] = self::MAPPING[$value['identifier']] ?? '';
             }
-            $this->cache->save(json_encode($result), 'mondu_payment_methods_'.$storeId, [], 3600);
+
+            $this->cache->save($this->serializer->serialize($result), $cacheKey, [], self::CACHE_LIFETIME);
             return $result;
-        } catch (\Exception $e) {
-            $this->cache->save(json_encode([]), 'mondu_payment_methods_'.$storeId, [], 3600);
+        } catch (Exception $e) {
+            $this->cache->save($this->serializer->serialize([]), $cacheKey, [], self::CACHE_LIFETIME);
             return [];
         }
     }
 
     /**
-     * ResetAllowedCache
+     * Removes Mondu allowed methods cache.
      *
      * @return void
      */
-    public function resetAllowedCache()
+    public function resetAllowedCache(): void
     {
         $this->cache->remove('mondu_payment_methods');
     }
 
     /**
-     * IsMondu
+     * Checks if the payment method belongs to Mondu.
      *
-     * @param mixed $method
+     * @param OrderPaymentInterface $method
      * @return bool
      */
-    public function isMondu($method): bool
+    public function isMondu(OrderPaymentInterface $method): bool
     {
         $code = $method->getCode() ?? $method->getMethod();
 
-        return in_array($code, self::PAYMENTS);
+        return in_array($code, self::PAYMENTS, true);
     }
 
     /**
-     * GetCode
+     * Returns payment method code from the given instance.
      *
-     * @param mixed $method
-     * @return mixed
+     * @param OrderPaymentInterface $method
+     * @return string
      */
-    public function getCode($method)
+    public function getCode(OrderPaymentInterface $method): string
     {
         return $method->getCode() ?? $method->getMethod();
     }
 
     /**
-     * GetLabel
+     * Returns Mondu label for the specified method code.
      *
      * @param string $code
      * @return string|null
      */
-    public function getLabel($code)
+    public function getLabel(string $code): ?string
     {
         return self::LABELS[$code] ?? null;
     }

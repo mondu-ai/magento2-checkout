@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 
 class PaymentMethods extends CommonRequest implements RequestInterface
 {
@@ -12,30 +14,26 @@ class PaymentMethods extends CommonRequest implements RequestInterface
      * @var Curl
      */
     protected $curl;
-    /**
-     * @var ConfigProvider
-     */
-    protected $configProvider;
 
     /**
      * @param Curl $curl
-     * @param ConfigProvider $configProvider
+     * @param UrlBuilder $urlBuilder
      */
-    public function __construct(
-        Curl $curl,
-        ConfigProvider $configProvider
-    ) {
-        $this->configProvider = $configProvider;
+    public function __construct(Curl $curl, private readonly UrlBuilder $urlBuilder)
+    {
         $this->curl = $curl;
     }
 
     /**
-     * @inheritdoc
+     * Sends a request to fetch available Mondu payment methods.
+     *
+     * @param array|null $params
+     * @throws LocalizedException
+     * @return mixed
      */
     public function request($params = null)
     {
-        $url = $this->configProvider->getApiUrl('payment_methods');
-        $resultJson = $this->sendRequestWithParams('get', $url);
+        $resultJson = $this->sendRequestWithParams('get', $this->urlBuilder->getPaymentMethodsUrl());
 
         if (!$resultJson) {
             throw new LocalizedException(__('something went wrong'));

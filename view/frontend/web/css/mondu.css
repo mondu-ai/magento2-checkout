@@ -2,13 +2,14 @@ label[for="mondu"],
 label[for="mondusepa"],
 label[for="monduinstallment"],
 label[for="monduinstallmentbyinvoice"] {
-  background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0px 10px;
-  background-size: 60px;
-  background-position-x: 2px;
-  padding: 8px 71px;
-  font-weight: bold;
+    background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0 10px;
+    background-position-x: 2px;
+    background-size: 60px;
+    font-weight: bold;
+    padding: 8px 71px;
 }
+
 .payment-method-description-mondu {
-  padding-left: 22px;
-  padding-top: 2px;
+    padding-left: 22px;
+    padding-top: 2px;
 }

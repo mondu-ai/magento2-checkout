@@ -1,34 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers;
 
-use Magento\Sales\Model\Order;
+use Magento\Sales\Api\Data\OrderInterface;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class ContextHelper
 {
     /**
-     * @var ConfigProvider
-     */
-    private $configProvider;
-
-    /**
      * @param ConfigProvider $configProvider
      */
-    public function __construct(
-        ConfigProvider $configProvider
-    ) {
-        $this->configProvider = $configProvider;
+    public function __construct(private readonly ConfigProvider $configProvider)
+    {
     }
 
     /**
-     * Sets context depending on store of the order
+     * Sets context depending on store of the order.
      *
-     * @param Order $order
+     * @param OrderInterface $order
      * @return void
      */
-    public function setConfigContextForOrder($order)
+    public function setConfigContextForOrder(OrderInterface $order): void
     {
-        $this->configProvider->setContextCode($order->getStore()->getId());
+        $this->configProvider->setContextCode((int) $order->getStore()->getId());
     }
 }

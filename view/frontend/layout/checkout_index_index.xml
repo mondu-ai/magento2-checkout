@@ -22,29 +22,20 @@
                                                             <!-- merge payment method renders here -->
                                                             <item name="children" xsi:type="array">
                                                                 <item name="mondu" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">
-                                                                        Mondu_Mondu/js/view/payment/mondu
-                                                                    </item>
+                                                                    <item name="component"
+                                                                          xsi:type="string">Mondu_Mondu/js/view/payment/mondu</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="mondu" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired"
-                                                                                  xsi:type="boolean">true
-                                                                            </item>
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                         <item name="mondusepa" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired"
-                                                                                  xsi:type="boolean">true
-                                                                            </item>
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                         <item name="monduinstallment" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired"
-                                                                                  xsi:type="boolean">true
-                                                                            </item>
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                         <item name="monduinstallmentbyinvoice" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired"
-                                                                                  xsi:type="boolean">true
-                                                                            </item>
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                     </item>
                                                                 </item>

@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="submit_before">
-            <block class="Mondu\Mondu\Block\Memo" name="mondu_memo" template="Mondu_Mondu::order/creditmemo/create/mondumemo.phtml"/>
+            <block class="Mondu\Mondu\Block\Memo" name="mondu_memo"
+                   template="Mondu_Mondu::order/creditmemo/create/mondumemo.phtml"/>
         </referenceContainer>
     </body>
 </page>

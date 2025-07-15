@@ -1,25 +1,31 @@
 <?php
-/** @var \Mondu\Mondu\Block\Memo $block */
-    $invoices = $block->invoices();
-    $mapping = $block->getInvoiceMappings();
+
+declare(strict_types=1);
+
+/**
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Mondu\Mondu\Block\Memo $block
+ */
+$invoices = $block->invoices();
+$mapping = $block->getInvoiceMappings();
 ?>
 
 <?php if ($block->render()): ?>
 <div class="field choice admin__field">
-    <?= $block->escapeHtml($block->getPaymentMethod()) ?>
+    <?= $escaper->escapeHtml($block->getPaymentMethod()) ?>
     <div class="admin__field">
-        <label for="history_status" class="admin__field-label">Invoice to memo</label>
+        <label class="admin__field-label" for="history_status">Invoice to memo</label>
         <div class="admin__field-control">
-            <select name="creditmemo[creditmemo_mondu_id]" id="history_status" class="admin__control-select">
+            <select class="admin__control-select" id="history_status" name="creditmemo[creditmemo_mondu_id]">
                 <?php $i = 0; foreach ($mapping as $key => $item): ?>
-                    <option value="<?= $block->escapeHtml($item['uuid']) ?>"
+                    <option value="<?= $escaper->escapeHtml($item['uuid']) ?>"
                         <?php
-                            (isset($item['state']) && $item['state'] === 'complete') ?
-                            $block->escapeHtml('disabled') :
-                            ''
+                            (isset($item['state']) && $item['state'] === 'complete')
+                                ? $escaper->escapeHtml('disabled')
+                                : ''
                         ?>
                     >
-                        INVOICE: <?= $block->escapeHtml($key) ?> State: <?= $block->escapeHtml($item['state']) ?>
+                        INVOICE: <?= $escaper->escapeHtml($key) ?> State: <?= $escaper->escapeHtml($item['state']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
