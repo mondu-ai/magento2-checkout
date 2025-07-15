@@ -19,7 +19,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Mondu\Mondu\Helpers\ABTesting\ABTesting;
@@ -140,7 +139,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
     /**
      * Place order in magento.
      *
-     * @param Quote $quote
+     * @param CartInterface $quote
      * @throws LocalizedException
      * @return mixed
      */

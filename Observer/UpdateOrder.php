@@ -19,6 +19,9 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class UpdateOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected string $name = 'UpdateOrder';
 
     /**
@@ -45,7 +48,7 @@ class UpdateOrder extends MonduObserver
     }
 
     /**
-     * Execute.
+     * Sends credit memo or cancel request to Mondu based on refund context.
      *
      * @param Observer $observer
      * @return void
@@ -70,19 +73,16 @@ class UpdateOrder extends MonduObserver
                         'external_reference_id' => $creditMemo->getIncrementId(),
                     ];
 
-                    $memoData = $this->requestFactory->create(RequestFactory::MEMO)
-                        ->process($data);
+                    $memoData = $this->requestFactory->create(RequestFactory::MEMO)->process($data);
 
                     if (isset($memoData['errors'])) {
-                        $this->monduFileLogger
-                            ->info(
-                                'Error in UpdateOrder observer ',
-                                ['orderNumber' => $order->getIncrementId(), 'e' => $memoData['errors'][0]['details']]
-                            );
+                        $this->monduFileLogger->info(
+                            'Error in UpdateOrder observer ',
+                            ['orderNumber' => $order->getIncrementId(), 'e' => $memoData['errors'][0]['details']]
+                        );
                         $message = 'Mondu: Unexpected error: Could not send the credit note to Mondu,'
                             . ' please contact Mondu Support to resolve this issue.';
-                        $this->messageManager
-                            ->addErrorMessage($message);
+                        $this->messageManager->addErrorMessage($message);
                         return;
                     }
 
@@ -93,21 +93,18 @@ class UpdateOrder extends MonduObserver
 
                     $this->bulkActions->execute([$order->getId()], BulkActions::BULK_SYNC_ACTION);
                 } else {
-                    $this->monduFileLogger
-                        ->info(
-                            'Cant create a credit memo: no Mondu invoice id provided',
-                            ['orderNumber' => $order->getIncrementId()]
-                        );
+                    $this->monduFileLogger->info(
+                        'Cant create a credit memo: no Mondu invoice id provided',
+                        ['orderNumber' => $order->getIncrementId()]
+                    );
                     $logData = $this->monduLogHelper->getTransactionByOrderUid($monduId);
-                    if ($logData['mondu_state'] !== 'shipped'
-                        && $logData['mondu_state'] !== 'partially_shipped'
-                        && $logData['mondu_state'] !== 'partially_complete'
-                        && $logData['mondu_state'] !== 'complete'
-                    ) {
+                    $allowedStates = ['shipped', 'partially_shipped', 'partially_complete', 'complete'];
+                    if (!in_array($logData['mondu_state'], $allowedStates, true)) {
                         throw new LocalizedException(
                             __('Mondu: You cant partially refund order before shipment')
                         );
                     }
+
                     $message = 'Mondu: Unexpected error: Could not send the credit note to Mondu,'
                         . ' please contact Mondu Support to resolve this issue.';
                     $this->messageManager->addErrorMessage($message);

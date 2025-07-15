@@ -25,7 +25,11 @@ class Adjust extends CommonRequest implements RequestInterface
     }
 
     /**
-     * @inheritDoc
+     * Sends an adjustment request to Mondu for the order.
+     *
+     * @param array $params
+     * @throws LocalizedException
+     * @return array
      */
     public function request($params)
     {

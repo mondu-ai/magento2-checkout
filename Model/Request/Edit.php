@@ -16,9 +16,9 @@ class Edit extends CommonRequest
     protected $curl;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $uid;
+    protected ?string $uid = null;
 
     /**
      * @param Curl $curl
@@ -30,7 +30,7 @@ class Edit extends CommonRequest
     }
 
     /**
-     * Request.
+     * Sends an adjustment request to Mondu for the order.
      *
      * @param array $params
      * @throws LocalizedException
@@ -53,12 +53,12 @@ class Edit extends CommonRequest
     }
 
     /**
-     * Sets order uid ( used before sending the request ).
+     * Sets the UID of the order to adjust.
      *
      * @param string $uid
      * @return $this
      */
-    public function setOrderUid(string $uid)
+    public function setOrderUid(string $uid): self
     {
         $this->uid = $uid;
         return $this;

@@ -18,7 +18,7 @@ interface MonduObserverInterface extends ObserverInterface
     public function execute(Observer $observer): void;
 
     /**
-     * Mondu Plugin execute function.
+     * Entry point for all Mondu observers.
      *
      * @param Observer $observer
      * @return void

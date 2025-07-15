@@ -13,7 +13,7 @@ class Webhooks extends CommonRequest implements RequestInterface
     /**
      * @var string
      */
-    protected $topic;
+    protected string $topic;
 
     /**
      * @var Curl
@@ -34,7 +34,7 @@ class Webhooks extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Request.
+     * Sends a webhook registration request to Mondu.
      *
      * @param array|null $params
      * @return $this
@@ -50,23 +50,23 @@ class Webhooks extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Set webhook topic.
+     * Sets the topic to be used for webhook registration.
      *
      * @param string $topic
      * @return $this
      */
-    public function setTopic($topic)
+    public function setTopic(string $topic): self
     {
         $this->topic = $topic;
         return $this;
     }
 
     /**
-     * Get webhook topic.
+     * Returns the current webhook topic.
      *
      * @return string
      */
-    private function getTopic()
+    private function getTopic(): string
     {
         return $this->topic;
     }

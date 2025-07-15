@@ -1,4 +1,4 @@
-<?php
+<?php // @phpcs:disable Generic.Files.LineLength
 
 declare(strict_types=1);
 
@@ -77,10 +77,12 @@ class Template
                 'countryId' => $externalData['buyer_country_code'] ?: $billingAddress->getCountryId(),
                 'merchant_company_name' => $externalData['merchant_company_name'],
                 'bank_account' => $externalData['bank_account'],
-                'invoiceId' => isset($vars['invoice']) && $vars['invoice']->getIncrementId() ? $vars['invoice']->getIncrementId() : '',
+                'invoiceId' => isset($vars['invoice']) && $vars['invoice']->getIncrementId()
+                    ? $vars['invoice']->getIncrementId()
+                    : '',
                 'iban' => $monduLogData['invoice_iban'],
                 'paymentMethod' => $order->getPayment()->getMethodInstance()->getTitle(),
-                'netTerms' => $monduLog['authorized_net_term'] ?? '',
+                'netTerms' => $monduLogData['authorized_net_term'] ?? '',
             ]);
         } catch (Exception $e) {
             $this->monduFileLogger->critical($e->getMessage());

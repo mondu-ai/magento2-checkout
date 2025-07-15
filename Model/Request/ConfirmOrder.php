@@ -18,8 +18,8 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
 
     /**
      * @param Curl $curl
-     * @param UrlBuilder $urlBuilder
      * @param LogFactory $monduLogger
+     * @param UrlBuilder $urlBuilder
      */
     public function __construct(
         Curl $curl,
@@ -30,7 +30,11 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
     }
 
     /**
-     * @inheritDoc
+     * Sends confirm order request to Mondu if not already confirmed.
+     *
+     * @param array $params
+     * @return mixed
+     * @throws LocalizedException
      */
     protected function request($params)
     {
@@ -60,6 +64,8 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
     }
 
     /**
+     * Returns existing log data for the given order UID.
+     *
      * @param string $orderUuid
      * @throws LocalizedException
      * @return mixed

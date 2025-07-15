@@ -26,6 +26,9 @@ class Factory
     public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
 
+    /**
+     * @var array
+     */
     private array $invokableClasses = [
         self::TRANSACTIONS_REQUEST_METHOD => Transactions::class,
         self::TRANSACTION_CONFIRM_METHOD => Confirm::class,

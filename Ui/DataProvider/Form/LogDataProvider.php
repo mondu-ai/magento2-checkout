@@ -9,6 +9,9 @@ use Mondu\Mondu\Model\ResourceModel\Log\CollectionFactory as MonduLogCollectionF
 
 class LogDataProvider extends AbstractDataProvider
 {
+    /**
+     * @var array
+     */
     protected array $loadedData;
 
     /**

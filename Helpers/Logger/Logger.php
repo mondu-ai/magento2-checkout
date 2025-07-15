@@ -10,6 +10,9 @@ use Stringable;
 
 class Logger extends MonologLogger
 {
+    /**
+     * @var string
+     */
     private string $fallbackName = 'MONDU';
 
     /**

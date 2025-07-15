@@ -23,6 +23,12 @@ class Ship extends CommonRequest implements RequestInterface
         $this->curl = $curl;
     }
 
+    /**
+     * Sends a shipping request to Mondu for the order.
+     *
+     * @param array $params
+     * @return mixed
+     */
     public function request($params)
     {
         $url = $this->urlBuilder->getOrderInvoicesUrl($params['order_uid']);

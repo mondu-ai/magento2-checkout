@@ -11,9 +11,9 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Cart\CartTotalRepository;
-use Magento\Quote\Model\Quote;
 use Mondu\Mondu\Helpers\BuyerParams\BuyerParamsInterface;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
@@ -31,7 +31,7 @@ class Transactions extends CommonRequest implements RequestInterface
     /**
      * @var string
      */
-    private $fallbackEmail;
+    private string $fallbackEmail;
 
     /**
      * @param Curl $curl
@@ -59,32 +59,34 @@ class Transactions extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Request.
+     * Sends a request to Mondu to create a transaction based on the current quote.
      *
-     * @param array $_params
+     * @param array $params
      * @return array
      */
-    public function request($_params = []): array
+    public function request($params = []): array
     {
         try {
-            if ($_params['email']) {
-                $this->fallbackEmail = $_params['email'];
+            $this->fallbackEmail = $params['email'] ?? '';
+            $requestParams = $this->getRequestParams();
+            $monduMethods = [
+                PaymentMethod::DIRECT_DEBIT,
+                PaymentMethod::INSTALLMENT,
+                PaymentMethod::INSTALLMENT_BY_INVOICE,
+            ];
+
+            if (in_array($params['payment_method'], $monduMethods, true)) {
+                $requestParams['payment_method'] = $params['payment_method'];
             }
-            $params = $this->getRequestParams();
 
-            if (in_array(
-                $_params['payment_method'],
-                [PaymentMethod::DIRECT_DEBIT, PaymentMethod::INSTALLMENT, PaymentMethod::INSTALLMENT_BY_INVOICE],
-                true
-            )) {
-                $params['payment_method'] = $_params['payment_method'];
-            }
+            $requestParams = json_encode($requestParams);
+            $this->curl->addHeader('X-Mondu-User-Agent', $params['user-agent']);
 
-            $params = json_encode($params);
-
-            $this->curl->addHeader('X-Mondu-User-Agent', $_params['user-agent']);
-
-            $result = $this->sendRequestWithParams('post', $this->monduUrlBuilder->getOrdersUrl(), $params);
+            $result = $this->sendRequestWithParams(
+                'post',
+                $this->monduUrlBuilder->getOrdersUrl(),
+                $requestParams
+            );
             $data = json_decode($result, true);
             $this->checkoutSession->setMonduid($data['order']['uuid'] ?? null);
 
@@ -115,7 +117,7 @@ class Transactions extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Get Request Params from.
+     * Returns request payload from Magento quote and Mondu requirements.
      *
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -155,94 +157,84 @@ class Transactions extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Get Buyer params.
+     * Returns buyer information from the quote billing address and customer data.
      *
-     * @param Quote $quote
+     * @param CartInterface $quote
      * @return array
      */
     private function getBuyerParams(CartInterface $quote): array
     {
-        $params = [];
-        if (($billing = $quote->getBillingAddress()) !== null) {
-            $params = [
-                'is_registered' => (bool) $quote->getCustomer()->getId(),
-                'external_reference_id' => $quote->getCustomerId() ? (string) $quote->getCustomerId() : null,
-                'email' => $billing->getEmail()
-                    ?? $quote->getShippingAddress()->getEmail()
-                    ?? $quote->getCustomerEmail()
-                    ?? $this->fallbackEmail,
-                'company_name' => $billing->getCompany(),
-                'first_name' => $billing->getFirstname(),
-                'last_name' => $billing->getLastname(),
-                'phone' => $billing->getTelephone(),
-            ];
-
-            $params = $this->buyerParams->getBuyerParams($params, $quote);
+        $billing = $quote->getBillingAddress();
+        if (!$billing) {
+            return [];
         }
 
-        return $params;
+        $params = [
+            'is_registered' => (bool) $quote->getCustomer()->getId(),
+            'external_reference_id' => $quote->getCustomerId() ? (string) $quote->getCustomerId() : null,
+            'email' => $billing->getEmail()
+                ?? $quote->getShippingAddress()->getEmail()
+                ?? $quote->getCustomerEmail()
+                ?? $this->fallbackEmail,
+            'company_name' => $billing->getCompany(),
+            'first_name' => $billing->getFirstname(),
+            'last_name' => $billing->getLastname(),
+            'phone' => $billing->getTelephone(),
+        ];
+
+        return $this->buyerParams->getBuyerParams($params, $quote);
     }
 
     /**
-     * Get billing address params.
+     * Extracts billing address details from the quote for Mondu request.
      *
      * @param CartInterface $quote
      * @return array
      */
-    private function getBillingAddressParams(CartInterface $quote): array
+    public function getBillingAddressParams(CartInterface $quote): array
     {
-        $params = [];
-
-        if (($billing = $quote->getBillingAddress()) !== null) {
-            $address = (array) $billing->getStreet();
-            $line1 = (string) array_shift($address);
-            if ($billing->getStreetNumber()) {
-                $line1 .= ', ' . $billing->getStreetNumber();
-            }
-            $line2 = (string) implode(' ', $address);
-            $params = [
-                'country_code' => $billing->getCountryId(),
-                'city' => $billing->getCity(),
-                'zip_code' => $billing->getPostcode(),
-                'address_line1' => $line1,
-                'address_line2' => $line2,
-            ];
-            if ($billing->getRegion()) {
-                $params['state'] = (string) $billing->getRegion();
-            }
-        }
-
-        return $params;
+        return $this->extractAddressParams($quote->getBillingAddress());
     }
 
     /**
-     * Get shipping address params.
+     * Extracts shipping address details from the quote for Mondu request.
      *
      * @param CartInterface $quote
      * @return array
      */
-    private function getShippingAddressParams(CartInterface $quote): array
+    public function getShippingAddressParams(CartInterface $quote): array
     {
-        $params = [];
+        return $this->extractAddressParams($quote->getShippingAddress());
+    }
 
-        if (($shipping = $quote->getShippingAddress()) !== null) {
-            $address = (array) $shipping->getStreet();
-            $line1 = (string) array_shift($address);
-            if ($shipping->getStreetNumber()) {
-                $line1 .= ', ' . $shipping->getStreetNumber();
-            }
-            $line2 = (string) implode(' ', $address);
-            $params = [
-                'country_code' => $shipping->getCountryId(),
-                'city' => $shipping->getCity(),
-                'zip_code' => $shipping->getPostcode(),
-                'address_line1' => $line1,
-                'address_line2' => $line2,
-            ];
+    /**
+     * Extracts address fields into Mondu format.
+     *
+     * @param AddressInterface|null $address
+     * @return array
+     */
+    public function extractAddressParams(?AddressInterface $address): array
+    {
+        if (!$address) {
+            return [];
+        }
 
-            if ($shipping->getRegion()) {
-                $params['state'] = (string) $shipping->getRegion();
-            }
+        $street = (array) $address->getStreet();
+        $line1 = (string) array_shift($street);
+        if ($address->getStreetNumber()) {
+            $line1 .= ', ' . $address->getStreetNumber();
+        }
+
+        $params = [
+            'country_code' => $address->getCountryId(),
+            'city' => $address->getCity(),
+            'zip_code' => $address->getPostcode(),
+            'address_line1' => $line1,
+            'address_line2' => (string) implode(' ', $street),
+        ];
+
+        if ($address->getRegion()) {
+            $params['state'] = (string) $address->getRegion();
         }
 
         return $params;

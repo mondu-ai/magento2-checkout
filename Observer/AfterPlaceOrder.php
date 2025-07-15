@@ -31,7 +31,7 @@ class AfterPlaceOrder extends MonduObserver
     }
 
     /**
-     * Execute.
+     * Sets order status after placement based on Mondu state.
      *
      * @param Observer $observer
      * @throws Exception

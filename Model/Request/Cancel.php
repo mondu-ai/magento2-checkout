@@ -23,6 +23,12 @@ class Cancel extends CommonRequest implements RequestInterface
         $this->curl = $curl;
     }
 
+    /**
+     * Sends a cancellation request to Mondu for the order.
+     *
+     * @param array $params
+     * @return mixed
+     */
     public function request($params)
     {
         $url = $this->urlBuilder->getOrderCancelUrl($params['orderUid']);

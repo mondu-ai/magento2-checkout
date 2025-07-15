@@ -24,6 +24,13 @@ class OrderInvoices extends CommonRequest implements RequestInterface
         $this->curl = $curl;
     }
 
+    /**
+     * Sends a request to Mondu to fetch all invoices related to a given order.
+     *
+     * @param array|null $params
+     * @throws LocalizedException
+     * @return mixed
+     */
     public function request($params = null)
     {
         $url = $this->urlBuilder->getOrderInvoicesUrl($params['order_uuid']);

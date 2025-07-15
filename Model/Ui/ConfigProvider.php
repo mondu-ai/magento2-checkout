@@ -27,6 +27,9 @@ class ConfigProvider implements ConfigProviderInterface
 
     public const AUTHORIZATION_STATE_FLOW = 'authorization_flow';
 
+    /**
+     * @var int|null
+     */
     private ?int $contextCode = null;
 
     /**

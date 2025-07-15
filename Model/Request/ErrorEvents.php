@@ -14,6 +14,9 @@ class ErrorEvents extends CommonRequest
      */
     protected $curl;
 
+    /**
+     * @var bool
+     */
     protected bool $sendEvents = false;
 
     /**
@@ -26,7 +29,7 @@ class ErrorEvents extends CommonRequest
     }
 
     /**
-     * Request.
+     * Sends plugin error events to Mondu.
      *
      * @param array $params
      * @return mixed

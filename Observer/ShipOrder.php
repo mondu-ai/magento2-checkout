@@ -17,6 +17,9 @@ use Mondu\Mondu\Model\Log as MonduLogModel;
 
 class ShipOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected string $name = 'ShipOrder';
 
     /**
@@ -37,7 +40,7 @@ class ShipOrder extends MonduObserver
     }
 
     /**
-     * Execute.
+     * Sends invoice data to Mondu when the order is shipped, if not already invoiced.
      *
      * @param Observer $observer
      * @throws LocalizedException

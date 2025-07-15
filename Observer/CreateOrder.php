@@ -19,6 +19,9 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected string $name = 'CreateOrder';
 
     /**
@@ -45,7 +48,7 @@ class CreateOrder extends MonduObserver
     }
 
     /**
-     * Execute.
+     * Creates or adjusts a Mondu order based on order context.
      *
      * @param Observer $observer
      * @throws LocalizedException
@@ -126,7 +129,7 @@ class CreateOrder extends MonduObserver
     }
 
     /**
-     * Confirm Authorized Order.
+     * Confirms authorized Mondu order if applicable.
      *
      * @param array $orderData
      * @param string $orderNumber

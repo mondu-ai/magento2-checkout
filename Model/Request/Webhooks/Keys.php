@@ -19,19 +19,14 @@ class Keys extends CommonRequest implements RequestInterface
     protected $curl;
 
     /**
-     * @var int
+     * @var string|null
      */
-    protected $storeId = 0;
-
-    /**
-     * @var string
-     */
-    protected $webhookSecret;
+    protected ?string $webhookSecret = null;
 
     /**
      * @var int
      */
-    protected $responseStatus;
+    protected int $responseStatus;
 
     /**
      * @param Curl $curl
@@ -47,7 +42,7 @@ class Keys extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Request.
+     * Sends request to retrieve the webhook secret key from Mondu.
      *
      * @param array|null $params
      * @return $this
@@ -84,7 +79,7 @@ class Keys extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Update.
+     * Updates the config with the latest webhook secret.
      *
      * @return $this
      */
@@ -95,7 +90,7 @@ class Keys extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Get Webhook Secret.
+     * Returns the webhook secret obtained from the API.
      *
      * @return string
      */

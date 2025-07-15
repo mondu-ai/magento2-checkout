@@ -16,6 +16,9 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CancelOrder extends MonduObserver
 {
+    /**
+     * @var string
+     */
     protected string $name = 'CancelOrder';
 
     /**
@@ -36,7 +39,7 @@ class CancelOrder extends MonduObserver
     }
 
     /**
-     * Execute.
+     * Cancels the order in Mondu if eligible.
      *
      * @param Observer $observer
      * @throws LocalizedException

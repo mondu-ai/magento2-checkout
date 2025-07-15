@@ -73,7 +73,7 @@ class Index implements ActionInterface
                 default:
                     throw new AuthorizationException(__('Unregistered topic'));
             }
-        } catch (AuthorizationException|Exception $e) {
+        } catch (Exception $e) {
             $resBody = ['error' => 1, 'message' => $e->getMessage()];
             $resStatus = 400;
         }

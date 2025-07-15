@@ -12,6 +12,9 @@ use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
 
 abstract class MonduObserver implements MonduObserverInterface
 {
+    /**
+     * @var string
+     */
     protected string $name = 'MonduObserver';
 
     /**
@@ -27,7 +30,7 @@ abstract class MonduObserver implements MonduObserverInterface
     }
 
     /**
-     * Execute.
+     * Entry point for all Mondu observers.
      *
      * @param Observer $observer
      * @return void

@@ -16,6 +16,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for listing all orders.
+     *
      * @return string
      */
     public function getOrdersUrl(): string
@@ -24,6 +26,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for retrieving a specific order.
+     *
      * @param string $orderUid
      * @return string
      */
@@ -33,6 +37,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for adjusting an existing order.
+     *
      * @param string $orderUid
      * @return string
      */
@@ -42,6 +48,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for canceling an order.
+     *
      * @param string $orderUid
      * @return string
      */
@@ -51,6 +59,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for confirming an order.
+     *
      * @param string $orderUid
      * @return string
      */
@@ -60,6 +70,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for retrieving order invoices.
+     *
      * @param string $orderUid
      * @return string
      */
@@ -69,6 +81,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for retrieving credit notes related to an invoice.
+     *
      * @param string $invoiceUid
      * @return string
      */
@@ -78,6 +92,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for retrieving available payment methods.
+     *
      * @return string
      */
     public function getPaymentMethodsUrl(): string
@@ -86,6 +102,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for webhook registration.
+     *
      * @return string
      */
     public function getWebhooksUrl(): string
@@ -94,6 +112,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for retrieving webhook signing keys.
+     *
      * @return string
      */
     public function getWebhookKeysUrl(): string
@@ -102,6 +122,8 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for listing plugin-triggered events.
+     *
      * @return string
      */
     public function getPluginEventsUrl(): string
@@ -110,7 +132,7 @@ class UrlBuilder
     }
 
     /**
-     * Returns the Mondu API URL based on the current mode.
+     * Builds the full Mondu API URL based on the path and environment mode.
      *
      * @param string|null $path
      * @return string

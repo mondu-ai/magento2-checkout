@@ -22,7 +22,7 @@ class Adjust extends Action implements HttpGetActionInterface
      */
     public function __construct(Context $context, protected PageFactory $pageFactory)
     {
-        return parent::__construct($context);
+        parent::__construct($context);
     }
 
     /**

@@ -24,6 +24,13 @@ class PaymentMethods extends CommonRequest implements RequestInterface
         $this->curl = $curl;
     }
 
+    /**
+     * Sends a request to fetch available Mondu payment methods.
+     *
+     * @param array|null $params
+     * @throws LocalizedException
+     * @return mixed
+     */
     public function request($params = null)
     {
         $resultJson = $this->sendRequestWithParams('get', $this->urlBuilder->getPaymentMethodsUrl());

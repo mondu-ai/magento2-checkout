@@ -20,7 +20,7 @@ class Confirm extends CommonRequest
     /**
      * @var bool
      */
-    private $validate = true;
+    private bool $validate = true;
 
     /**
      * @param Curl $curl
@@ -32,7 +32,7 @@ class Confirm extends CommonRequest
     }
 
     /**
-     * Request.
+     * Sends a request to retrieve order details and optionally validates the order state.
      *
      * @param array $params
      * @throws LocalizedException

@@ -23,6 +23,12 @@ class Memo extends CommonRequest implements RequestInterface
         $this->curl = $curl;
     }
 
+    /**
+     * Sends a credit memo request to Mondu for the invoice.
+     *
+     * @param array $params
+     * @return mixed
+     */
     protected function request($params)
     {
         $url = $this->urlBuilder->getInvoiceCreditNotesUrl($params['invoice_uid']);

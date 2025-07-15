@@ -7,7 +7,7 @@ namespace Mondu\Mondu\Model\Request;
 interface RequestInterface
 {
     /**
-     * Send request to Mondu Api.
+     * Processes the request and optionally dispatches error events.
      *
      * @param array|null $params
      * @return mixed
@@ -15,7 +15,7 @@ interface RequestInterface
     public function process($params);
 
     /**
-     * Set request headers.
+     * Sets common HTTP headers for the request.
      *
      * @param array $headers
      * @return $this
@@ -23,7 +23,7 @@ interface RequestInterface
     public function setCommonHeaders(array $headers): self;
 
     /**
-     * Sets env information.
+     * Sets the environment data for inclusion in event payloads.
      *
      * @param array $environment
      * @return $this
@@ -31,7 +31,7 @@ interface RequestInterface
     public function setEnvironmentInformation(array $environment): self;
 
     /**
-     * Sets request origin.
+     * Sets the origin identifier for the current request.
      *
      * @param string $origin
      * @return $this

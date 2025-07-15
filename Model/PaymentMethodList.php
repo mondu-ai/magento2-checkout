@@ -13,6 +13,9 @@ use Mondu\Mondu\Model\Payment\Mondu;
 
 class PaymentMethodList
 {
+    /**
+     * @var array
+     */
     private array $paymentMethods = [];
 
     /**

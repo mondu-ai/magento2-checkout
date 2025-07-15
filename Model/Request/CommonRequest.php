@@ -15,14 +15,33 @@ abstract class CommonRequest implements RequestInterface
      */
     protected $curl;
 
+    /**
+     * @var array
+     */
     protected array $envInformation;
+
+    /**
+     * @var string|null
+     */
     protected ?string $requestParams = null;
+
+    /**
+     * @var bool
+     */
     protected bool $sendEvents = true;
+
+    /**
+     * @var string
+     */
     protected string $requestOrigin;
+
+    /**
+     * @var RequestInterface|null
+     */
     protected ?RequestInterface $errorEventsHandler = null;
 
     /**
-     * Method that sends the request to api.
+     * Sends a request to the Mondu API
      *
      * @param array|null $params
      * @return mixed
@@ -31,7 +50,7 @@ abstract class CommonRequest implements RequestInterface
     abstract protected function request($params);
 
     /**
-     * Sends Request
+     * Processes the request and optionally dispatches error events.
      *
      * @param mixed $params
      * @return mixed
@@ -59,7 +78,7 @@ abstract class CommonRequest implements RequestInterface
     }
 
     /**
-     * Sets Curl headers.
+     * Sets common HTTP headers for the request.
      *
      * @param array $headers
      * @return $this
@@ -71,7 +90,7 @@ abstract class CommonRequest implements RequestInterface
     }
 
     /**
-     * Sets env information.
+     * Sets the environment data for inclusion in event payloads.
      *
      * @param array $environment
      * @return $this
@@ -86,7 +105,7 @@ abstract class CommonRequest implements RequestInterface
     }
 
     /**
-     * Sets request origin.
+     * Sets the origin identifier for the current request.
      *
      * @param string $origin
      * @return $this
@@ -101,12 +120,12 @@ abstract class CommonRequest implements RequestInterface
     }
 
     /**
-     * Send error events to Mondu Api.
+     * Sends error event payload if the response indicates failure.
      *
      * @param Exception|null $exception
      * @return void
      */
-    public function sendEvents($exception = null): void
+    public function sendEvents(?Exception $exception = null): void
     {
         $statusFirstDigit = ((string) $this->curl->getStatus())[0];
         if ($statusFirstDigit !== '1' && $statusFirstDigit !== '2') {
@@ -161,7 +180,7 @@ abstract class CommonRequest implements RequestInterface
     }
 
     /**
-     * Sets error events handler.
+     * Sets a custom handler for dispatching Mondu API error events.
      *
      * @param RequestInterface $handler
      * @return $this

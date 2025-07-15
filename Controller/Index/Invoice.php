@@ -74,6 +74,8 @@ class Invoice implements ActionInterface
     }
 
     /**
+     * Retrieves the invoice from an order by increment ID.
+     *
      * @param OrderInterface $order
      * @param string $invoiceRef
      * @return InvoiceInterface|null

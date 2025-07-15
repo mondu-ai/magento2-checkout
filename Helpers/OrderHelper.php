@@ -108,7 +108,7 @@ class OrderHelper
             }
             $order->setData('mondu_reference_id', $orderUid);
             $order->addCommentToStatusHistory(__('Mondu: order with id %1 was adjusted', $orderUid));
-        } catch (Exception|LocalizedException $e) {
+        } catch (Exception $e) {
             if ($orderId) {
                 throw new LocalizedException(__('Mondu api error: %1', $e->getMessage()));
             }
