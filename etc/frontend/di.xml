@@ -1,16 +1,18 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="custom_payment_gateway_config_provider" xsi:type="object">Mondu\Mondu\Model\Ui\ConfigProvider</item>
+                <item name="custom_payment_gateway_config_provider"
+                      xsi:type="object">Mondu\Mondu\Model\Ui\ConfigProvider</item>
             </argument>
         </arguments>
     </type>
     <type name="Mondu\Mondu\Block\Info">
         <arguments>
             <argument name="data" xsi:type="array">
-                <item xsi:type="string" name="is_secure_mode">1</item>
+                <item name="is_secure_mode" xsi:type="string">1</item>
             </argument>
         </arguments>
     </type>

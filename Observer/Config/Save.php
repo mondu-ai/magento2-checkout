@@ -1,105 +1,70 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Observer\Config;
 
+use Exception;
 use Magento\Framework\Event\Observer;
-use Magento\Store\Model\StoreManagerInterface;
-use Mondu\Mondu\Helpers\PaymentMethod;
-use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Save implements ObserverInterface
 {
-    /**
-     * @var RequestFactory
-     */
-    private $requestFactory;
+    private const SUBSCRIPTIONS = ['order/confirmed', 'order/declined', 'order/pending'];
 
     /**
-     * @var ConfigProvider
-     */
-    private $monduConfig;
-    /**
-     * @var PaymentMethod
-     */
-    private $paymentMethod;
-
-    /**
-     * @var string[]
-     */
-    private $subscriptions = [
-        'order/confirmed',
-        'order/declined',
-        'order/pending'
-    ];
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
-    /**
-     * @param RequestFactory $requestFactory
      * @param ConfigProvider $monduConfig
      * @param PaymentMethod $paymentMethod
-     * @param StoreManagerInterface $storeManager
+     * @param RequestFactory $requestFactory
      */
     public function __construct(
-        RequestFactory $requestFactory,
-        ConfigProvider $monduConfig,
-        PaymentMethod $paymentMethod,
-        StoreManagerInterface $storeManager
+        private readonly ConfigProvider $monduConfig,
+        private readonly PaymentMethod $paymentMethod,
+        private readonly RequestFactory $requestFactory,
     ) {
-        $this->requestFactory = $requestFactory;
-        $this->monduConfig = $monduConfig;
-        $this->paymentMethod = $paymentMethod;
-        $this->storeManager = $storeManager;
     }
 
     /**
-     * Execute
+     * Validates Mondu config and registers required webhook keys and subscriptions on save.
      *
      * @param Observer $observer
-     * @return void
      * @throws LocalizedException
+     * @return void
      */
-    public function execute(Observer $observer)
+    public function execute(Observer $observer): void
     {
-        if ($this->monduConfig->isActive()) {
-            if ($this->monduConfig->getApiKey()) {
-                try {
-                    $this->monduConfig->updateNewOrderStatus();
-                    $this->paymentMethod->resetAllowedCache();
+        if (!$this->monduConfig->isActive()) {
+            return;
+        }
 
-                    $storeId = $this->storeManager->getStore()->getId();
-                    $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
-                       ->process()
-                       ->checkSuccess()
-                       ->update();
+        $apiKey = $this->monduConfig->getApiKey();
+        if (!$apiKey) {
+            throw new LocalizedException(__('Cannot enable Mondu payments: API key is missing.'));
+        }
 
-                    $this->requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/confirmed')
-                       ->process();
+        try {
+            $this->monduConfig->updateNewOrderStatus();
+            $this->paymentMethod->resetAllowedCache();
 
-                    $this->requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/pending')
-                       ->process();
+            $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
+                ->process()
+                ->checkSuccess()
+                ->update();
 
-                    $this->requestFactory
-                       ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
-                       ->setTopic('order/declined')
-                       ->process();
-
-                    $this->monduConfig->clearConfigurationCache();
-                } catch (\Exception $e) {
-                    throw new LocalizedException(__($e->getMessage()));
-                }
-            } else {
-                throw new LocalizedException(__('Cant enable Mondu payments API key is missing'));
+            foreach (self::SUBSCRIPTIONS as $topic) {
+                $this->requestFactory
+                    ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
+                    ->setTopic($topic)
+                    ->process();
             }
+
+            $this->monduConfig->clearConfigurationCache();
+        } catch (Exception $e) {
+            throw new LocalizedException(__($e->getMessage()));
         }
     }
 }

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Payment;
 
 use Magento\Payment\Model\InfoInterface;
+use Magento\Payment\Model\Method\AbstractMethod;
 
-class MonduInstallment extends \Magento\Payment\Model\Method\AbstractMethod
+class MonduInstallment extends AbstractMethod
 {
     public const PAYMENT_METHOD_MONDU_CODE = 'monduinstallment';
 
@@ -14,7 +17,7 @@ class MonduInstallment extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_code = 'monduinstallment';
 
     /**
-     * Authorize
+     * Authorize.
      *
      * @param InfoInterface $payment
      * @param float $amount
@@ -26,7 +29,7 @@ class MonduInstallment extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * SetCode
+     * SetCode.
      *
      * @param string $code
      * @return $this
@@ -38,7 +41,7 @@ class MonduInstallment extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * CanUseForCountry
+     * CanUseForCountry.
      *
      * @param string $country
      * @return bool
@@ -55,10 +58,11 @@ class MonduInstallment extends \Magento\Payment\Model\Method\AbstractMethod
 
         if ($allowSpecific == 1) {
             $availableCountries = explode(',', $availableCountries);
-            if (!in_array($country, $availableCountries)) {
+            if (!in_array($country, $availableCountries, true)) {
                 return false;
             }
         }
+
         return true;
     }
 }

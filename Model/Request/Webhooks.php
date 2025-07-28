@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\HTTP\Client\Curl;
+use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Webhooks extends CommonRequest implements RequestInterface
@@ -10,7 +13,7 @@ class Webhooks extends CommonRequest implements RequestInterface
     /**
      * @var string
      */
-    protected $topic;
+    protected string $topic;
 
     /**
      * @var Curl
@@ -18,58 +21,52 @@ class Webhooks extends CommonRequest implements RequestInterface
     protected $curl;
 
     /**
-     * @var ConfigProvider
-     */
-    protected $configProvider;
-
-    /**
      * @param Curl $curl
      * @param ConfigProvider $configProvider
+     * @param UrlBuilder $urlBuilder
      */
     public function __construct(
         Curl $curl,
-        ConfigProvider $configProvider
+        private readonly ConfigProvider $configProvider,
+        private readonly UrlBuilder $urlBuilder,
     ) {
         $this->curl = $curl;
-        $this->configProvider = $configProvider;
     }
 
     /**
-     * Request
+     * Sends a webhook registration request to Mondu.
      *
      * @param array|null $params
      * @return $this
      */
     public function request($params = null): Webhooks
     {
-        $url = $this->configProvider->getApiUrl('webhooks');
-
-        $this->sendRequestWithParams('post', $url, json_encode([
+        $this->sendRequestWithParams('post', $this->urlBuilder->getWebhooksUrl(), json_encode([
             'address' => $this->configProvider->getWebhookUrl(),
-            'topic' => $this->getTopic()
+            'topic' => $this->getTopic(),
         ]));
 
         return $this;
     }
 
     /**
-     * Set webhook topic
+     * Sets the topic to be used for webhook registration.
      *
      * @param string $topic
      * @return $this
      */
-    public function setTopic($topic)
+    public function setTopic(string $topic): self
     {
         $this->topic = $topic;
         return $this;
     }
 
     /**
-     * Get webhook topic
+     * Returns the current webhook topic.
      *
      * @return string
      */
-    private function getTopic()
+    private function getTopic(): string
     {
         return $this->topic;
     }

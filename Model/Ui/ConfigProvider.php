@@ -1,14 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\UrlInterface;
-use Mondu\Mondu\Gateway\Http\Client\ClientMock;
-use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
-use Magento\Framework\App\Config\Storage\WriterInterface;
-use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class ConfigProvider implements ConfigProviderInterface
@@ -20,169 +22,121 @@ class ConfigProvider implements ConfigProviderInterface
 
     public const API_URL = 'https://api.mondu.ai/api/v1';
     public const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
-
-    public const AUTHORIZATION_STATE_FLOW = 'authorization_flow';
-
     public const SDK_URL = 'https://checkout.mondu.ai/widget.js';
     public const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.ai/widget.js';
 
-    /**
-     * @var UrlInterface
-     */
-    private $urlBuilder;
+    public const AUTHORIZATION_STATE_FLOW = 'authorization_flow';
 
     /**
-     * @var ResourceConfig
+     * @var int|null
      */
-    private $resourceConfig;
+    private ?int $contextCode = null;
 
     /**
-     * @var EncryptorInterface
-     */
-    private $encryptor;
-
-    /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-
-    /**
-     * @var WriterInterface
-     */
-    private $configWriter;
-
-    /**
-     * @var TypeListInterface
-     */
-    private $cacheTypeList;
-
-    /**
-     * @var string|null
-     */
-    private $contextCode = null;
-
-    /**
-     * @param UrlInterface $urlBuilder
-     * @param ScopeConfigInterface $scopeConfig
-     * @param ResourceConfig $resourceConfig
      * @param EncryptorInterface $encryptor
-     * @param WriterInterface $writer
+     * @param ResourceConfig $resourceConfig
+     * @param ScopeConfigInterface $scopeConfig
      * @param TypeListInterface $cacheTypeList
+     * @param UrlInterface $urlBuilder
+     * @param WriterInterface $writer
      */
     public function __construct(
-        UrlInterface $urlBuilder,
-        ScopeConfigInterface $scopeConfig,
-        ResourceConfig $resourceConfig,
-        EncryptorInterface $encryptor,
-        WriterInterface $writer,
-        TypeListInterface $cacheTypeList
+        private readonly EncryptorInterface $encryptor,
+        private readonly ResourceConfig $resourceConfig,
+        private readonly ScopeConfigInterface $scopeConfig,
+        private readonly TypeListInterface $cacheTypeList,
+        private readonly UrlInterface $urlBuilder,
+        private readonly WriterInterface $writer,
     ) {
-        $this->urlBuilder = $urlBuilder;
-        $this->scopeConfig = $scopeConfig;
-        $this->resourceConfig = $resourceConfig;
-        $this->encryptor = $encryptor;
-        $this->configWriter = $writer;
-        $this->cacheTypeList = $cacheTypeList;
     }
 
     /**
-     * Returns mondu api url
-     *
-     * @param string|null $path
-     * @return string
-     */
-    public function getApiUrl($path = null): string
-    {
-        $baseUrl = self::API_URL;
-
-        if ($this->scopeConfig->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode)) {
-            $baseUrl = self::SANDBOX_API_URL;
-        }
-
-        return $baseUrl . ($path ? '/'.$path : '');
-    }
-
-    /**
-     * Returns mondu.js url
+     * Returns the widget SDK URL based on the current mode.
      *
      * @return string
      */
     public function getSdkUrl(): string
     {
-        if ($this->scopeConfig->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode)) {
-            return self::SANDBOX_SDK_URL;
-        }
-        return self::SDK_URL;
+        return $this->isSandboxModeEnabled() ? self::SANDBOX_SDK_URL : self::SDK_URL;
     }
 
     /**
-     * Get mode (sandbox or live)
+     * Returns the current mode (sandbox or live).
      *
      * @return string
      */
     public function getMode(): string
     {
-        return $this->scopeConfig
-            ->getValue('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode) ? 'sandbox' : 'live';
+        return $this->isSandboxModeEnabled() ? 'sandbox' : 'live';
     }
 
     /**
-     * Get Debug option
+     * Checks if sandbox mode is enabled.
      *
      * @return bool
      */
-    public function getDebug()
+    public function isSandboxModeEnabled(): bool
     {
-        return (bool)$this->scopeConfig->getValue('payment/mondu/debug');
+        return $this->scopeConfig->isSetFlag('payment/mondu/sandbox', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
-     * Get Webhook url
+     * Checks if debug mode is enabled.
+     *
+     * @return bool
+     */
+    public function isDebugModeEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag('payment/mondu/debug');
+    }
+
+    /**
+     * Returns the webhook endpoint URL.
      *
      * @return string
      */
     public function getWebhookUrl(): string
     {
-        return $this->urlBuilder->getBaseUrl().'mondu/webhooks/index';
+        return $this->urlBuilder->getBaseUrl() . 'mondu/webhooks/index';
     }
 
     /**
-     * Get api key
+     * Returns the configured API key.
      *
-     * @return mixed
+     * @return string|null
      */
-    public function getApiKey()
+    public function getApiKey(): ?string
     {
         return $this->scopeConfig->getValue('payment/mondu/mondu_key', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
-     * True if any Mondu Payment method is active
+     * Checks if any Mondu payment method is enabled.
      *
      * @return bool
      */
-    public function isActive()
+    public function isActive(): bool
     {
-        return $this->scopeConfig->getValue('payment/mondu/active') ||
-            $this->scopeConfig->getValue('payment/mondusepa/active') ||
-            $this->scopeConfig->getValue('payment/monduinstallment/active') ||
-            $this->scopeConfig->getValue('payment/monduinstallmentbyinvoice/active');
+        return $this->scopeConfig->isSetFlag('payment/mondu/active')
+            || $this->scopeConfig->isSetFlag('payment/mondusepa/active')
+            || $this->scopeConfig->isSetFlag('payment/monduinstallment/active')
+            || $this->scopeConfig->isSetFlag('payment/monduinstallmentbyinvoice/active');
     }
 
     /**
-     * Is Cron enabled
+     * Checks if Cron processing is enabled.
      *
      * @return bool
      */
     public function isCronEnabled(): bool
     {
-        return (bool) $this->scopeConfig->getValue('payment/mondu/cron');
+        return $this->scopeConfig->isSetFlag('payment/mondu/cron');
     }
 
     /**
-     * Order status for which the Cron job will process the order
+     * Returns the order status used by Cron for filtering.
      *
-     * @return string
+     * @return string|null
      */
     public function getCronOrderStatus(): ?string
     {
@@ -190,37 +144,37 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Is Invoice required for processing the order by the Cron job
+     * Checks whether an invoice is required for Cron processing.
      *
      * @return bool
      */
     public function isInvoiceRequiredCron(): bool
     {
-        return (bool) $this->scopeConfig->getValue('payment/mondu/cron_require_invoice');
+        return $this->scopeConfig->isSetFlag('payment/mondu/cron_require_invoice');
     }
 
     /**
-     * Get invoice url for order
+     * Returns the PDF invoice download URL.
      *
      * @param string $orderUid
      * @param string $invoiceId
      * @return string
      */
-    public function getPdfUrl($orderUid, $invoiceId)
+    public function getPdfUrl(string $orderUid, string $invoiceId): string
     {
-        return $this->urlBuilder->getBaseUrl().'mondu/index/invoice?id='.$orderUid.'&r='.$invoiceId;
+        return $this->urlBuilder->getBaseUrl() . 'mondu/index/invoice?id=' . $orderUid . '&r=' . $invoiceId;
     }
 
     /**
-     * GetConfig
+     * GetConfig.
      *
-     * @return \array[][]
+     * @return array
      */
-    public function getConfig()
+    public function getConfig(): array
     {
-        $privacyText =
-            __("Information on the processing of your personal data by Mondu GmbH can be found " .
-                "<a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
+        $privacyText
+            = __('Information on the processing of your personal data by Mondu GmbH can be found '
+                . "<a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
 
         $descriptionConfigMondu = $this->scopeConfig
             ->getValue('payment/mondu/description', ScopeInterface::SCOPE_STORE);
@@ -231,18 +185,18 @@ class ConfigProvider implements ConfigProviderInterface
         $descriptionConfigMonduinstallmentByInvoice = $this->scopeConfig
             ->getValue('payment/monduinstallmentbyinvoice/description', ScopeInterface::SCOPE_STORE);
 
-        $descriptionMondu = $descriptionConfigMondu ?
-            __($descriptionConfigMondu) . '<br><br>' . $privacyText :
-            $privacyText;
-        $descriptionMondusepa = $descriptionConfigMondusepa ?
-            __($descriptionConfigMondusepa) . '<br><br>' . $privacyText :
-            $privacyText;
-        $descriptionMonduinstallment = $descriptionConfigMonduinstallment ?
-            __($descriptionConfigMonduinstallment) . '<br><br>' . $privacyText :
-            $privacyText;
-        $descriptionMonduinstallmentByInvoice = $descriptionConfigMonduinstallmentByInvoice ?
-            __($descriptionConfigMonduinstallmentByInvoice) . '<br><br>' . $privacyText :
-            $privacyText;
+        $descriptionMondu = $descriptionConfigMondu
+            ? __($descriptionConfigMondu) . '<br><br>' . $privacyText
+            : $privacyText;
+        $descriptionMondusepa = $descriptionConfigMondusepa
+            ? __($descriptionConfigMondusepa) . '<br><br>' . $privacyText
+            : $privacyText;
+        $descriptionMonduinstallment = $descriptionConfigMonduinstallment
+            ? __($descriptionConfigMonduinstallment) . '<br><br>' . $privacyText
+            : $privacyText;
+        $descriptionMonduinstallmentByInvoice = $descriptionConfigMonduinstallmentByInvoice
+            ? __($descriptionConfigMonduinstallmentByInvoice) . '<br><br>' . $privacyText
+            : $privacyText;
 
         return [
             'payment' => [
@@ -250,43 +204,42 @@ class ConfigProvider implements ConfigProviderInterface
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondu,
-                    'title' => __($this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE))
+                    'title' => __($this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE)),
                 ],
                 self::SEPA_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondusepa,
-                    'title' => __($this->scopeConfig->getValue('payment/mondusepa/title', ScopeInterface::SCOPE_STORE))
+                    'title' => __($this->scopeConfig->getValue('payment/mondusepa/title', ScopeInterface::SCOPE_STORE)),
                 ],
                 self::INSTALLMENT_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMonduinstallment,
                     'title' => __($this->scopeConfig
-                        ->getValue('payment/monduinstallment/title', ScopeInterface::SCOPE_STORE))
+                        ->getValue('payment/monduinstallment/title', ScopeInterface::SCOPE_STORE)),
                 ],
                 self::INSTALLMENT_BY_INVOICE_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMonduinstallmentByInvoice,
                     'title' => __($this->scopeConfig
-                        ->getValue('payment/monduinstallmentbyinvoice/title', ScopeInterface::SCOPE_STORE))
-                ]
-            ]
+                        ->getValue('payment/monduinstallmentbyinvoice/title', ScopeInterface::SCOPE_STORE)),
+                ],
+            ],
         ];
     }
 
     /**
-     * Updates webhook secret
+     * Updates webhook secret.
      *
      * @param string $webhookSecret
-     * @param string $storeId
      * @return $this
      */
-    public function updateWebhookSecret($webhookSecret = ""): ConfigProvider
+    public function updateWebhookSecret($webhookSecret = ""): self
     {
         $this->resourceConfig->saveConfig(
-            'payment/mondu/'.$this->getMode(). '_webhook_secret',
+            'payment/mondu/' . $this->getMode() . '_webhook_secret',
             $this->encryptor->encrypt($webhookSecret)
         );
 
@@ -294,81 +247,79 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Get new order status
+     * Returns the configured order status for new orders.
      *
-     * @return mixed
+     * @return string
      */
-    public function getNewOrderStatus()
+    public function getNewOrderStatus(): string
     {
         return $this->scopeConfig->getValue('payment/mondu/order_status');
     }
 
     /**
-     * Change new order status
+     * Updates the order status for all Mondu payment methods.
      *
      * @return void
      */
-    public function updateNewOrderStatus()
+    public function updateNewOrderStatus(): void
     {
         $status = $this->getNewOrderStatus();
 
-        $this->configWriter->save('payment/mondusepa/order_status', $status);
-        $this->configWriter->save('payment/monduinstallment/order_status', $status);
-        $this->configWriter->save('payment/monduinstallmentbyinvoice/order_status', $status);
+        $this->writer->save('payment/mondusepa/order_status', $status);
+        $this->writer->save('payment/monduinstallment/order_status', $status);
+        $this->writer->save('payment/monduinstallmentbyinvoice/order_status', $status);
     }
 
     /**
-     * Get webhook secret
+     * Returns the decrypted webhook secret.
      *
      * @return string
      */
-    public function getWebhookSecret()
+    public function getWebhookSecret(): string
     {
-        $val = $this->scopeConfig
-            ->getValue(
-                'payment/mondu/' . $this->getMode().'_webhook_secret'
-            );
+        $val = $this->scopeConfig->getValue('payment/mondu/' . $this->getMode() . '_webhook_secret');
+
         return $this->encryptor->decrypt($val);
     }
 
     /**
-     * Get send lines (if false Mondu plugin will not send order line information to api)
+     * Get send lines (if false Mondu plugin will not send order line information to api).
      *
      * @return bool
      */
-    public function sendLines()
+    public function sendLines(): bool
     {
-        return (bool) $this->scopeConfig->getValue('payment/mondu/send_lines');
+        return $this->scopeConfig->isSetFlag('payment/mondu/send_lines');
     }
 
     /**
-     * Get require invoice (if false Mondu plugin won't require invoice for shipping)
+     * Get require invoice (if false Mondu plugin won't require invoice for shipping).
      *
      * @return bool
      */
     public function isInvoiceRequiredForShipping(): bool
     {
-        return (bool) $this->scopeConfig->getValue('payment/mondu/require_invoice');
+        return $this->scopeConfig->isSetFlag('payment/mondu/require_invoice');
     }
 
     /**
-     * Clears configuration cache
+     * Clears configuration cache.
      *
      * @return void
      */
-    public function clearConfigurationCache()
+    public function clearConfigurationCache(): void
     {
         $this->cacheTypeList->cleanType('config');
     }
 
     /**
-     * Sets context code ( for multiple stores )
+     * Sets context code ( for multiple stores ).
      *
-     * @param int|string $code
+     * @param int $storeId
      * @return void
      */
-    public function setContextCode($code)
+    public function setContextCode(int $storeId): void
     {
-        $this->contextCode = $code;
+        $this->contextCode = $storeId;
     }
 }

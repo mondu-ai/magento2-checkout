@@ -1,39 +1,27 @@
-define(
-    [
-        'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
-    ],
-    function (
-        Component,
-        rendererList
-    ) {
-        'use strict';
-        rendererList.push(
-            {
-                type: 'mondu',
-                component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
-            }
-        );
-        rendererList.push(
-            {
-                type: 'mondusepa',
-                component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
-            }
-        );
-        rendererList.push(
-            {
-                type: 'monduinstallment',
-                component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
-            }
-        );
-        rendererList.push(
-            {
-                type: 'monduinstallmentbyinvoice',
-                component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
-            }
-        );
+define([
+    'uiComponent',
+    'Magento_Checkout/js/model/payment/renderer-list'
+], function (Component, rendererList) {
+    'use strict';
 
-        /** Add view logic here if needed */
-        return Component.extend({});
-    }
-);
+    rendererList.push(
+        {
+            type: 'mondu',
+            component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
+        },
+        {
+            type: 'mondusepa',
+            component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
+        },
+        {
+            type: 'monduinstallment',
+            component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
+        },
+        {
+            type: 'monduinstallmentbyinvoice',
+            component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
+        }
+    );
+
+    return Component.extend({});
+});

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Setup\Patch\Data;
 
 use Magento\Framework\Setup\ModuleDataSetupInterface;
@@ -7,35 +10,32 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 class CronJobPatch implements DataPatchInterface
 {
     /**
-     * @var ModuleDataSetupInterface
-     */
-    private $moduleDataSetup;
-
-    /**
      * @param ModuleDataSetupInterface $moduleDataSetup
      */
-    public function __construct(
-        ModuleDataSetupInterface $moduleDataSetup
-    ) {
-        $this->moduleDataSetup = $moduleDataSetup;
+    public function __construct(private readonly ModuleDataSetupInterface $moduleDataSetup)
+    {
     }
 
     /**
-     * @inheritdoc
+     * Copies config value from require_invoice to cron_require_invoice for compatibility.
+     *
+     * @return void
      */
-    public function apply()
+    public function apply(): void
     {
-        $this->moduleDataSetup->getConnection()->startSetup();
+        $connection = $this->moduleDataSetup->getConnection();
+        $connection->startSetup();
 
         $tableName = $this->moduleDataSetup->getTable('core_config_data');
-        $previousValue = $this->moduleDataSetup->getConnection()->fetchOne('SELECT `value` FROM ' . $tableName . ' WHERE `path` = "payment/mondu/require_invoice"');
+        $previousValue = $connection->fetchOne(
+            $connection->select()
+                ->from($tableName, ['value'])
+                ->where('path = ?', 'payment/mondu/require_invoice')
+        );
 
         if ($previousValue) {
-            $this->moduleDataSetup
-                ->getConnection()
-                ->delete($tableName, ['path = "payment/mondu/cron_require_invoice"']);
-
-            $this->moduleDataSetup->getConnection()->insert($tableName, [
+            $connection->delete($tableName, ['path = "payment/mondu/cron_require_invoice"']);
+            $connection->insert($tableName, [
                 'scope' => 'default',
                 'scope_id' => 0,
                 'path' => 'payment/mondu/cron_require_invoice',
@@ -43,21 +43,25 @@ class CronJobPatch implements DataPatchInterface
             ]);
         }
 
-        $this->moduleDataSetup->getConnection()->endSetup();
+        $connection->endSetup();
     }
 
     /**
-     * @inheritdoc
+     * Get array of patches that have to be executed prior to this.
+     *
+     * @return string[]
      */
-    public static function getDependencies()
+    public static function getDependencies(): array
     {
         return [];
     }
 
     /**
-     * @inheritdoc
+     * Get aliases (previous names) for the patch.
+     *
+     * @return string[]
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }

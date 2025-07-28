@@ -1,56 +1,57 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Mondu\Mondu\Model\ResourceModel\Log\Grid;
 
+use Magento\Framework\Api\ExtensibleDataInterface;
 use Magento\Framework\Api\Search\AggregationInterface;
 use Magento\Framework\Api\Search\SearchResultInterface;
+use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
+use Magento\Framework\Data\Collection\EntityFactoryInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\View\Element\UiComponent\DataProvider\Document;
 use Mondu\Mondu\Model\ResourceModel\Log\Collection as LogCollection;
+use Psr\Log\LoggerInterface;
 
 class Collection extends LogCollection implements SearchResultInterface
 {
-
     /**
      * @var AggregationInterface
      */
     protected $aggregations;
 
     /**
-     * @param \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
-     * @param \Magento\Framework\Event\ManagerInterface $eventManager
+     * @param EntityFactoryInterface $entityFactory
+     * @param LoggerInterface $logger
+     * @param FetchStrategyInterface $fetchStrategy
+     * @param ManagerInterface $eventManager
      * @param string $mainTable
      * @param string $eventPrefix
      * @param string $eventObject
      * @param string $resourceModel
      * @param string $model
-     * @param \Magento\Framework\DB\Adapter\AdapterInterface|string|null $connection
-     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb|null $resource
-     *
+     * @param AdapterInterface|null $connection
+     * @param AbstractDb|null $resource
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
-        \Magento\Framework\Event\ManagerInterface $eventManager,
-        $mainTable,
-        $eventPrefix,
-        $eventObject,
-        $resourceModel,
-        $model = \Magento\Framework\View\Element\UiComponent\DataProvider\Document::class,
-        $connection = null,
-        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
+        EntityFactoryInterface $entityFactory,
+        LoggerInterface $logger,
+        FetchStrategyInterface $fetchStrategy,
+        ManagerInterface $eventManager,
+        string $mainTable,
+        string $eventPrefix,
+        string $eventObject,
+        string $resourceModel,
+        string $model = Document::class,
+        ?AdapterInterface $connection = null,
+        ?AbstractDb $resource = null,
     ) {
-        parent::__construct(
-            $entityFactory,
-            $logger,
-            $fetchStrategy,
-            $eventManager,
-            $connection,
-            $resource
-        );
+        parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
         $this->_eventPrefix = $eventPrefix;
         $this->_eventObject = $eventObject;
         $this->_init($model, $resourceModel);
@@ -58,7 +59,9 @@ class Collection extends LogCollection implements SearchResultInterface
     }
 
     /**
-     * @inheritdoc
+     * Get aggregation interface instance.
+     *
+     * @return AggregationInterface
      */
     public function getAggregations()
     {
@@ -66,7 +69,10 @@ class Collection extends LogCollection implements SearchResultInterface
     }
 
     /**
-     * @inheritdoc
+     * Set aggregation interface instance.
+     *
+     * @param AggregationInterface $aggregations
+     * @return $this
      */
     public function setAggregations($aggregations)
     {
@@ -75,7 +81,9 @@ class Collection extends LogCollection implements SearchResultInterface
     }
 
     /**
-     * @inheritdoc
+     * Get search criteria.
+     *
+     * @return SearchCriteriaInterface|null
      */
     public function getSearchCriteria()
     {
@@ -85,11 +93,11 @@ class Collection extends LogCollection implements SearchResultInterface
     /**
      * Set search criteria.
      *
-     * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
+     * @param SearchCriteriaInterface|null $searchCriteria
      * @return $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function setSearchCriteria(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria = null)
+    public function setSearchCriteria(?SearchCriteriaInterface $searchCriteria = null)
     {
         return $this;
     }
@@ -99,7 +107,7 @@ class Collection extends LogCollection implements SearchResultInterface
      *
      * @return int
      */
-    public function getTotalCount()
+    public function getTotalCount(): int
     {
         return $this->getSize();
     }
@@ -119,11 +127,11 @@ class Collection extends LogCollection implements SearchResultInterface
     /**
      * Set items list.
      *
-     * @param \Magento\Framework\Api\ExtensibleDataInterface[] $items
+     * @param ExtensibleDataInterface[]|null $items
      * @return $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function setItems(array $items = null)
+    public function setItems(?array $items = null)
     {
         return $this;
     }

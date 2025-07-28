@@ -1,7 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Model\ResourceModel\MonduTransactionItem;
 
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Mondu\Mondu\Model\MonduTransactionItem as MonduTransactionItemModel;
+use Mondu\Mondu\Model\ResourceModel\MonduTransactionItem as MonduTransactionItemResource;
 
 class Collection extends AbstractCollection
 {
@@ -21,15 +26,12 @@ class Collection extends AbstractCollection
     protected $_eventObject = 'mondu_transaction_item_collection';
 
     /**
-     * Define the resource model & the model.
+     * Initializes the model and resource model for the collection.
      *
      * @return void
      */
-    protected function _construct()
+    protected function _construct(): void
     {
-        $this->_init(
-            \Mondu\Mondu\Model\MonduTransactionItem::class,
-            \Mondu\Mondu\Model\ResourceModel\MonduTransactionItem::class
-        );
+        $this->_init(MonduTransactionItemModel::class, MonduTransactionItemResource::class);
     }
 }

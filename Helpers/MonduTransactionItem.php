@@ -1,57 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mondu\Mondu\Helpers;
 
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Api\Data\OrderInterface;
 use Mondu\Mondu\Model\MonduTransactionItemFactory;
 
-class MonduTransactionItem extends AbstractHelper
+class MonduTransactionItem
 {
     /**
-     * @var MonduTransactionItemFactory
-     */
-    protected $monduTransactionItem;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-    /**
      * @param MonduTransactionItemFactory $monduTransactionItem
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
-    public function __construct(
-        MonduTransactionItemFactory $monduTransactionItem,
-        SearchCriteriaBuilder $searchCriteriaBuilder
-    ) {
-        $this->monduTransactionItem = $monduTransactionItem;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+    public function __construct(private readonly MonduTransactionItemFactory $monduTransactionItem)
+    {
     }
 
     /**
-     * Delete Records
+     * Deletes all items linked to a specific transaction.
      *
      * @param int $transactionId
      * @return void
      */
-    public function deleteRecords($transactionId)
+    public function deleteRecords($transactionId): void
     {
         $transactionItem = $this->monduTransactionItem->create();
         $transactionItem->deleteRecordsForTransaction($transactionId);
     }
 
     /**
-     * GetCollectionFromTransactionId
+     * Returns transaction item collection by transaction ID.
      *
-     * @param string $monduTransactionId
-     * @return AbstractDb|AbstractCollection|null
+     * @param int $monduTransactionId
+     * @throws LocalizedException
+     * @return AbstractCollection|AbstractDb|null
      */
-    public function getCollectionFromTransactionId($monduTransactionId)
+    public function getCollectionFromTransactionId(int $monduTransactionId)
     {
         $transactionItem = $this->monduTransactionItem->create();
 
@@ -61,14 +48,14 @@ class MonduTransactionItem extends AbstractHelper
     }
 
     /**
-     * CreateTransactionItemsForOrder
+     * Creates transaction item records based on the order items.
      *
-     * @param string $monduTransactionId
-     * @param Order $order
+     * @param int $monduTransactionId
+     * @param OrderInterface $order
+     * @throws LocalizedException
      * @return void
-     * @throws \Exception
      */
-    public function createTransactionItemsForOrder($monduTransactionId, $order)
+    public function createTransactionItemsForOrder(int $monduTransactionId, OrderInterface $order): void
     {
         foreach ($order->getItems() as $orderItem) {
             if (! (float) $orderItem->getBasePrice()) {
@@ -91,7 +78,7 @@ class MonduTransactionItem extends AbstractHelper
                 'quote_item_id' => $orderItem->getQuoteItemId(),
                 'order_item_id' => $orderItem->getId(),
                 'mondu_transaction_id' => $monduTransactionId,
-                'product_id' => $variationId
+                'product_id' => $variationId,
             ]);
             $transactionItemFactory->save();
         }
