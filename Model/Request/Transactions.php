@@ -73,6 +73,7 @@ class Transactions extends CommonRequest implements RequestInterface
                 PaymentMethod::DIRECT_DEBIT,
                 PaymentMethod::INSTALLMENT,
                 PaymentMethod::INSTALLMENT_BY_INVOICE,
+                PaymentMethod::PAY_NOW,
             ];
 
             if (in_array($params['payment_method'], $monduMethods, true)) {
