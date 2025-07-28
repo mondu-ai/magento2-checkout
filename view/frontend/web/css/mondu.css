@@ -1,7 +1,8 @@
 label[for="mondu"],
 label[for="mondusepa"],
 label[for="monduinstallment"],
-label[for="monduinstallmentbyinvoice"] {
+label[for="monduinstallmentbyinvoice"],
+label[for="mondupaynow"] {
     background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0 10px;
     background-position-x: 2px;
     background-size: 60px;

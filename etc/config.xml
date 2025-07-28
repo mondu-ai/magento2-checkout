@@ -46,6 +46,15 @@
                 <description></description>
                 <title>Pay Later in Installments via Bank Transfer</title>
             </monduinstallmentbyinvoice>
+            <mondupaynow>
+                <sort_order>5</sort_order>
+                <active>0</active>
+                <debug>1</debug>
+                <model>Mondu\Mondu\Model\Payment\MonduPayNow</model>
+                <order_status>pending</order_status>
+                <description></description>
+                <title>Pay Now via Mondu</title>
+            </mondupaynow>
         </payment>
     </default>
 </config>
