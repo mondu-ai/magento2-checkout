@@ -15,14 +15,16 @@ class PaymentMethod
     public const DIRECT_DEBIT = 'direct_debit';
     public const INSTALLMENT = 'installment';
     public const INSTALLMENT_BY_INVOICE = 'installment_by_invoice';
+    public const PAY_NOW = 'pay_now';
 
-    public const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment', 'monduinstallmentbyinvoice'];
+    public const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment', 'monduinstallmentbyinvoice', 'mondupaynow'];
 
     public const LABELS = [
         'mondu' => 'Rechnungskauf',
         'mondusepa' => 'SEPA Direct Debit',
         'monduinstallment' => 'Installment',
         'monduinstallmentbyinvoice' => 'Installment By Invoice',
+        'mondupaynow' => 'Pay Now',
     ];
 
     public const MAPPING = [
@@ -30,6 +32,7 @@ class PaymentMethod
         self::DIRECT_DEBIT => 'mondusepa',
         self::INSTALLMENT => 'monduinstallment',
         self::INSTALLMENT_BY_INVOICE => 'monduinstallmentbyinvoice',
+        self::PAY_NOW => 'mondupaynow',
     ];
     private const CACHE_KEY_PREFIX = 'mondu_payment_methods_';
     private const CACHE_LIFETIME = 3600;
