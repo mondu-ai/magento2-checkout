@@ -37,7 +37,7 @@ class Logger extends MonologLogger
      * @param array $context
      * @return void
      */
-    public function info(string|Stringable $message, array $context = []): void
+    public function info($message, array $context = []): void
     {
         if (!$this->monduConfig->isDebugModeEnabled()) {
             return;
