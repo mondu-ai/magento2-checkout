@@ -20,7 +20,11 @@ define([
         {
             type: 'monduinstallmentbyinvoice',
             component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
-        }
+        },
+        {
+            type: 'mondupaynow',
+            component: 'Mondu_Mondu/js/view/payment/method-renderer/mondu'
+        },
     );
 
     return Component.extend({});
