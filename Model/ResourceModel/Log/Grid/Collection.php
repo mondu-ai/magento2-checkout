@@ -32,7 +32,7 @@ class Collection extends LogCollection implements SearchResultInterface
      * @param string $mainTable
      * @param string $eventPrefix
      * @param string|null $eventObject
-     * @param string $resourceModel
+     * @param string|null $resourceModel
      * @param string $model
      * @param AdapterInterface|null $connection
      * @param AbstractDb|null $resource
@@ -46,7 +46,7 @@ class Collection extends LogCollection implements SearchResultInterface
         string $mainTable,
         string $eventPrefix,
         ?string $eventObject,
-        string $resourceModel,
+        ?string $resourceModel,
         string $model = Document::class,
         ?AdapterInterface $connection = null,
         ?AbstractDb $resource = null,
