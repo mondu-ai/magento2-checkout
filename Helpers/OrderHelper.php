@@ -12,6 +12,7 @@ use Magento\Quote\Model\Cart\CartTotalRepository;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\AdditionalCosts\AdditionalCostsInterface;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
@@ -32,6 +33,7 @@ class OrderHelper
      * @param MonduLogHelper $monduLogHelper
      * @param QuoteFactory $quoteFactory
      * @param RequestFactory $requestFactory
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         private readonly AdditionalCostsInterface $additionalCosts,
@@ -40,6 +42,7 @@ class OrderHelper
         private readonly MonduLogHelper $monduLogHelper,
         private readonly QuoteFactory $quoteFactory,
         private readonly RequestFactory $requestFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
     }
 
@@ -116,7 +119,7 @@ class OrderHelper
             $orderPayment = $order->getPayment();
             $orderPayment->deny(false);
             $order->setStatus(Order::STATE_CANCELED);
-            $order->save();
+            $this->orderRepository->save($order);
             throw new LocalizedException(__('Mondu api error: ' . $e->getMessage()));
         }
     }

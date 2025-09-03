@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Controller\Webhooks;
 
 use Exception;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Webapi\Response;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\OrderFactory;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -25,7 +26,9 @@ class Index implements ActionInterface
      * @param ConfigProvider $monduConfig
      * @param JsonFactory $resultJson
      * @param MonduLogHelper $monduLogHelper
-     * @param OrderFactory $orderFactory
+     * @param OrderRepositoryInterface $orderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param FilterBuilder $filterBuilder
      * @param RequestInterface $request
      * @param SerializerInterface $serializer
      */
@@ -33,7 +36,9 @@ class Index implements ActionInterface
         private readonly ConfigProvider $monduConfig,
         private readonly JsonFactory $resultJson,
         private readonly MonduLogHelper $monduLogHelper,
-        private readonly OrderFactory $orderFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly FilterBuilder $filterBuilder,
         private readonly RequestInterface $request,
         private readonly SerializerInterface $serializer,
     ) {
@@ -46,17 +51,11 @@ class Index implements ActionInterface
      */
     public function execute(): ResultInterface
     {
-        $resBody = [];
-        $resStatus = Response::HTTP_OK;
-
         try {
             $content = $this->request->getContent();
             $headers = $this->request->getHeaders()->toArray();
-            $signature = hash_hmac('sha256', $content, $this->monduConfig->getWebhookSecret());
-            if ($signature !== ($headers['X-Mondu-Signature'] ?? null)) {
-                throw new AuthorizationException(__('Signature mismatch'));
-            }
             $params = $this->serializer->unserialize($content);
+            $this->validateWebhookSignature($content, $headers, $params);
 
             $topic = $params['topic'];
 
@@ -91,23 +90,24 @@ class Index implements ActionInterface
     public function handlePending(?array $params): array
     {
         $externalReferenceId = $params['external_reference_id'] ?? null;
-
         $monduId = $params['order_uuid'] ?? null;
-        $order = $this->orderFactory->create()->loadByIncrementId($externalReferenceId);
 
         if (!$externalReferenceId || !$monduId) {
             throw new Exception('Required params missing');
         }
 
-        if (empty($order->getData())) {
+        try {
+            $order = $this->getOrderByIncrementId($externalReferenceId);
+        } catch (AuthorizationException $e) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
+
         $order->setState(Order::STATE_PAYMENT_REVIEW);
         $order->setStatus(Order::STATE_PAYMENT_REVIEW);
         $order->addCommentToStatusHistory(
             __('Mondu: Order Status changed to Payment Review by a webhook')
         );
-        $order->save();
+        $this->orderRepository->save($order);
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
@@ -125,14 +125,15 @@ class Index implements ActionInterface
         $viban = $params['bank_account']['iban'] ?? null;
         $monduId = $params['order_uuid'] ?? null;
         $externalReferenceId = $params['external_reference_id'] ?? null;
-        /** @var OrderInterface $order */
-        $order = $this->orderFactory->create()->loadByIncrementId($externalReferenceId);
 
         if (!$viban || !$externalReferenceId) {
             throw new Exception('Required params missing');
         }
 
-        if (empty($order->getData())) {
+        try {
+            /** @var OrderInterface $order */
+            $order = $this->getOrderByIncrementId($externalReferenceId);
+        } catch (AuthorizationException $e) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
@@ -141,7 +142,7 @@ class Index implements ActionInterface
         $order->addCommentToStatusHistory(
             __('Mondu: Order Status changed to Processing by a webhook')
         );
-        $order->save();
+        $this->orderRepository->save($order);
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'], $viban);
 
         return [['message' => 'ok', 'error' => 0], 200];
@@ -159,13 +160,14 @@ class Index implements ActionInterface
         $monduId = $params['order_uuid'] ?? null;
         $externalReferenceId = $params['external_reference_id'] ?? null;
         $orderState = $params['order_state'] ?? null;
-        $order = $this->orderFactory->create()->loadByIncrementId($externalReferenceId);
 
         if (!$monduId || !$externalReferenceId || !$orderState) {
             throw new Exception('Required params missing');
         }
 
-        if (empty($order->getData())) {
+        try {
+            $order = $this->getOrderByIncrementId($externalReferenceId);
+        } catch (AuthorizationException $e) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
@@ -174,18 +176,78 @@ class Index implements ActionInterface
         );
 
         if ($orderState === OrderHelper::CANCELED) {
-            $order->setStatus(Order::STATE_CANCELED)->save();
+            $order->setStatus(Order::STATE_CANCELED);
+            $this->orderRepository->save($order);
         } elseif ($orderState === OrderHelper::DECLINED) {
             if (isset($params['reason']) && $params['reason'] === 'buyer_fraud') {
-                $order->setStatus(Order::STATUS_FRAUD)->save();
+                $order->setStatus(Order::STATUS_FRAUD);
             } else {
-                $order->setStatus(Order::STATE_CANCELED)->save();
+                $order->setStatus(Order::STATE_CANCELED);
             }
+            $this->orderRepository->save($order);
         }
 
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * Finds order by increment ID using modern repository pattern.
+     *
+     * @param string $incrementId
+     * @throws AuthorizationException
+     * @return OrderInterface
+     */
+    private function getOrderByIncrementId(string $incrementId): OrderInterface
+    {
+        $filter = $this->filterBuilder
+            ->setField('increment_id')
+            ->setValue($incrementId)
+            ->setConditionType('eq')
+            ->create();
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilters([$filter])
+            ->setPageSize(1)
+            ->create();
+
+        $orderList = $this->orderRepository->getList($searchCriteria);
+
+        if ($orderList->getTotalCount() === 0) {
+            throw new AuthorizationException(__('Order not found: %1', $incrementId));
+        }
+
+        $orders = $orderList->getItems();
+        return reset($orders);
+    }
+
+    /**
+     * Validates webhook signature with multistore support.
+     *
+     * @param string $content
+     * @param array $headers
+     * @param array $params
+     * @throws AuthorizationException
+     * @return void
+     */
+    private function validateWebhookSignature(string $content, array $headers, array $params): void
+    {
+        $externalReferenceId = $params['external_reference_id'] ?? null;
+
+        if (!$externalReferenceId) {
+            throw new AuthorizationException(__('Missing external_reference_id for signature validation'));
+        }
+
+        $order = $this->getOrderByIncrementId($externalReferenceId);
+
+        $this->monduConfig->setContextCode((int) $order->getStoreId());
+        $expectedSignature = hash_hmac('sha256', $content, $this->monduConfig->getWebhookSecret());
+        $receivedSignature = $headers['X-Mondu-Signature'] ?? null;
+
+        if ($expectedSignature !== $receivedSignature) {
+            throw new AuthorizationException(__('Signature mismatch'));
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -33,6 +34,7 @@ class CreateOrder extends MonduObserver
      * @param MonduTransactionItem $monduTransactionItem
      * @param OrderHelper $orderHelper
      * @param RequestFactory $requestFactory
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -43,6 +45,7 @@ class CreateOrder extends MonduObserver
         private readonly MonduTransactionItem $monduTransactionItem,
         private readonly OrderHelper $orderHelper,
         private readonly RequestFactory $requestFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -103,7 +106,7 @@ class CreateOrder extends MonduObserver
 
             $order->setData('mondu_reference_id', $orderUid);
             $order->addCommentToStatusHistory(__('Mondu: order id %1', $orderData['uuid']));
-            $order->save();
+            $this->orderRepository->save($order);
             $this->monduFileLogger->info(
                 'Saved the order in Magento ',
                 ['orderNumber' => $order->getIncrementId()]

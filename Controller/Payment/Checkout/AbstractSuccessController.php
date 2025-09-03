@@ -18,6 +18,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -40,6 +41,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      * @param ResponseInterface $response
      * @param CheckoutSession $checkoutSession
      * @param CartManagementInterface $quoteManagement
+     * @param CartRepositoryInterface $cartRepository
      * @param CheckoutData $checkoutData
      * @param CustomerSession $customerSession
      * @param OrderRepositoryInterface $orderRepository
@@ -57,6 +59,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
         ResponseInterface $response,
         CheckoutSession $checkoutSession,
         protected CartManagementInterface $quoteManagement,
+        protected CartRepositoryInterface $cartRepository,
         protected CheckoutData $checkoutData,
         protected CustomerSession $customerSession,
         protected OrderRepositoryInterface $orderRepository,
@@ -165,7 +168,8 @@ abstract class AbstractSuccessController extends AbstractPaymentController
     {
         $reservedOrderId = $quote->getReservedOrderId();
         if (!$reservedOrderId) {
-            $quote->reserveOrderId()->save();
+            $quote->reserveOrderId();
+            $this->cartRepository->save($quote);
             $reservedOrderId = $quote->getReservedOrderId();
         }
 

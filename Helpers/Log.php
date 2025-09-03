@@ -178,7 +178,7 @@ class Log
     {
         $log = $this->getTransactionByOrderUid($orderUid, true);
 
-        if (empty($log->getData())) {
+        if (!$log->getId()) {
             return;
         }
 
@@ -209,7 +209,7 @@ class Log
     ) {
         $log = $this->getLogCollection($orderUid);
 
-        if (empty($log->getData())) {
+        if (!$log->getId()) {
             return;
         }
 
