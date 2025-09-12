@@ -135,11 +135,27 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isActive(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
-            || $this->scopeConfig->isSetFlag('payment/mondusepa/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
-            || $this->scopeConfig->isSetFlag('payment/monduinstallment/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
-            || $this->scopeConfig->isSetFlag('payment/monduinstallmentbyinvoice/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
-            || $this->scopeConfig->isSetFlag('payment/mondupaynow/active', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        return $this->scopeConfig->isSetFlag('payment/mondu/active', ScopeInterface::SCOPE_STORE, $this->contextCode) ||
+            $this->scopeConfig->isSetFlag(
+                'payment/mondusepa/active',
+                ScopeInterface::SCOPE_STORE,
+                $this->contextCode
+            ) ||
+            $this->scopeConfig->isSetFlag(
+                'payment/monduinstallment/active',
+                ScopeInterface::SCOPE_STORE,
+                $this->contextCode
+            ) ||
+            $this->scopeConfig->isSetFlag(
+                'payment/monduinstallmentbyinvoice/active',
+                ScopeInterface::SCOPE_STORE,
+                $this->contextCode
+            ) ||
+            $this->scopeConfig->isSetFlag(
+                'payment/mondupaynow/active',
+                ScopeInterface::SCOPE_STORE,
+                $this->contextCode
+            );
     }
 
     /**
@@ -159,7 +175,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getCronOrderStatus(): ?string
     {
-        return $this->scopeConfig->getValue('payment/mondu/cron_status', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        return $this->scopeConfig->getValue(
+            'payment/mondu/cron_status',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
     }
 
     /**
@@ -169,7 +189,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isInvoiceRequiredCron(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/cron_require_invoice', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        return $this->scopeConfig->isSetFlag(
+            'payment/mondu/cron_require_invoice',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
     }
 
     /**
@@ -289,7 +313,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getNewOrderStatus(): string
     {
-        return $this->scopeConfig->getValue('payment/mondu/order_status', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        return $this->scopeConfig->getValue(
+            'payment/mondu/order_status',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
     }
 
     /**
@@ -330,7 +358,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function sendLines(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/send_lines', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        return $this->scopeConfig->isSetFlag(
+            'payment/mondu/send_lines',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
     }
 
     /**
@@ -340,7 +372,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isInvoiceRequiredForShipping(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/require_invoice', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        return $this->scopeConfig->isSetFlag(
+            'payment/mondu/require_invoice',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
     }
 
     /**
