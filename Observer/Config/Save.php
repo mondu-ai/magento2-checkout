@@ -37,6 +37,17 @@ class Save implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        $storeId = null;
+        if ($observer->getEvent()->getStore()) {
+            $storeId = (int) $observer->getEvent()->getStore();
+        } elseif ($observer->getEvent()->getData('store')) {
+            $storeId = (int) $observer->getEvent()->getData('store');
+        }
+
+        if ($storeId !== null) {
+            $this->monduConfig->setContextCode($storeId);
+        }
+
         if (!$this->monduConfig->isActive()) {
             return;
         }
@@ -50,14 +61,14 @@ class Save implements ObserverInterface
             $this->monduConfig->updateNewOrderStatus();
             $this->paymentMethod->resetAllowedCache();
 
-            $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD)
+            $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD, $storeId)
                 ->process()
                 ->checkSuccess()
                 ->update();
 
             foreach (self::SUBSCRIPTIONS as $topic) {
                 $this->requestFactory
-                    ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD)
+                    ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD, $storeId)
                     ->setTopic($topic)
                     ->process();
             }

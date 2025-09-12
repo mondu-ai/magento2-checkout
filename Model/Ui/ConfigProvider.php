@@ -10,8 +10,11 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManagerInterface;
 
 class ConfigProvider implements ConfigProviderInterface
 {
@@ -40,6 +43,7 @@ class ConfigProvider implements ConfigProviderInterface
      * @param TypeListInterface $cacheTypeList
      * @param UrlInterface $urlBuilder
      * @param WriterInterface $writer
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         private readonly EncryptorInterface $encryptor,
@@ -48,6 +52,7 @@ class ConfigProvider implements ConfigProviderInterface
         private readonly TypeListInterface $cacheTypeList,
         private readonly UrlInterface $urlBuilder,
         private readonly WriterInterface $writer,
+        private readonly StoreManagerInterface $storeManager,
     ) {
     }
 
@@ -88,16 +93,28 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isDebugModeEnabled(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/debug');
+        return $this->scopeConfig->isSetFlag('payment/mondu/debug', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
      * Returns the webhook endpoint URL.
      *
+     * @param int|null $storeId Store ID for multistore support (optional, uses contextCode if not provided)
      * @return string
      */
-    public function getWebhookUrl(): string
+    public function getWebhookUrl(?int $storeId = null): string
     {
+        $effectiveStoreId = $storeId ?? $this->contextCode;
+        
+        if ($effectiveStoreId !== null) {
+            try {
+                $store = $this->storeManager->getStore($effectiveStoreId);
+                return $store->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'mondu/webhooks/index';
+            } catch (NoSuchEntityException $e) {
+                return $this->urlBuilder->getBaseUrl() . 'mondu/webhooks/index';
+            }
+        }
+        
         return $this->urlBuilder->getBaseUrl() . 'mondu/webhooks/index';
     }
 
@@ -118,11 +135,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isActive(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/active')
-            || $this->scopeConfig->isSetFlag('payment/mondusepa/active')
-            || $this->scopeConfig->isSetFlag('payment/monduinstallment/active')
-            || $this->scopeConfig->isSetFlag('payment/monduinstallmentbyinvoice/active')
-            || $this->scopeConfig->isSetFlag('payment/mondupaynow/active');
+        return $this->scopeConfig->isSetFlag('payment/mondu/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
+            || $this->scopeConfig->isSetFlag('payment/mondusepa/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
+            || $this->scopeConfig->isSetFlag('payment/monduinstallment/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
+            || $this->scopeConfig->isSetFlag('payment/monduinstallmentbyinvoice/active', ScopeInterface::SCOPE_STORE, $this->contextCode)
+            || $this->scopeConfig->isSetFlag('payment/mondupaynow/active', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
@@ -132,7 +149,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isCronEnabled(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/cron');
+        return $this->scopeConfig->isSetFlag('payment/mondu/cron', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
@@ -142,7 +159,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getCronOrderStatus(): ?string
     {
-        return $this->scopeConfig->getValue('payment/mondu/cron_status');
+        return $this->scopeConfig->getValue('payment/mondu/cron_status', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
@@ -152,7 +169,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isInvoiceRequiredCron(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/cron_require_invoice');
+        return $this->scopeConfig->isSetFlag('payment/mondu/cron_require_invoice', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
@@ -248,13 +265,18 @@ class ConfigProvider implements ConfigProviderInterface
      * Updates webhook secret.
      *
      * @param string $webhookSecret
+     * @param int|null $storeId Store ID for multistore support
      * @return $this
      */
-    public function updateWebhookSecret($webhookSecret = ""): self
+    public function updateWebhookSecret($webhookSecret = "", ?int $storeId = null): self
     {
+        $scope = $storeId !== null ? ScopeInterface::SCOPE_STORES : ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+
         $this->resourceConfig->saveConfig(
             'payment/mondu/' . $this->getMode() . '_webhook_secret',
-            $this->encryptor->encrypt($webhookSecret)
+            $this->encryptor->encrypt($webhookSecret),
+            $scope,
+            $storeId
         );
 
         return $this;
@@ -267,7 +289,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getNewOrderStatus(): string
     {
-        return $this->scopeConfig->getValue('payment/mondu/order_status');
+        return $this->scopeConfig->getValue('payment/mondu/order_status', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
@@ -292,7 +314,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getWebhookSecret(): string
     {
-        $val = $this->scopeConfig->getValue('payment/mondu/' . $this->getMode() . '_webhook_secret');
+        $val = $this->scopeConfig->getValue(
+            'payment/mondu/' . $this->getMode() . '_webhook_secret',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
 
         return $this->encryptor->decrypt($val);
     }
@@ -304,7 +330,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function sendLines(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/send_lines');
+        return $this->scopeConfig->isSetFlag('payment/mondu/send_lines', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
@@ -314,7 +340,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function isInvoiceRequiredForShipping(): bool
     {
-        return $this->scopeConfig->isSetFlag('payment/mondu/require_invoice');
+        return $this->scopeConfig->isSetFlag('payment/mondu/require_invoice', ScopeInterface::SCOPE_STORE, $this->contextCode);
     }
 
     /**
