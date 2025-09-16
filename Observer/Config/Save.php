@@ -8,6 +8,7 @@ use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -20,11 +21,13 @@ class Save implements ObserverInterface
      * @param ConfigProvider $monduConfig
      * @param PaymentMethod $paymentMethod
      * @param RequestFactory $requestFactory
+     * @param MonduFileLogger $monduFileLogger
      */
     public function __construct(
         private readonly ConfigProvider $monduConfig,
         private readonly PaymentMethod $paymentMethod,
         private readonly RequestFactory $requestFactory,
+        private readonly MonduFileLogger $monduFileLogger,
     ) {
     }
 
@@ -37,6 +40,7 @@ class Save implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        $this->monduFileLogger->info('Config Save Observer: Starting execution');
         $storeId = null;
         if ($observer->getEvent()->getStore()) {
             $storeId = (int) $observer->getEvent()->getStore();
@@ -44,13 +48,17 @@ class Save implements ObserverInterface
             $storeId = (int) $observer->getEvent()->getData('store');
         }
 
+        $this->monduFileLogger->info('Config Save Observer: Store ID detected', ['store_id' => $storeId]);
         if ($storeId !== null) {
             $this->monduConfig->setContextCode($storeId);
         }
 
         if (!$this->monduConfig->isActive()) {
+            $this->monduFileLogger->info('Config Save Observer: Mondu is not active, skipping');
             return;
         }
+
+        $this->monduFileLogger->info('Config Save Observer: Mondu is active, proceeding with webhook registration');
 
         $apiKey = $this->monduConfig->getApiKey();
         if (!$apiKey) {
@@ -58,23 +66,34 @@ class Save implements ObserverInterface
         }
 
         try {
+            $this->monduFileLogger->info('Config Save Observer: Starting webhook registration process');
+            
             $this->monduConfig->updateNewOrderStatus();
             $this->paymentMethod->resetAllowedCache();
 
+            $this->monduFileLogger->info('Config Save Observer: Creating webhook keys request');
             $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD, $storeId)
                 ->process()
                 ->checkSuccess()
                 ->update();
+            $this->monduFileLogger->info('Config Save Observer: Webhook keys request completed successfully');
 
+            $this->monduFileLogger->info('Config Save Observer: Starting webhook subscriptions', ['topics' => self::SUBSCRIPTIONS]);
             foreach (self::SUBSCRIPTIONS as $topic) {
-                $this->requestFactory
+                $this->monduFileLogger->info('Config Save Observer: Creating webhook subscription request', ['topic' => $topic]);
+                $webhookRequest = $this->requestFactory
                     ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD, $storeId)
-                    ->setTopic($topic)
-                    ->process();
+                    ->setTopic($topic);
+                
+                $this->monduFileLogger->info('Config Save Observer: About to call process() for webhook request', ['topic' => $topic]);
+                $webhookRequest->process();
+                $this->monduFileLogger->info('Config Save Observer: Webhook subscription request completed', ['topic' => $topic]);
             }
 
             $this->monduConfig->clearConfigurationCache();
+            $this->monduFileLogger->info('Config Save Observer: All webhook registrations completed successfully');
         } catch (Exception $e) {
+            $this->monduFileLogger->error('Config Save Observer: Exception occurred', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             throw new LocalizedException(__($e->getMessage()));
         }
     }

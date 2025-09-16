@@ -49,14 +49,38 @@ class Webhooks extends CommonRequest implements RequestInterface
      */
     public function request($params = null): Webhooks
     {
+        $this->monduFileLogger->info('Webhooks::request() - Starting webhook registration');
+        
         if ($this->storeId !== null) {
             $this->configProvider->setContextCode($this->storeId);
+            $this->monduFileLogger->info('Webhooks::request() - Store context set', ['store_id' => $this->storeId]);
         }
 
-        $this->sendRequestWithParams('post', $this->urlBuilder->getWebhooksUrl(), json_encode([
-            'address' => $this->configProvider->getWebhookUrl($this->storeId),
-            'topic' => $this->getTopic(),
-        ]));
+        $webhookUrl = $this->configProvider->getWebhookUrl($this->storeId);
+        $topic = $this->getTopic();
+        $monduApiUrl = $this->urlBuilder->getWebhooksUrl();
+        
+        $requestData = [
+            'address' => $webhookUrl,
+            'topic' => $topic,
+        ];
+        
+        $this->monduFileLogger->info('Webhooks::request() - Preparing to send request', [
+            'webhook_url' => $webhookUrl,
+            'topic' => $topic,
+            'mondu_api_url' => $monduApiUrl,
+            'request_data' => $requestData
+        ]);
+
+        $this->monduFileLogger->info('Webhooks::request() - About to call sendRequestWithParams()');
+        
+        $this->sendRequestWithParams('post', $monduApiUrl, json_encode($requestData));
+
+        $this->monduFileLogger->info('Webhooks::request() - sendRequestWithParams() completed successfully');
+        
+        // Legacy logging for compatibility
+        $this->monduFileLogger->info('Store ID ' . $this->storeId);
+        $this->monduFileLogger->info('Example of the request ' . json_encode($requestData));
 
         return $this;
     }
