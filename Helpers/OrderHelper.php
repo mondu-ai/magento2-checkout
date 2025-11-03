@@ -70,7 +70,7 @@ class OrderHelper
         return [
             [
                 'buyer_fee_cents' => $buyerFeeCents,
-                'shipping_price_cents' => $shippingTotal ? (int) $shippingTotal * 100 : 0,
+                'shipping_price_cents' => $shippingTotal ? round($shippingTotal * 100) : 0,
                 'tax_cents' => $totalTax * 100,
                 'line_items' => $lineItems,
             ],
