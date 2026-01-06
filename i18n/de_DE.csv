@@ -21,9 +21,10 @@ General configuration,Allgemeine Konfiguration
 Enable Bank Transfer,Rechnungskauf aktivieren
 Ensble SEPA Direct Debit,SEPA-Lastschrift aktivieren
 Enable Split Payments,Ratenkauf aktivieren
-Bank Transfer Title,Titel Rechnungskauf
-SEPA Direct Debit Title,Titel der SEPA-Lastschrift
-Split Payments Title,Titel Ratenkauf
+"Invoice (30 days)","Rechnungskauf (30 Tage)"
+"SEPA direct debit (30 days)","SEPA-Lastschrift (30 Tage)"
+"Installments (3, 6, 12 months)","Ratenkauf (3, 6, 12 Monaten)"
+Instant Pay,Echtzeitüberweisung
 Enable automatic order processing,Automatische Bestellabwicklung einschalten
 Enable Logs,Protokolle einschalten
 Mondu: Invoice orders,Mondu: Bestellungen in Rechnung stellen

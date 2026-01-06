@@ -21,9 +21,9 @@ General configuration, Configurație generală
 Enable Bank Transfer, Activați transferul bancar
 Enable SEPA Direct Debit, Debit direct SEPA Ensble
 Enable Split Payments, Activați plățile fracționate
-Bank Transfer Title, Transfer bancar Titlu
-SEPA Direct Debit Title, SEPA Direct Debit Titlu
-Split Payments Title, Plăți fracționate Titlu
+Invoice (30 days), Transfer bancar Titlu
+SEPA direct debit (30 days), SEPA Direct Debit Titlu
+Installments (3, 6, 12 months), Plăți fracționate Titlu
 Enable automatic order processing, Activați procesarea automată a comenzilor
 Enable Logs, Activarea jurnalelor
 Mondu: Invoice orders, Mondu: Ordine de facturare

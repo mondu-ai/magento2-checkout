@@ -21,9 +21,9 @@ General configuration, Konfiguracja ogólna
 Enable Bank Transfer, Włącz przelew bankowy
 Enable SEPA Direct Debit, Polecenie zapłaty Ensble SEPA
 Enable Split Payments, Włącz płatności podzielone
-Bank Transfer Title, Tytuł przelewu bankowego
-SEPA Direct Debit Title, Tytuł polecenia zapłaty SEPA
-Split Payments Title, Tytuł podzielonej płatności
+Invoice (30 days), Tytuł przelewu bankowego
+SEPA direct debit (30 days), Tytuł polecenia zapłaty SEPA
+Installments (3, 6, 12 months), Tytuł podzielonej płatności
 Enable automatic order processing, Włącz automatyczne przetwarzanie zamówień
 Enable Logs, Włącz dzienniki
 Mondu: Invoice orders, Mondu: Zamówienia faktur

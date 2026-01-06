@@ -20,11 +20,11 @@ class PaymentMethod
     public const PAYMENTS = ['mondu', 'mondusepa', 'monduinstallment', 'monduinstallmentbyinvoice', 'mondupaynow'];
 
     public const LABELS = [
-        'mondu' => 'Rechnungskauf',
-        'mondusepa' => 'SEPA Direct Debit',
-        'monduinstallment' => 'Installment',
+        'mondu' => 'Invoice (30 days)',
+        'mondusepa' => 'SEPA direct debit (30 days)',
+        'monduinstallment' => 'Installments (3, 6, 12 months)',
         'monduinstallmentbyinvoice' => 'Installment By Invoice',
-        'mondupaynow' => 'Pay Now',
+        'mondupaynow' => 'Instant Pay',
     ];
 
     public const MAPPING = [
@@ -38,9 +38,9 @@ class PaymentMethod
     private const CACHE_LIFETIME = 3600;
 
     /**
-     * @param CacheInterface $cache
-     * @param RequestFactory $requestFactory
-     * @param SerializerInterface $serializer
+     * @param CacheInterface  $cache
+     * @param RequestFactory  $requestFactory
+     * @param MonduFileLogger $monduFileLogger
      */
     public function __construct(
         private readonly CacheInterface $cache,

@@ -21,9 +21,9 @@ General configuration, Configuração geral
 Enable Bank Transfer, Ativar transferência bancária
 Enable SEPA Direct Debit, Ensble SEPA Débito Direto
 Enable Split Payments, Permitir pagamentos fraccionados
-Bank Transfer Title, Transferência bancária Título
-SEPA Direct Debit Title, Débito direto SEPA Título
-Split Payments Title, Pagamentos fraccionados Título
+Invoice (30 days), Transferência bancária Título
+SEPA direct debit (30 days), Débito direto SEPA Título
+Installments (3, 6, 12 months), Pagamentos fraccionados Título
 Enable automatic order processing, Ativar o processamento automático de encomendas
 Enable Logs, Ativar os registos
 Mondu: Invoice orders, Mondu: Ordens de faturação

@@ -21,9 +21,9 @@ General configuration, Обща конфигурация
 Enable Bank Transfer, Активиране на банков превод
 Enable SEPA Direct Debit, Ensble SEPA директен дебит
 Enable Split Payments, Активиране на разделени плащания
-Bank Transfer Title, Банков превод Заглавие
-SEPA Direct Debit Title, Заглавие на директния дебит SEPA
-Split Payments Title, Разделени плащания Заглавие
+Invoice (30 days), Банков превод Заглавие
+SEPA direct debit (30 days), Заглавие на директния дебит SEPA
+Installments (3, 6, 12 months), Разделени плащания Заглавие
 Enable automatic order processing, Активиране на автоматична обработка на поръчки
 Enable Logs, Активиране на дневници
 Mondu: Invoice orders, Mondu: Поръчки на фактури

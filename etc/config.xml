@@ -9,7 +9,7 @@
                 <model>Mondu\Mondu\Model\Payment\Mondu</model>
                 <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
-                <title>Pay later via bank transfer</title>
+                <title>Invoice (30 days)</title>
                 <description></description>
                 <sandbox>1</sandbox>
                 <cron>0</cron>
@@ -26,7 +26,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
                 <order_status>pending</order_status>
                 <description></description>
-                <title>Pay later via SEPA Direct Debit</title>
+                <title>SEPA direct debit (30 days)</title>
             </mondusepa>
             <monduinstallment>
                 <sort_order>3</sort_order>
@@ -44,7 +44,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduInstallmentByInvoice</model>
                 <order_status>pending</order_status>
                 <description></description>
-                <title>Pay Later in Installments via Bank Transfer</title>
+                <title>Installments (3, 6, 12 months)</title>
             </monduinstallmentbyinvoice>
             <mondupaynow>
                 <sort_order>5</sort_order>
@@ -53,7 +53,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduPayNow</model>
                 <order_status>pending</order_status>
                 <description></description>
-                <title>Pay Now via Mondu</title>
+                <title>Instant Pay</title>
             </mondupaynow>
         </payment>
     </default>

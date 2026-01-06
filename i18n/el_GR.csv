@@ -21,9 +21,9 @@ General configuration, Γενική διαμόρφωση
 Enable Bank Transfer, Ενεργοποίηση τραπεζικής μεταφοράς
 Enable SEPA Direct Debit, Ενεργοποίηση SEPA Direct Debit
 Enable Split Payments, Ενεργοποίηση χωριστών πληρωμών
-Bank Transfer Title, Τραπεζικό έμβασμα Τίτλος
-SEPA Direct Debit Title, Άμεση χρέωση SEPA Τίτλος
-Split Payments Title, Διαχωρισμός πληρωμών Τίτλος
+Invoice (30 days), Τραπεζικό έμβασμα Τίτλος
+SEPA direct debit (30 days), Άμεση χρέωση SEPA Τίτλος
+Installments (3, 6, 12 months), Διαχωρισμός πληρωμών Τίτλος
 Enable automatic order processing, Ενεργοποίηση αυτόματης επεξεργασίας παραγγελιών
 Enable Logs, Ενεργοποίηση αρχείων καταγραφής
 Mondu: Invoice orders, Mondu: Παραγγελίες με τιμολόγια

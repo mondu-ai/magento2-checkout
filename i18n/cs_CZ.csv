@@ -21,9 +21,9 @@ General configuration, Obecná konfigurace
 Enable Bank Transfer, Povolit bankovní převod
 Enable SEPA Direct Debit, Ensble SEPA Direct Debit
 Enable Split Payments, Povolení rozdělených plateb
-Bank Transfer Title, Název bankovního převodu
-SEPA Direct Debit Title, Přímé inkaso SEPA Název
-Split Payments Title, Dělené platby Název
+Invoice (30 days), Název bankovního převodu
+SEPA direct debit (30 days), Přímé inkaso SEPA Název
+Installments (3, 6, 12 months), Dělené platby Název
 Enable automatic order processing, Povolení automatického zpracování objednávek
 Enable Logs, Povolení protokolů
 Mondu: Invoice orders, Mondu: Objednávky faktur
