@@ -10,6 +10,7 @@ use Magento\Config\Block\System\Config\Form\Fieldset;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\View\Helper\Js;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
+use Composer\InstalledVersions;
 
 class Payment extends Fieldset
 {
@@ -51,21 +52,25 @@ class Payment extends Fieldset
      */
     protected function _getHeaderTitleHtml($element)
     {
+        $version = $this->getModuleVersion();
+
         $html = '<div class="config-heading">';
+
+        $html .= '<div class="mondu-payment-logo"></div>';
+        $html .= '<div class="mondu-payment-text">';
+        $html .= 'Buy Now, Pay Later for Online B2B Checkout<br/>';
+        $html .= 'Increase your revenue with Mondu’s solution, without the operational burden.<br/>';
+        $html .= 'v' . $version;
+        $html .= '</div>';
 
         $htmlId = $element->getHtmlId();
         $html .= '<div class="button-container"><button type="button"'
             . ($this->_isCollapseState($element) ? '' : ' disabled="disabled"')
             . ' class="button action-configure'
             . ($this->_isCollapseState($element) ? ' open' : '')
-            . '" id="'
-            . $htmlId
-            . '-head" >'
-            . '<span class="state-closed">'
-            . __('Configure')
-            . '</span><span class="state-opened">'
-            . __('Close')
-            . '</span></button>';
+            . '" id="' . $htmlId . '-head" >'
+            . '<span class="state-closed">' . __('Configure') . '</span>'
+            . '<span class="state-opened">' . __('Close') . '</span></button>';
 
         $html .= $this->secureRenderer->renderEventListenerAsTag(
             'onclick',
@@ -77,18 +82,21 @@ class Payment extends Fieldset
             'button#' . $htmlId . '-head'
         );
 
-        $html .= '</div><div class="heading"><strong>'
-            . $element->getLegend()
-            . '</strong>';
-
-        if ($element->getComment()) {
-            $html .= '<div class="heading-intro">'
-                . $element->getComment()
-                . '</div>';
-        }
-        $html .= '<div class="config-alt"></div></div></div>';
+        $html .= '</div>'; 
+        $html .= '<div class="heading"><strong>' . $element->getLegend() . '</strong></div>';
+        $html .= '<div class="config-alt"></div></div>';
 
         return $html;
+
+    }
+
+    private function getModuleVersion()
+    {
+        try {
+            return InstalledVersions::getPrettyVersion('mondu_gmbh/magento2-payment');
+        } catch (\Throwable $e) {
+            return 'unknown';
+        }
     }
 
     /**

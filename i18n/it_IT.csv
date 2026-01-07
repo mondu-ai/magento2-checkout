@@ -21,10 +21,9 @@ General configuration, Configurazione generale
 Enable Bank Transfer, Abilita il bonifico bancario
 Enable SEPA Direct Debit, Addebito diretto SEPA Ensble
 Enable Split Payments, Abilitare i pagamenti frazionati
-"Invoice (30 days)","Fattura (30 giorni)"
-"SEPA direct debit (30 days)","Addebito diretto SEPA (30 giorni)"
-"Installments (3, 6, 12 months)","Rate (3, 6, 12 mesi)"
-"Instant Pay","Bonifico istantaneo"
+Bank Transfer Title, Bonifico bancario Titolo
+SEPA Direct Debit Title, Titolo dell'addebito diretto SEPA
+Split Payments Title, Scissione dei pagamenti Titolo
 Enable automatic order processing, Abilitare l'elaborazione automatica degli ordini
 Enable Logs, Abilita i registri
 Mondu: Invoice orders, Mondu: Ordini di fatturazione

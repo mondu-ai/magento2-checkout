@@ -1,16 +1,40 @@
-label[for="mondu"],
-label[for="mondusepa"],
-label[for="monduinstallment"],
-label[for="monduinstallmentbyinvoice"],
-label[for="mondupaynow"] {
-    background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0 10px;
-    background-position-x: 2px;
-    background-size: 60px;
-    font-weight: bold;
+/********************************************
+ * 1. Base styles for all Mondu payment labels
+ ********************************************/
+label[for^="mondu"] {
+    background-repeat: no-repeat;
+    background-position: 0 10px;
+    background-position-y: 2px;
+    background-size: 65px;
     padding: 8px 71px;
 }
 
-.payment-method-description-mondu {
-    padding-left: 22px;
-    padding-top: 2px;
-}
+/********************************************
+ * 2. Default English logos (fallback)
+ ********************************************/
+label[for="mondu"]                                  { background-image: url("../images/en/invoice_white_rectangle.png"); }
+label[for="mondusepa"]                              { background-image: url("../images/en/sepa_white_rectangle.png"); }
+label[for="monduinstallment"],
+label[for="monduinstallmentbyinvoice"] {
+                                                      background-image: url("../images/en/installments_white_rectangle.png"); }
+label[for="mondupaynow"]                            { background-image: url("../images/en/instant_pay_white_rectangle.png"); }
+
+/********************************************
+ * 3. German overrides
+ ********************************************/
+html[lang="de"] label[for="mondu"]                  { background-image: url("../images/de/invoice_white_rectangle.png"); }
+html[lang="de"] label[for="mondusepa"]              { background-image: url("../images/de/sepa_white_rectangle.png"); }
+html[lang="de"] label[for="monduinstallment"],
+html[lang="de"] label[for="monduinstallmentbyinvoice"] {
+                                                      background-image: url("../images/de/installments_white_rectangle.png"); }
+html[lang="de"] label[for="mondupaynow"]            { background-image: url("../images/de/instant_pay_white_rectangle.png"); }
+
+/********************************************
+ * 4. Dutch overrides
+ ********************************************/
+html[lang="nl"] label[for="mondu"]                  { background-image: url("../images/nl/invoice_white_rectangle.png"); }
+html[lang="nl"] label[for="mondusepa"]              { background-image: url("../images/nl/sepa_white_rectangle.png"); }
+html[lang="nl"] label[for="monduinstallment"],
+html[lang="nl"] label[for="monduinstallmentbyinvoice"] {
+                                                      background-image: url("../images/nl/installments_white_rectangle.png"); }
+html[lang="nl"] label[for="mondupaynow"]            { background-image: url("../images/nl/instant_pay_white_rectangle.png"); }

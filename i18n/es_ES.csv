@@ -21,9 +21,9 @@ General configuration, Configuración general
 Enable Bank Transfer, Activar transferencia bancaria
 Enable SEPA Direct Debit, Activar domiciliación bancaria
 Enable Split Payments, Activar pagos fraccionados
-"Invoice (30 days)","Factuur (30 dagen)"
-"SEPA direct debit (30 days)","SEPA automatische incasso (30 dagen)"
-"Installments (3, 6, 12 months)","Betaling in termijnen (3, 6, 12 maanden)"
+Bank Transfer Title, Tìtulo de la Transferencia bancaria
+SEPA Direct Debit Title, Título de la domiciación bancaria
+Split Payments Title, Titulo de los pagos fraccionados
 Enable automatic order processing, Activar el procesamiento automático de pedidos
 Enable Logs, Activar registros
 Mondu: Invoice orders, Mondu: Pedidos de facturas

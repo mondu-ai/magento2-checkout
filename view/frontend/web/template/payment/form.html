@@ -3,16 +3,11 @@
         <input class="radio" name="payment[method]" type="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
         <label class="label" data-bind="attr: {'for': getCode()}">
-            <!-- ko if: window.checkoutConfig.payment[getCode()].imageUrl -->
-            <img class="mondu-payment-method-image"
-                 data-bind="attr: {src: window.checkoutConfig.payment[getCode()].imageUrl, alt: window.checkoutConfig.payment[getCode()].title}"
-                 style="max-height: 32px; margin-right: 10px; vertical-align: middle;" />
-            <!-- /ko -->
             <span>
                 <!-- ko i18n: window.checkoutConfig.payment[getCode()].title--><!-- /ko -->
             </span>
         </label>
-        <div class="payment-method-description-mondu" data-bind="html: window.checkoutConfig.payment[getCode()].description">
+        <div class="payment-method-description-mondu" bindHtml="window.checkoutConfig.payment[getCode()].description">
         </div>
     </div>
     <div class="payment-method-content">

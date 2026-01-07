@@ -15,8 +15,6 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\Locale\ResolverInterface;
-use Magento\Framework\View\Asset\Repository as AssetRepository;
 
 class ConfigProvider implements ConfigProviderInterface
 {
@@ -39,23 +37,6 @@ class ConfigProvider implements ConfigProviderInterface
     private ?int $contextCode = null;
 
     /**
-     * Payment method to image mapping
-     */
-    private const PAYMENT_METHOD_IMAGES = [
-        self::CODE => 'invoice_white_rectangle.png',
-        self::SEPA_CODE => 'sepa_white_rectangle.png',
-        self::INSTALLMENT_CODE => 'installments_white_rectangle.png',
-        self::INSTALLMENT_BY_INVOICE_CODE => 'installments_white_rectangle.png',
-        self::PAY_NOW_CODE => 'instant_pay_white_rectangle.png',
-        self::PAYMENT_CODE => 'mondu_payment_white_rectangle.png',
-    ];
-
-    /**
-     * Supported locales for images
-     */
-    private const SUPPORTED_IMAGE_LOCALES = ['de', 'en', 'nl'];
-
-    /**
      * @param EncryptorInterface $encryptor
      * @param ResourceConfig $resourceConfig
      * @param ScopeConfigInterface $scopeConfig
@@ -63,8 +44,6 @@ class ConfigProvider implements ConfigProviderInterface
      * @param UrlInterface $urlBuilder
      * @param WriterInterface $writer
      * @param StoreManagerInterface $storeManager
-     * @param ResolverInterface $localeResolver
-     * @param AssetRepository $assetRepository
      */
     public function __construct(
         private readonly EncryptorInterface $encryptor,
@@ -74,8 +53,6 @@ class ConfigProvider implements ConfigProviderInterface
         private readonly UrlInterface $urlBuilder,
         private readonly WriterInterface $writer,
         private readonly StoreManagerInterface $storeManager,
-        private readonly ResolverInterface $localeResolver,
-        private readonly AssetRepository $assetRepository,
     ) {
     }
 
@@ -238,10 +215,6 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getConfig(): array
     {
-        $privacyText
-            = __('Information on the processing of your personal data by Mondu GmbH can be found '
-                . "<a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>");
-
         $descriptionConfigMondu = $this->scopeConfig
             ->getValue('payment/mondu/description', ScopeInterface::SCOPE_STORE);
         $descriptionConfigMondusepa = $this->scopeConfig
@@ -254,20 +227,15 @@ class ConfigProvider implements ConfigProviderInterface
             ->getValue('payment/mondupaynow/description', ScopeInterface::SCOPE_STORE);
 
         $descriptionMondu = $descriptionConfigMondu
-            ? __($descriptionConfigMondu) . '<br><br>' . $privacyText
-            : $privacyText;
+            ? __($descriptionConfigMondu) : '';
         $descriptionMondusepa = $descriptionConfigMondusepa
-            ? __($descriptionConfigMondusepa) . '<br><br>' . $privacyText
-            : $privacyText;
+            ? __($descriptionConfigMondusepa) : '';
         $descriptionMonduinstallment = $descriptionConfigMonduinstallment
-            ? __($descriptionConfigMonduinstallment) . '<br><br>' . $privacyText
-            : $privacyText;
+            ? __($descriptionConfigMonduinstallment) : '';
         $descriptionMonduinstallmentByInvoice = $descriptionConfigMonduinstallmentByInvoice
-            ? __($descriptionConfigMonduinstallmentByInvoice) . '<br><br>' . $privacyText
-            : $privacyText;
+            ? __($descriptionConfigMonduinstallmentByInvoice) : '';
         $descriptionMonduPayNow = $descriptionConfigMonduPayNow
-            ? __($descriptionConfigMonduPayNow) . '<br><br>' . $privacyText
-            : $privacyText;
+            ? __($descriptionConfigMonduPayNow) : '';
 
         return [
             'payment' => [
@@ -276,14 +244,12 @@ class ConfigProvider implements ConfigProviderInterface
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondu,
                     'title' => __($this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE)),
-                    'imageUrl' => $this->getPaymentMethodImageUrl(self::CODE),
                 ],
                 self::SEPA_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
                     'monduCheckoutTokenUrl' => $this->urlBuilder->getUrl('mondu/payment_checkout/token'),
                     'description' => $descriptionMondusepa,
                     'title' => __($this->scopeConfig->getValue('payment/mondusepa/title', ScopeInterface::SCOPE_STORE)),
-                    'imageUrl' => $this->getPaymentMethodImageUrl(self::SEPA_CODE),
                 ],
                 self::INSTALLMENT_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
@@ -291,7 +257,6 @@ class ConfigProvider implements ConfigProviderInterface
                     'description' => $descriptionMonduinstallment,
                     'title' => __($this->scopeConfig
                         ->getValue('payment/monduinstallment/title', ScopeInterface::SCOPE_STORE)),
-                    'imageUrl' => $this->getPaymentMethodImageUrl(self::INSTALLMENT_CODE),
                 ],
                 self::INSTALLMENT_BY_INVOICE_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
@@ -299,7 +264,6 @@ class ConfigProvider implements ConfigProviderInterface
                     'description' => $descriptionMonduinstallmentByInvoice,
                     'title' => __($this->scopeConfig
                         ->getValue('payment/monduinstallmentbyinvoice/title', ScopeInterface::SCOPE_STORE)),
-                    'imageUrl' => $this->getPaymentMethodImageUrl(self::INSTALLMENT_BY_INVOICE_CODE),
                 ],
                 self::PAY_NOW_CODE => [
                     'sdkUrl' => $this->getSdkUrl(),
@@ -307,7 +271,6 @@ class ConfigProvider implements ConfigProviderInterface
                     'description' => $descriptionMonduPayNow,
                     'title' => __($this->scopeConfig
                                       ->getValue('payment/mondupaynow/title', ScopeInterface::SCOPE_STORE)),
-                    'imageUrl' => $this->getPaymentMethodImageUrl(self::PAY_NOW_CODE),
                 ],
             ],
         ];
@@ -415,42 +378,6 @@ class ConfigProvider implements ConfigProviderInterface
     public function clearConfigurationCache(): void
     {
         $this->cacheTypeList->cleanType('config');
-    }
-
-    /**
-     * Returns the image URL for the given payment method code.
-     *
-     * @param string $paymentMethodCode
-     * @return string
-     */
-    public function getPaymentMethodImageUrl(string $paymentMethodCode): string
-    {
-        if (!isset(self::PAYMENT_METHOD_IMAGES[$paymentMethodCode])) {
-            return '';
-        }
-
-        $locale = $this->getImageLocale();
-        $imageName = self::PAYMENT_METHOD_IMAGES[$paymentMethodCode];
-
-        return $this->assetRepository->getUrl(
-            'Mondu_Mondu::images/' . $locale . '/' . $imageName
-        );
-    }
-
-    /**
-     * Returns the locale code for images (de, en, nl).
-     * Falls back to 'en' if locale is not supported.
-     *
-     * @return string
-     */
-    private function getImageLocale(): string
-    {
-        $locale = $this->localeResolver->getLocale();
-        $languageCode = substr($locale, 0, 2);
-
-        return in_array($languageCode, self::SUPPORTED_IMAGE_LOCALES, true)
-            ? $languageCode
-            : 'en';
     }
 
     /**

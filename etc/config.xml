@@ -35,7 +35,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduInstallment</model>
                 <order_status>pending</order_status>
                 <description></description>
-                <title>Split Payments</title>
+                <title>Installments (3, 6, 12 months)</title>
             </monduinstallment>
             <monduinstallmentbyinvoice>
                 <sort_order>4</sort_order>
@@ -44,7 +44,7 @@
                 <model>Mondu\Mondu\Model\Payment\MonduInstallmentByInvoice</model>
                 <order_status>pending</order_status>
                 <description></description>
-                <title>Installments (3, 6, 12 months)</title>
+                <title>Installments (3, 6, 12 months) via Bank Transfer</title>
             </monduinstallmentbyinvoice>
             <mondupaynow>
                 <sort_order>5</sort_order>

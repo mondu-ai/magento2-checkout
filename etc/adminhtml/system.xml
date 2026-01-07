@@ -4,7 +4,7 @@
     <system>
         <section id="payment">
             <group id="mondu_section" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
-                <comment><![CDATA[<div class="mondu-payment-logo"></div><div class="mondu-payment-text">Buy Now, Pay Later for Online B2B Checkout<br/>Increase your revenue with Mondu’s solution, without the operational burden.</div>]]></comment>
+                <comment></comment>
                 <fieldset_css>complex mondu-section</fieldset_css>
                 <frontend_model>Mondu\Mondu\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <group id="monduapi" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
@@ -47,7 +47,7 @@
                     </field>
                     <field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
                            showInStore="1" canRestore="1">
-                        <label>Invoice (bank transfer) Title</label>
+                        <label>Bank Transfer Title</label>
                         <config_path>payment/mondu/title</config_path>
                     </field>
                     <field id="description" translate="label" type="textarea" sortOrder="3" showInDefault="1"
@@ -63,7 +63,7 @@
                     </field>
                     <field id="sepa_title" translate="label" type="text" sortOrder="5" showInDefault="1"
                            showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Invoice (SEPA DD) Title</label>
+                        <label>SEPA Direct Debit Title</label>
                         <config_path>payment/mondusepa/title</config_path>
                     </field>
                     <field id="sepa_description" translate="label" type="textarea" sortOrder="6" showInDefault="1"
@@ -73,18 +73,18 @@
                     </field>
                     <field id="activeinstallment" translate="label" type="select" sortOrder="7" showInDefault="1"
                            showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Enable Split Payments</label>
+                        <label>Enable Installments</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/monduinstallment/active</config_path>
                     </field>
                     <field id="installment_title" translate="label" type="text" sortOrder="8" showInDefault="1"
                            showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Installments (3, 6, 12 months) Title</label>
+                        <label>Installments Title</label>
                         <config_path>payment/monduinstallment/title</config_path>
                     </field>
                     <field id="installment_description" translate="label" type="textarea" sortOrder="9"
                            showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Split Payments Description</label>
+                        <label>Installments Description</label>
                         <config_path>payment/monduinstallment/description</config_path>
                     </field>
                     <field id="activeinstallmentbyinvoice" translate="label" type="select" sortOrder="10"
@@ -111,7 +111,7 @@
                     </field>
                     <field id="paynow_title" translate="label" type="text" sortOrder="14" showInDefault="1"
                             showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Instant Pay Title</label>
+                        <label>Pay Now Title</label>
                         <config_path>payment/mondupaynow/title</config_path>
                     </field>
                     <field id="paynow_description" translate="label" type="textarea" sortOrder="15" showInDefault="1"
@@ -145,7 +145,7 @@
                     </field>
                     <field id="monduinstallmentsortorder" translate="label" type="text" sortOrder="20"
                            showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Split Payments Sort Order</label>
+                        <label>Installments Sort Order</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/monduinstallment/sort_order</config_path>
                     </field>
