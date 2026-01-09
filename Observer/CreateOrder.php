@@ -113,8 +113,22 @@ class CreateOrder extends MonduObserver
             );
 
             if ($createMonduDatabaseRecord) {
+                // Use payment_method from Mondu API response (more reliable than order payment)
+                // This handles cases where buyer changed payment method in Mondu hosted checkout
+                $monduPaymentMethod = $orderData['payment_method'] ?? null;
+                $magentoPaymentCode = $monduPaymentMethod
+                    ? (PaymentMethodHelper::MAPPING[$monduPaymentMethod] ?? $this->paymentMethodHelper->getCode($payment))
+                    : $this->paymentMethodHelper->getCode($payment);
+
+                $this->monduFileLogger->info('Saving Mondu transaction', [
+                    'orderNumber' => $order->getIncrementId(),
+                    'mondu_payment_method' => $monduPaymentMethod,
+                    'magento_payment_code' => $magentoPaymentCode,
+                    'authorized_net_term' => $orderData['authorized_net_term'] ?? null
+                ]);
+
                 $this->monduLogHelper
-                    ->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($payment));
+                    ->logTransaction($order, $orderData, null, $magentoPaymentCode);
             } else {
                 $transactionId = $this->monduLogHelper
                     ->updateLogMonduData($orderUid, null, null, null, $order->getId());
