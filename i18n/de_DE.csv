@@ -18,37 +18,12 @@ Api Configuration,API-Konfiguration
 Send order line items,Sende Bestell-Line-Items
 Sandbox mode,Sandbox Modus
 General configuration,Allgemeine Konfiguration
-Enable Bank Transfer,Rechnungskauf aktivieren
-Enable SEPA Direct Debit,SEPA-Lastschrift aktivieren
-Enable Installments,Ratenkauf aktivieren
-Enable Installments By Invoice, Ratenkauf per Überweisung aktivieren
-Enable Pay Now, Echtzeitüberweisung aktivieren
-Bank Transfer Title,Titel Rechnungskauf
-SEPA Direct Debit Title,Titel der SEPA-Lastschrift
-Installments Title,Titel Ratenkauf
-Installments by Invoice Title, Titel Ratenkauf per Überweisung
-Pay Now Title, Titel Echtzeitüberweisung
-Bank Transfer Description, Beschreibung Rechnungskauf
-SEPA Direct Debit Description, Beschreibung SEPA-Lastschrift
-Installments Description, Beschreibung Ratenkauf
-Installments by Invoice Description, Beschreibung Ratenkauf per Überweisung
-Pay Now Description, Beschreibung Echtzeitüberweisung
 Enable automatic order processing,Automatische Bestellabwicklung einschalten
 Enable Logs,Logging aktivieren
 Mondu: Invoice orders,Mondu: Bestellungen in Rechnung stellen
 Mondu: Sync orders,Mondu: Bestellungen synchronisieren
 Not found,Nicht gefunden
 Api key,API-Schlüssel
-"Invoice (30 days)","Rechnungskauf (30 Tage)"
-"SEPA direct debit (30 days)","SEPA-Lastschrift (30 Tage)"
-"Installments (3, 6, 12 months)","Ratenkauf (3, 6, 12 Monaten)"
-"Installments (3, 6, 12 months) via Bank Transfer", "Ratenkauf (3, 6, 12 Monaten) per Überweisung"
-"Instant Pay","Echtzeitüberweisung"
-Bank Transfer Sort Order,Reihenfolge Rechnungskauf
-SEPA Direct Debit Sort Order, Reihenfolge SEPA-Lastschrift
-Installments Sort Order, Reihenfolge Ratenkauf
-Installments By Invoice Sort Order, Reihenfolge Ratenkauf per Überweisung
-Pay Now Sort Order, Reihenfolge Echtzeitüberweisung
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>,Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>hier.</a>
 "Require invoice for shipment","Für den Versand ein Rechnungsdokument verlangen"
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.","Diese Rechnung wurde abgetreten gemäß den Allgemeinen Bedingungen von <strong>%1</strong> und <strong>Mondu GmbH</strong> zum Modell Kauf auf Rechnung."
@@ -63,3 +38,32 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1,<strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1,<strong>Verwendungszweck:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Zahlungsziel:</strong> %1 Tage
+"Invoice (30 days)","Rechnungskauf (30 Tage)"
+"SEPA direct debit (30 days)","SEPA-Lastschrift (30 Tage)"
+"Installments (3, 6, 12 months)","Ratenkauf (3, 6, 12 Monaten)"
+"Installments (3, 6, 12 months) via Bank Transfer","Ratenkauf (3, 6, 12 Monaten) per Überweisung"
+"Instant Pay","Echtzeitüberweisung"
+
+"Bank Transfer Title","Titel Rechnungskauf" 
+"SEPA Direct Debit Title","Titel der SEPA-Lastschrift"
+"Installments Title","Titel Ratenkauf"
+"Installments by Invoice Title","Titel Ratenkauf per Überweisung"
+"Pay Now Title","Titel Echtzeitüberweisung"
+
+"Enable Bank Transfer","Aktiviere Rechnungskauf"
+"Enable SEPA Direct Debit","Aktiviere SEPA-Lastschrift"
+"Enable Installments","Aktiviere Ratenkauf"
+"Enable Installments By Invoice","AktiviereRatenkauf per Überweisung"
+"Enable Pay Now","Aktiviere Echtzeitüberweisung"
+
+"Bank Transfer Description","Beschreibung Rechnungskauf"
+"SEPA Direct Debit Description","Beschreibung SEPA-Lastschrift"
+"Installments Description","Beschreibung Ratenkauf"
+"Installments by Invoice Description","Beschreibung Ratenkauf per Überweisung"
+"Pay Now Description","Beschreibung Echtzeitüberweisung"
+
+"Bank Transfer Sort Order","Reihenfolge Rechnungskauf"
+"SEPA Direct Debit Sort Order","Reihenfolge SEPA-Lastschrift"
+"Installments Sort Order","Reihenfolge Ratenkauf"
+"Installments By Invoice Sort Order","Reihenfolge Ratenkauf per Überweisung"
+"Pay Now Sort Order","Reihenfolge Echtzeitüberweisung"

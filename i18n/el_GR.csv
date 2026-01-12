@@ -18,21 +18,12 @@ Api Configuration, Διαμόρφωση API
 Send order line items, Αποστολή στοιχείων παραγγελίας
 Sandbox mode, Λειτουργία Sandbox
 General configuration, Γενική διαμόρφωση
-Enable Bank Transfer, Ενεργοποίηση τραπεζικής μεταφοράς
-Enable SEPA Direct Debit, Ενεργοποίηση SEPA Direct Debit
-Enable Split Payments, Ενεργοποίηση χωριστών πληρωμών
-Bank Transfer Title, Τραπεζικό έμβασμα Τίτλος
-SEPA Direct Debit Title, Άμεση χρέωση SEPA Τίτλος
-Split Payments Title, Διαχωρισμός πληρωμών Τίτλος
 Enable automatic order processing, Ενεργοποίηση αυτόματης επεξεργασίας παραγγελιών
 Enable Logs, Ενεργοποίηση αρχείων καταγραφής
 Mondu: Invoice orders, Mondu: Παραγγελίες με τιμολόγια
 Mondu: Sync orders, Mondu: Συγχρονισμός παραγγελιών
 Not found, Δεν βρέθηκε
 Api key, Κλειδί API
-Pay later via bank transfer, Πληρώστε αργότερα μέσω τραπεζικού εμβάσματος
-Pay later via SEPA Direct Debit, Πληρώστε αργότερα μέσω άμεσης χρέωσης SEPA
-Split Payments, Χωριστές πληρωμές
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Πληροφορίες σχετικά με την επεξεργασία των προσωπικών σας δεδομένων από τη Mondu GmbH μπορείτε να βρείτε <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>εδώ.</a>
 "Require invoice for shipment", Απαιτείται τιμολόγιο για την αποστολή
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Αυτό το τιμολόγιο δημιουργήθηκε σύμφωνα με τους γενικούς όρους και προϋποθέσεις της <strong>%1</strong> και της <strong>Mondu</strong> GmbH για το μοντέλο πληρωμών αγοράς επί πιστώσει.
@@ -47,3 +38,33 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Αναφορά πληρωμής:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Προθεσμία πληρωμής:</strong> %1 ημέρες
+
+"Invoice (30 days)","Νομισματικό έμβασμα (30 ημέρες)"
+"SEPA direct debit (30 days)","Άμεση χρέωση SEPA (30 ημέρες)"
+"Installments (3, 6, 12 months)","Χρεωστικές δόσεις (3, 6, 12 μήνες)"
+"Installments (3, 6, 12 months) via Bank Transfer","Χρεωστικές δόσεις (3, 6, 12 μήνες) μέσω Νομισματικού έμβασματος"
+"Instant Pay","Ταχεία πληρωμή"
+
+"Bank Transfer Title","Τίτλος Νομισματικό έμβασμα" 
+"SEPA Direct Debit Title","Τίτλος Άμεση χρέωση SEPA"
+"Installments Title","Τίτλος Χρεωστικές δόσεις"
+"Installments by Invoice Title","Τίτλος Χρεωστικές δόσεις μέσω Νομισματικού έμβασματος"
+"Pay Now Title","Τίτλος Ταχεία πληρωμή"
+
+"Enable Bank Transfer","Ενεργοποίηση Νομισματικού έμβασματος"
+"Enable SEPA Direct Debit","Ενεργοποίηση Άμεση χρέωση SEPA"
+"Enable Installments","Ενεργοποίηση Χρεωστικές δόσεις"
+"Enable Installments By Invoice","Ενεργοποίηση Χρεωστικές δόσεις μέσω Νομισματικού έμβασματος"
+"Enable Pay Now","Ενεργοποίηση Ταχεία πληρωμή"
+
+"Bank Transfer Description","Περιγραφή Νομισματικό έμβασμα"
+"SEPA Direct Debit Description","Περιγραφή Άμεση χρέωση SEPA"
+"Installments Description","Περιγραφή Χρεωστικές δόσεις"
+"Installments by Invoice Description","Περιγραφή Χρεωστικές δόσεις μέσω Νομισματικού έμβασματος"
+"Pay Now Description","Περιγραφή Ταχεία πληρωμή"
+
+"Bank Transfer Sort Order","Προτεραιότητα Νομισματικού έμβασματος"
+"SEPA Direct Debit Sort Order","Προτεραιότητα Άμεση χρέωση SEPA"
+"Installments Sort Order","Προτεραιότητα Χρεωστικές δόσεις"
+"Installments By Invoice Sort Order","Προτεραιότητα Χρεωστικές δόσεις μέσω Νομισματικού έμβασματος"
+"Pay Now Sort Order","Προτεραιότητα Ταχεία πληρωμή"
