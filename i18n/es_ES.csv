@@ -18,21 +18,12 @@ Api Configuration, Configuración de la API
 Send order line items, Enviar partidas de pedido
 Sandbox mode, Modo Sandbox
 General configuration, Configuración general
-Enable Bank Transfer, Activar transferencia bancaria
-Enable SEPA Direct Debit, Activar domiciliación bancaria
-Enable Split Payments, Activar pagos fraccionados
-Bank Transfer Title, Tìtulo de la Transferencia bancaria
-SEPA Direct Debit Title, Título de la domiciación bancaria
-Split Payments Title, Titulo de los pagos fraccionados
 Enable automatic order processing, Activar el procesamiento automático de pedidos
 Enable Logs, Activar registros
 Mondu: Invoice orders, Mondu: Pedidos de facturas
 Mondu: Sync orders, Mondu: Sincronizar pedidos
 Not found, No se ha encontrado
 Api key, Clave API
-Pay later via bank transfer, Pague más tarde por transferencia bancaria
-Pay later via SEPA Direct Debit, Pague más tarde mediante domiciliación bancaria
-Split Payments, Pagos fraccionados
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>Aquí</a> encontrará información sobre el tratamiento de sus datos personales por parte de Mondu GmbH <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>.</a>
 "Require invoice for shipment", "Requerir factura para el envío"
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", "Esta factura ha sido creada de acuerdo con las condiciones generales de <strong>%1</strong> y <strong>Mondu GmbH</strong> para el modelo de pago de compra a cuenta."
@@ -47,3 +38,33 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Referencia del pago:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Plazo de pago:</strong> %1 días
+
+"Invoice (30 days)","Factura (30 días)"
+"SEPA direct debit (30 days)","Adeudo directo SEPA (30 días)"
+"Installments (3, 6, 12 months)","Plazos (3, 6, 12 meses)"
+"Installments (3, 6, 12 months) via Bank Transfer","Plazos (3, 6, 12 meses) vía transferencia bancaria"
+"Instant Pay","Transferencia inmediata"
+
+"Bank Transfer Title","Título Factura" 
+"SEPA Direct Debit Title","Título Adeudo directo SEPA"
+"Installments Title","Título Plazos"
+"Installments by Invoice Title","Título Plazos vía transferencia bancaria"
+"Pay Now Title","Título Transferencia inmediata"
+
+"Enable Bank Transfer","Activar Factura"
+"Enable SEPA Direct Debit","Activar Adeudo directo SEPA"
+"Enable Installments","Activar Plazos"
+"Enable Installments By Invoice","Activar Plazos vía transferencia bancaria"
+"Enable Pay Now","Activar Transferencia inmediata"
+
+"Bank Transfer Description","Descripción Factura"
+"SEPA Direct Debit Description","Descripción Adeudo directo SEPA"
+"Installments Description","Descripción Plazos"
+"Installments by Invoice Description","Descripción Plazos vía transferencia bancaria"
+"Pay Now Description","Descripción Transferencia inmediata"
+
+"Bank Transfer Sort Order","Orden de clasificación de Factura"
+"SEPA Direct Debit Sort Order","Orden de clasificación de Adeudo directo SEPA"
+"Installments Sort Order","Orden de clasificación de Plazos"
+"Installments By Invoice Sort Order","Orden de clasificación de Plazos vía transferencia bancaria"
+"Pay Now Sort Order","Orden de clasificación de Transferencia inmediata"
