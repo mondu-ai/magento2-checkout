@@ -1,16 +1,11 @@
-Configure,Konfigurieren
-Close,Schließen
-Adjust,Anpassen
-Not found,Nicht gefunden
-"Error placing an order. Please try again later.","Fehler beim Aufgeben einer Bestellung. Bitte versuchen Sie es später noch einmal."
+Error placing an order Please try again later.,Fehler beim Aufgeben einer Bestellung. Bitte versuchen Sie es später noch einmal.
 Error placing an order,Fehler beim Aufgeben einer Bestellung. Bitte versuchen Sie es später noch einmal.
-"Order has been declined.","Bestellung wurde abgelehnt."
-This order was not placed with Mondu,Diese Bestellung wurde nicht mit Mondu aufgegeben.
+Order has been declined,Bestellung wurde abgelehnt.
+This order was not placed with mondu,Diese Bestellung wurde nicht mit Mondu aufgegeben.
 Mondu: order with id %1 was adjusted,Mondu: Die Bestellung mit der Nummer %1 wurde angepasst
 Mondu api error: %1,Mondu API Fehler: %1
-"'Mondu api error: ' .","'Mondu API Fehler: ' ."
 Mondu: The order with the id %1 was successfully canceled.,Mondu: Die Bestellung mit der Nummer %1 wurde erfolgreich storniert.
-"Cannot enable Mondu payments: API key is missing.","Mondu-Zahlungsarten können nicht aktiviert werden: Der API-Schlüssel fehlt."
+Cant enable Mondu payments API key is missing,Mondu-Zahlungsarten können nicht aktiviert werden. Der API-Schlüssel fehlt
 Mondu: order id %1,Mondu: Bestellnummer %1
 Mondu: Invalid shipment amount,Mondu: Ungültige Versandkosten
 Can't ship order: Mondu order state must be confirmed or partially_shipped,Bestellung kann nicht versendet werden: Der Status der Mondu-Bestellung muss bestätigt oder teilweise versandt sein.
@@ -18,37 +13,19 @@ Mondu: Invoice is required to ship the order.,Mondu: Eine Rechnung ist für den 
 Mondu: invoice created with id %1,Mondu: Rechnung mit Rechnungsnummer %1 erstellt
 Mondu: You cant partially refund order before shipment,Mondu: Sie können keine Teilstornierung der Bestellung vor Versand vornehmen
 Mondu: Something went wrong,Mondu: Etwas ist falsch gelaufen
-Authorize,Autorisieren
-something went wrong,Etwas ist schiefgelaufen
-No order uid provided to adjust the order,Keine Bestellnummer zur Anpassung der Bestellung angegeben
-"%1 method is not supported.","%1 Methode wird nicht unterstützt."
-Success,Erfolg
-Fraud,Betrug
-Place Order,Bestellung aufgeben
+Mondu: The order with the id %1 was successfully canceled.,Mondu: Die Bestellung mit der Nummer %1 wurde erfolgreich storniert.
 Api Configuration,API-Konfiguration
-Api key,API-Schlüssel
 Send order line items,Sende Bestell-Line-Items
-"Require invoice for shipment","Für den Versand ein Rechnungsdokument verlangen"
 Sandbox mode,Sandbox Modus
 General configuration,Allgemeine Konfiguration
-New Order Status,Neuer Bestellstatus
-Payment From Applicable Countries,Zahlung aus zulässigen Ländern
-Payment From Specific Countries,Zahlung aus bestimmten Ländern
 Enable automatic order processing,Automatische Bestellabwicklung einschalten
 Enable Logs,Logging aktivieren
-General Information,Allgemeine Informationen
-State,Status
-"-- Order status --","-- Bestellstatus --"
-ID,ID
-Order ID,Bestellnummer
-Payment Method,Zahlungsart
-Reference ID,Referenz-ID
-Api Mode,API-Modus
-Actions,Aktionen
-Created At,Erstellt am
 Mondu: Invoice orders,Mondu: Bestellungen in Rechnung stellen
 Mondu: Sync orders,Mondu: Bestellungen synchronisieren
+Not found,Nicht gefunden
+Api key,API-Schlüssel
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>,Hinweise zur Verarbeitung Ihrer personenbezogenen Daten durch die Mondu GmbH finden Sie <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>hier.</a>
+"Require invoice for shipment","Für den Versand ein Rechnungsdokument verlangen"
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.","Diese Rechnung wurde abgetreten gemäß den Allgemeinen Bedingungen von <strong>%1</strong> und <strong>Mondu GmbH</strong> zum Modell Kauf auf Rechnung."
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.","Da Sie die Zahlart Rechnungskauf mit Begleichung via SEPA-Lastschrift über Mondu gewählt haben, wird die Rechnungssumme am Fälligkeitstag von Ihrem Bankkonto abgebucht."
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.","Bevor der Betrag von Ihrem Konto abgebucht wird, erhalten Sie eine Lastschriftankündigung. Bitte achten Sie auf eine ausreichende Kontodeckung."
@@ -61,7 +38,6 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1,<strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1,<strong>Verwendungszweck:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Zahlungsziel:</strong> %1 Tage
-
 "Invoice (30 days)","Rechnungskauf (30 Tage)"
 "SEPA direct debit (30 days)","SEPA-Lastschrift (30 Tage)"
 "Installments (3, 6, 12 months)","Ratenkauf (3, 6, 12 Monaten)"
@@ -91,16 +67,3 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 "Installments Sort Order","Reihenfolge Ratenkauf"
 "Installments By Invoice Sort Order","Reihenfolge Ratenkauf per Überweisung"
 "Pay Now Sort Order","Reihenfolge Echtzeitüberweisung"
-
-"Mondu: Order has been declined","Mondu: Bestellung wurde abgelehnt"
-"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Bestellstatus wurde auf Zahlungsprüfung geändert, da eine manuelle Bestätigung erforderlich ist"
-"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Bestellstatus wurde durch einen Webhook auf Zahlungsprüfung geändert"
-"Mondu: Order Status changed to Processing by a webhook","Mondu: Bestellstatus wurde durch einen Webhook auf Verarbeitung geändert"
-"Unregistered topic","Nicht registriertes Thema"
-"Order not found: %1","Bestellung nicht gefunden: %1"
-"Missing external_reference_id for signature validation","Fehlende external_reference_id für die Signaturvalidierung"
-"Missing X-Mondu-Signature header","Fehlender X-Mondu-Signature Header"
-"Signature validation failed for all stores","Signaturvalidierung für alle Shops fehlgeschlagen"
-<strong>Bank:</strong> %1,<strong>Bank:</strong> %1
-<strong>Sort Code:</strong> %1,<strong>Bankleitzahl:</strong> %1
-<strong>Account Number:</strong> %1,<strong>Kontonummer:</strong> %1

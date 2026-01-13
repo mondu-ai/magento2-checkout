@@ -2,8 +2,8 @@ Configure,Configureren
 Close,Close
 Adjust,Aanpassen
 "Not found","Niet gevonden"
-"Error placing an order. Please try again later.","Fout bij het plaatsen van een bestelling. Probeer het later opnieuw."
-"Order has been declined.","Bestelling is geweigerd."
+"Error placing an order Please try again later.","Fout bij het plaatsen van een bestelling Probeer het later opnieuw."
+"Order has been declined","Bestelling is geweigerd"
 "Mondu: Invoice is required to ship the order.","Mondu: Factuur is vereist om de bestelling te verzenden."
 "Mondu: invoice created with id %1","Mondu: factuur aangemaakt met id %1"
 "Mondu: errors' 'name errors' 'details","Mondu: errors' 'name errors' 'details"
@@ -21,7 +21,7 @@ Authorize,Authorize
 Success,Success
 "Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>","Informatie over de verwerking van uw persoonsgegevens door Mondu GmbH vindt u <a href='https://www.mondu.ai/nl/information-nach-art-13-datenschutzgrundverordnung-fur-kaufer/' target='_blank'>hier</a>."
 "Mondu: The order with the id %1 was successfully canceled.","Mondu: De bestelling met de id %1 is succesvol geannuleerd."
-"Cannot enable Mondu payments: API key is missing.","Kan Mondu Payments niet inschakelen: API-sleutel ontbreekt."
+"Cant enable Mondu payments API key is missing","Kan Mondu Payments niet inschakelen API-sleutel ontbreekt"
 "Mondu: order id %1","Mondu: Order ID %1"
 "Can't ship order: Mondu order state must be confirmed or partially_shipped","Kan bestelling niet verzenden: Mondu-bestellingsstatus moet worden bevestigd of gedeeltelijk worden verzonden"
 "Mondu: You cant partially refund order before shipment","Mondu: You cant partially refund order before shipment"
@@ -91,16 +91,3 @@ Actions,Acties
 "Installments Sort Order","Volgorde Betaling in termijnen"
 "Installments By Invoice Sort Order","Volgorde Betaling in termijnen per bankoverschrijving"
 "Pay Now Sort Order","Volgorde Instant Pay"
-
-"Mondu: Order has been declined","Mondu: Bestelling is geweigerd"
-"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Bestelstatus gewijzigd naar Betalingsbeoordeling omdat handmatige bevestiging nodig is"
-"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Bestelstatus gewijzigd naar Betalingsbeoordeling door een webhook"
-"Mondu: Order Status changed to Processing by a webhook","Mondu: Bestelstatus gewijzigd naar Verwerking door een webhook"
-"Unregistered topic","Niet-geregistreerd onderwerp"
-"Order not found: %1","Bestelling niet gevonden: %1"
-"Missing external_reference_id for signature validation","Ontbrekende external_reference_id voor handtekeningvalidatie"
-"Missing X-Mondu-Signature header","Ontbrekende X-Mondu-Signature header"
-"Signature validation failed for all stores","Handtekeningvalidatie mislukt voor alle winkels"
-<strong>Bank:</strong> %1,<strong>Bank:</strong> %1
-<strong>Sort Code:</strong> %1,<strong>Sorteercode:</strong> %1
-<strong>Account Number:</strong> %1,<strong>Rekeningnummer:</strong> %1

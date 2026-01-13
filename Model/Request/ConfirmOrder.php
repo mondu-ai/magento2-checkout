@@ -51,13 +51,13 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
         );
 
         if (!$resultJson) {
-            throw new LocalizedException(__('Mondu: Something went wrong'));
+            throw new LocalizedException(__('Mondu: something went wrong'));
         }
 
         $result = json_decode($resultJson, true);
 
         if (isset($result['errors']) || isset($result['error'])) {
-            throw new LocalizedException(__('Mondu: Something went wrong'));
+            throw new LocalizedException(__('Mondu: something went wrong'));
         }
 
         return $result;

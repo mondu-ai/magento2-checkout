@@ -46,7 +46,7 @@ class Edit extends CommonRequest
         $resultJson = $this->sendRequestWithParams('post', $url, json_encode($params));
 
         if (!$resultJson) {
-            throw new LocalizedException(__('Mondu: Something went wrong'));
+            throw new LocalizedException(__('Mondu: something went wrong'));
         }
 
         return json_decode($resultJson, true);
