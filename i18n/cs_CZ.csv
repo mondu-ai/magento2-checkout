@@ -18,13 +18,21 @@ Api Configuration, Konfigurace rozhraní Api
 Send order line items, Odeslat položky objednávky
 Sandbox mode, Režim Sandbox
 General configuration, Obecná konfigurace
-
+Enable Bank Transfer, Povolit bankovní převod
+Enable SEPA Direct Debit, Ensble SEPA Direct Debit
+Enable Split Payments, Povolení rozdělených plateb
+Bank Transfer Title, Název bankovního převodu
+SEPA Direct Debit Title, Přímé inkaso SEPA Název
+Split Payments Title, Dělené platby Název
 Enable automatic order processing, Povolení automatického zpracování objednávek
 Enable Logs, Povolení protokolů
 Mondu: Invoice orders, Mondu: Objednávky faktur
 Mondu: Sync orders, Mondu: Synchronizace objednávek
 Not found, Nenalezeno
 Api key, Klíč API
+Pay later via bank transfer, Zaplaťte později bankovním převodem
+Pay later via SEPA Direct Debit, Plaťte později prostřednictvím přímého inkasa SEPA
+Split Payments, Rozdělené platby
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Informace o zpracování vašich osobních údajů společností Mondu GmbH naleznete <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>zde.</a>
 "Require invoice for shipment", Vyžadovat fakturu za přepravu
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Tato faktura byla vytvořena v souladu s všeobecnými obchodními podmínkami <strong>%1</strong> a <strong>Mondu GmbH</strong> pro platební model nákupu na účet.
@@ -39,33 +47,3 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Odkaz na platbu:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Doba splatnosti:</strong> %1 dnů
-
-"Invoice (30 days)","Nákup na fakturu (30 dní)"
-"SEPA direct debit (30 days)","Přímé inkaso SEPA (30 dní)"
-"Installments (3, 6, 12 months)","Platba na splátky (3, 6, 12 měsíců)"
-"Installments (3, 6, 12 months) via Bank Transfer","Platba na splátky (3, 6, 12 měsíců) přes bankovní převod"
-"Instant Pay","Okamžitá platba"
-
-"Bank Transfer Title","Název Nákup na fakturuf" 
-"SEPA Direct Debit Title","Název Přímé inkaso SEPA"
-"Installments Title","Název Platba na splátky"
-"Installments by Invoice Title","Název Platba na splátky přes bankovní převod"
-"Pay Now Title","Název Okamžitá platba"
-
-"Enable Bank Transfer","Aktivovat Nákup na fakturu"
-"Enable SEPA Direct Debit","Aktivovat Přímé inkaso SEPA"
-"Enable Installments","Aktivovat Platba na splátky"
-"Enable Installments By Invoice","Aktivovat Platba na splátky přes bankovní převod"
-"Enable Pay Now","Aktivovat Okamžitá platba"
-
-"Bank Transfer Description","Popis Nákup na fakturu"
-"SEPA Direct Debit Description","Popis Přímé inkaso SEPA"
-"Installments Description","Popis Platba na splátky"
-"Installments by Invoice Description","Popis Platba na splátky přes bankovní převod"
-"Pay Now Description","Popis Okamžitá platba"
-
-"Bank Transfer Sort Order","Pořadí Nákup na fakturu"
-"SEPA Direct Debit Sort Order","Pořadí Přímé inkaso SEPA"
-"Installments Sort Order","Pořadí Platba na splátky"
-"Installments By Invoice Sort Order","Pořadí Platba na splátky přes bankovní převod"
-"Pay Now Sort Order","Pořadí Okamžitá platba"

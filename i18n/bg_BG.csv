@@ -18,12 +18,21 @@ Api Configuration, Конфигурация на Api
 Send order line items, Изпращане на елементите на поръчката
 Sandbox mode, Режим Sandbox
 General configuration, Обща конфигурация
+Enable Bank Transfer, Активиране на банков превод
+Enable SEPA Direct Debit, Ensble SEPA директен дебит
+Enable Split Payments, Активиране на разделени плащания
+Bank Transfer Title, Банков превод Заглавие
+SEPA Direct Debit Title, Заглавие на директния дебит SEPA
+Split Payments Title, Разделени плащания Заглавие
 Enable automatic order processing, Активиране на автоматична обработка на поръчки
 Enable Logs, Активиране на дневници
 Mondu: Invoice orders, Mondu: Поръчки на фактури
 Mondu: Sync orders, Mondu: Синхронизиране на поръчки
 Not found, Не е намерен
 Api key, Ключ на интерфейса
+Pay later via bank transfer, Платете по-късно чрез банков превод
+Pay later via SEPA Direct Debit, Платете по-късно чрез директен дебит SEPA
+Split Payments, Разделени плащания
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Информация за обработката на Вашите лични данни от Mondu GmbH можете да намерите <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>тук</a>.
 "Require invoice for shipment", Изискване на фактура за изпращане
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Тази фактура е създадена в съответствие с общите условия на <strong>%1</strong> и <strong>Mondu GmbH</strong> за модела на плащане покупка по сметка"."
@@ -38,33 +47,3 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Референция за плащане:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Срок на плащане:</strong> %1 дни
-
-"Invoice (30 days)","банков превод (30 дни)"
-"SEPA direct debit (30 days)","директния дебит SEPA (30 дни)"
-"Installments (3, 6, 12 months)","разсрочено плащане (3, 6, 12 месеци)"
-"Installments (3, 6, 12 months) via Bank Transfer","разсрочено плащане чрез банков превод (3, 6, 12 месеци)"
-"Instant Pay","прямо плащане"
-
-"Bank Transfer Title","Заглавие банков превод" 
-"SEPA Direct Debit Title","Заглавие директния дебит SEPA"
-"Installments Title","Заглавие разсрочено плащане"
-"Installments by Invoice Title","Заглавие разсрочено плащане чрез банков превод"
-"Pay Now Title","Заглавие прямо плащане"
-
-"Enable Bank Transfer","Активиране на банков превод"
-"Enable SEPA Direct Debit","Активиране на директния дебит SEPA"
-"Enable Installments","Активиране на разсрочено плащане"
-"Enable Installments By Invoice","Активиране на разсрочено плащане чрез банков превод"
-"Enable Pay Now","Активиране на прямо плащане"
-
-"Bank Transfer Description","Описание банков превод"
-"SEPA Direct Debit Description","Описание директния дебит SEPA"
-"Installments Description","Описание разсрочено плащане"
-"Installments by Invoice Description","Описание разсрочено плащане чрез банков превод"
-"Pay Now Description","Описание прямо плащане"
-
-"Bank Transfer Sort Order","поредност банков превод"
-"SEPA Direct Debit Sort Order","поредност директния дебит SEPA"
-"Installments Sort Order","поредност разсрочено плащане"
-"Installments By Invoice Sort Order","поредност разсрочено плащане чрез банков превод"
-"Pay Now Sort Order","поредност прямо плащане"

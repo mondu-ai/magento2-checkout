@@ -18,12 +18,21 @@ Api Configuration, Configurazione Api
 Send order line items, Inviare le voci dell'ordine
 Sandbox mode, Modalità Sandbox
 General configuration, Configurazione generale
+Enable Bank Transfer, Abilita il bonifico bancario
+Enable SEPA Direct Debit, Addebito diretto SEPA Ensble
+Enable Split Payments, Abilitare i pagamenti frazionati
+Bank Transfer Title, Bonifico bancario Titolo
+SEPA Direct Debit Title, Titolo dell'addebito diretto SEPA
+Split Payments Title, Scissione dei pagamenti Titolo
 Enable automatic order processing, Abilitare l'elaborazione automatica degli ordini
 Enable Logs, Abilita i registri
 Mondu: Invoice orders, Mondu: Ordini di fatturazione
 Mondu: Sync orders, Mondu: Ordini di sincronizzazione
 Not found, Non trovato
 Api key, Chiave Api
+Pay later via bank transfer, Pagamenti successivi tramite bonifico bancario
+Pay later via SEPA Direct Debit, Pagamenti successivi tramite addebito diretto SEPA
+Split Payments, Pagamenti frazionati
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Le informazioni sul trattamento dei vostri dati personali da parte di Mondu GmbH sono disponibili <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>qui.</a>
 "Require invoice for shipment", Richiedere la fattura per la spedizione
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Questa fattura è stata creata in conformità con le condizioni generali di <strong>%1</strong> e <strong>Mondu GmbH</strong> per il modello di pagamento acquisto per conto.
@@ -38,33 +47,3 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Riferimento di pagamento:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termine di pagamento:</strong> %1 giorni
-
-"Invoice (30 days)","Fattura (30 giorni)"
-"SEPA direct debit (30 days)","Addebito diretto SEPA (30 giorni)"
-"Installments (3, 6, 12 months)","Rate (3, 6, 12 mesi)"
-"Installments (3, 6, 12 months) via Bank Transfer","Rate (3, 6, 12 mesi) per bonifico bancario"
-"Instant Pay","Bonifico istantaneo"
-
-"Bank Transfer Title","Titolo Fattura" 
-"SEPA Direct Debit Title","Titolo Addebito diretto SEPA"
-"Installments Title","Titolo Rate"
-"Installments by Invoice Title","Titolo Rate per bonifico bancario"
-"Pay Now Title","Titolo Bonifico istantaneo"
-
-"Enable Bank Transfer","Abilita Fattura"
-"Enable SEPA Direct Debit","Abilita Addebito diretto SEPA"
-"Enable Installments","Abilita Rate"
-"Enable Installments By Invoice","Abilita Rate per bonifico bancario"
-"Enable Pay Now","Abilita Bonifico istantaneo"
-
-"Bank Transfer Description","Descrizione Fattura"
-"SEPA Direct Debit Description","Descrizione Addebito diretto SEPA"
-"Installments Description","Descrizione Rate"
-"Installments by Invoice Description","Descrizione Rate per bonifico bancario"
-"Pay Now Description","Descrizione Bonifico istantaneo"
-
-"Bank Transfer Sort Order","Ordine Fattura"
-"SEPA Direct Debit Sort Order","Ordine Addebito diretto SEPA"
-"Installments Sort Order","Ordine Rate"
-"Installments By Invoice Sort Order","Ordine Rate per bonifico bancario"
-"Pay Now Sort Order","Ordine Bonifico istantaneo"

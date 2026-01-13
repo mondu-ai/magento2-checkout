@@ -16,7 +16,7 @@ Authorize,Authorize
 "something went wrong","Er is iets fout gegaan"
 "Error placing an order","Fout bij het plaatsen van een bestelling"
 "No order uid provided to adjust the order","No order uid provided to adjust the order"
-"Mondu: something went wrong","Mondu: Er is iets fout gegaan"New Order Status
+"Mondu: something went wrong","Mondu: Er is iets fout gegaan"
 "%1 method is not supported.","%1 method is not supported."
 Success,Success
 "Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>","Informatie over de verwerking van uw persoonsgegevens door Mondu GmbH vindt u <a href='https://www.mondu.ai/nl/information-nach-art-13-datenschutzgrundverordnung-fur-kaufer/' target='_blank'>hier</a>."
@@ -32,6 +32,15 @@ Success,Success
 "Require invoice for shipment","Require invoice for shipment"
 "Sandbox mode","Sandbox-modus"
 "General configuration","Algemene configuratie"
+"Enable Bank Transfer","Aankoop op rekening inschakelen"
+"Bank Transfer Title","Aankoop op rekening titel"
+"Bank Transfer Description","Bank Transfer Description"
+"Enable SEPA Direct Debit","SEPA automatische incasso inschakelen"
+"SEPA Direct Debit Title","Titel SEPA-incasso"
+"SEPA Direct Debit Description","SEPA Direct Debit Description"
+"Enable Split Payments","Gespreide betaling inschakelen"
+"Split Payments Title","Titel gesplitste betalingen"
+"Split Payments Description","Split Payments Description"
 "New Order Status","New Order Status"
 "Payment From Applicable Countries","Payment From Applicable Countries"
 "Payment From Specific Countries","Payment From Specific Countries"
@@ -49,6 +58,9 @@ Actions,Acties
 "Created At","Created At"
 "Mondu: Invoice orders","Mondu: facturen sturen naar Mondu"
 "Mondu: Sync orders","Mondu: Bestellingen synchroniseren"
+"Pay later via bank transfer","Aankoop op rekening - nu kopen, later betalen"
+"Pay later via SEPA Direct Debit","SEPA automatische incasso - nu kopen, later betalen"
+"Split Payments","Gespreid betalen, betaal gemakkelijk in termijnen via automatische incasso"
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.","Hierbij informeren wij u dat het factuurbedrag is overgedragen in overeenstemming met de Algemene Voorwaarden van <strong>%1</strong> voor het Betalingsuitstel model aan Mondu Financial Services B.V. (eerste cessie) en Mondu Capital S.à r.l. (tweede cessie)."
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.","Omdat je hebt gekozen voor de Mondu betaalmethode Factuuraankoop via SEPA automatische incasso, wordt het factuurbedrag op de vervaldatum van uw bankrekening afgeschreven."
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.","U ontvangt een bericht van automatische incasso voordat het bedrag van uw rekening wordt afgeschreven. Zorg ervoor dat u voldoende saldo op uw rekening heeft staan."
@@ -61,33 +73,3 @@ Actions,Acties
 <strong>BIC:</strong> %1,<strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1,<strong>Referentie:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Betalingstermijn:</strong> %1 dagen
-
-"Invoice (30 days)","Factuur (30 dagen)"
-"SEPA direct debit (30 days)","SEPA automatische incasso (30 dagen)"
-"Installments (3, 6, 12 months)","Betaling in termijnen (3, 6, 12 maanden)"
-"Installments (3, 6, 12 months) via Bank Transfer","Betaling in termijnen (3, 6, 12 maanden) per bankoverschrijving"
-"Instant Pay","Instant Pay"
-
-"Bank Transfer Title","Titel Factuur" 
-"SEPA Direct Debit Title","Titel SEPA automatische incasso"
-"Installments Title","Titel Betaling in termijnen"
-"Installments by Invoice Title","Titel Betaling in termijnen per bankoverschrijving"
-"Pay Now Title","Titel Instant Pay"
-
-"Enable Bank Transfer","Activeer Factuur"
-"Enable SEPA Direct Debit","Activeer SEPA automatische incasso"
-"Enable Installments","Activeer Betaling in termijnen"
-"Enable Installments By Invoice","Activeer Betaling in termijnen per bankoverschrijving"
-"Enable Pay Now","Activeer Instant Pay"
-
-"Bank Transfer Description","Omschrijving Factuur"
-"SEPA Direct Debit Description","Omschrijving SEPA automatische incasso"
-"Installments Description","Omschrijving Betaling in termijnen"
-"Installments by Invoice Description","Omschrijving Betaling in termijnen per bankoverschrijving"
-"Pay Now Description","Omschrijving Instant Pay"
-
-"Bank Transfer Sort Order","Volgorde Factuur"
-"SEPA Direct Debit Sort Order","Volgorde SEPA automatische incasso"
-"Installments Sort Order","Volgorde Betaling in termijnen"
-"Installments By Invoice Sort Order","Volgorde Betaling in termijnen per bankoverschrijving"
-"Pay Now Sort Order","Volgorde Instant Pay"
