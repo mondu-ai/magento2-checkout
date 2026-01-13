@@ -1,31 +1,55 @@
-Error placing an order, please try again later., Грешка при подаване на поръчката, моля, опитайте отново по-късно.
+Configure, Конфигуриране
+Close, Затвори
+Adjust, Коригирай
+Not found, Не е намерен
+"Error placing an order. Please try again later.","Грешка при подаване на поръчката. Моля, опитайте отново по-късно."
 Error placing an order, Грешка при подаване на поръчка
-Order has been declined, Поръчката е отказана
+"Order has been declined.","Поръчката е отказана."
 This order was not placed with Mondu, Тази поръчка не е направена в Mondu
 Mondu: order with id %1 was adjusted, Mondu: поръчка с id %1 е коригирана
 Mondu api error: %1, Грешка в интерфейса на Mondu: %1
+"'Mondu api error: ' .", "'Грешка в интерфейса на Mondu: ' ."
 Mondu: The order with the id %1 was successfully canceled., Mondu: Поръчката с идентификатор %1 беше успешно анулирана.
-Cant enable Mondu payments API key is missing, Не мога да разреша плащанията на Mondu Липсва API ключ
+Mondu: The order with the id %1 was successfully canceled, Mondu: Поръчката с идентификатор %1 беше успешно анулирана
+"Cannot enable Mondu payments: API key is missing.","Не може да се активират плащанията на Mondu: липсва API ключ."
 Mondu: order id %1, Mondu: идентификатор на поръчката %1
 Mondu: Invalid shipment amount, Mondu: Невалидна сума на пратката
 Can't ship order: Mondu order state must be confirmed or partially_shipped, Не мога да изпратя поръчката: Състоянието на поръчката на Mondu трябва да бъде потвърдено или частично_изпратено
-Mondu: Invoice is required to ship the order., Мондю: За изпращане на поръчката се изисква фактура.
+Mondu: Invoice is required to ship the order., Mondu: За изпращане на поръчката се изисква фактура.
 Mondu: invoice created with id %1, Mondu: създадена е фактура с идентификатор %1
-Mondu: You cant partially refund order before shipment, Мондю: Не можете да възстановите частично поръчката преди изпращането
-Mondu: Something went wrong, Мондю: Нещо се обърка
-Mondu: The order with the id %1 was successfully canceled, Мондю: Поръчката с идентификатор %1 беше успешно анулирана
+Mondu: You cant partially refund order before shipment, Mondu: Не можете да възстановите частично поръчката преди изпращането
+Mondu: Something went wrong, Mondu: Нещо се обърка
+Authorize, Оторизирай
+something went wrong, Нещо се обърка
+No order uid provided to adjust the order, Не е предоставен uid на поръчката за коригиране на поръчката
+"%1 method is not supported.", "Методът %1 не се поддържа."
+Success, Успех
+Fraud, Измама
+Place Order, Направи поръчка
 Api Configuration, Конфигурация на Api
+Api key, Ключ на интерфейса
 Send order line items, Изпращане на елементите на поръчката
+"Require invoice for shipment", Изискване на фактура за изпращане
 Sandbox mode, Режим Sandbox
 General configuration, Обща конфигурация
+New Order Status, Статус на нова поръчка
+Payment From Applicable Countries, Плащане от приложими държави
+Payment From Specific Countries, Плащане от конкретни държави
 Enable automatic order processing, Активиране на автоматична обработка на поръчки
 Enable Logs, Активиране на дневници
+General Information, Обща информация
+State, Състояние
+"-- Order status --", "-- Статус на поръчката --"
+ID, ID
+Order ID, ID на поръчката
+Payment Method, Метод на плащане
+Reference ID, Референтен ID
+Api Mode, Режим на Api
+Actions, Действия
+Created At, Създадено на
 Mondu: Invoice orders, Mondu: Поръчки на фактури
 Mondu: Sync orders, Mondu: Синхронизиране на поръчки
-Not found, Не е намерен
-Api key, Ключ на интерфейса
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Информация за обработката на Вашите лични данни от Mondu GmbH можете да намерите <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>тук</a>.
-"Require invoice for shipment", Изискване на фактура за изпращане
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Тази фактура е създадена в съответствие с общите условия на <strong>%1</strong> и <strong>Mondu GmbH</strong> за модела на плащане покупка по сметка"."
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Тъй като сте избрали метода на плащане за покупка по сметка с плащане чрез SEPA директен дебит чрез Mondu, сумата по фактурата ще бъде дебитирана от банковата ви сметка на датата на падежа.
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Преди сумата да бъде дебитирана от сметката ви, ще получите уведомление за директния дебит. Моля, уверете се, че разполагате с достатъчно средства в сметката си.
@@ -68,3 +92,16 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 "Installments Sort Order","поредност разсрочено плащане"
 "Installments By Invoice Sort Order","поредност разсрочено плащане чрез банков превод"
 "Pay Now Sort Order","поредност прямо плащане"
+
+"Mondu: Order has been declined","Mondu: Поръчката е отказана"
+"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Статусът на поръчката е променен на Преглед на плащането, защото е необходимо ръчно потвърждение"
+"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Статусът на поръчката е променен на Преглед на плащането от уебхук"
+"Mondu: Order Status changed to Processing by a webhook","Mondu: Статусът на поръчката е променен на Обработка от уебхук"
+"Unregistered topic","Нерегистрирана тема"
+"Order not found: %1","Поръчката не е намерена: %1"
+"Missing external_reference_id for signature validation","Липсва external_reference_id за валидиране на подписа"
+"Missing X-Mondu-Signature header","Липсва заглавие X-Mondu-Signature"
+"Signature validation failed for all stores","Валидирането на подписа е неуспешно за всички магазини"
+<strong>Bank:</strong> %1,<strong>Банка:</strong> %1
+<strong>Sort Code:</strong> %1,<strong>Код на клона:</strong> %1
+<strong>Account Number:</strong> %1,<strong>Номер на сметка:</strong> %1

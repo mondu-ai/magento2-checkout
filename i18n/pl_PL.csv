@@ -1,11 +1,17 @@
-Error placing an order, please try again later., Błąd podczas składania zamówienia, spróbuj ponownie później.
+Configure, Konfiguruj
+Close, Zamknij
+Adjust, Dostosuj
+Not found, Nie znaleziono
+"Error placing an order. Please try again later.","Błąd podczas składania zamówienia. Spróbuj ponownie później."
 Error placing an order, Błąd podczas składania zamówienia
-Order has been declined, Zamówienie zostało odrzucone
+"Order has been declined.","Zamówienie zostało odrzucone."
 This order was not placed with Mondu, To zamówienie nie zostało złożone w Mondu
 Mondu: order with id %1 was adjusted, Mondu: zamówienie o id %1 zostało skorygowane
 Mondu api error: %1, Błąd api Mondu: %1
+"'Mondu api error: ' .", "'Błąd api Mondu: ' ."
 Mondu: The order with the id %1 was successfully canceled., Mondu: Zamówienie o id %1 zostało pomyślnie anulowane.
-Cant enable Mondu payments API key is missing, Nie można włączyć płatności Mondu Brak klucza API
+Mondu: The order with the id %1 was successfully canceled, Mondu: Zamówienie o id %1 zostało pomyślnie anulowane
+"Cannot enable Mondu payments: API key is missing.","Nie można włączyć płatności Mondu: brak klucza API."
 Mondu: order id %1, Mondu: identyfikator zamówienia %1
 Mondu: Invalid shipment amount, Mondu: Nieprawidłowa kwota wysyłki
 Can't ship order: Mondu order state must be confirmed or partially_shipped, Nie można wysłać zamówienia: Stan zamówienia Mondu musi być potwierdzony lub częściowo wysłany.
@@ -13,28 +19,37 @@ Mondu: Invoice is required to ship the order., Mondu: Faktura jest wymagana do w
 Mondu: invoice created with id %1, Mondu: faktura utworzona z identyfikatorem %1
 Mondu: You cant partially refund order before shipment, Mondu: Nie można częściowo zwrócić zamówienia przed wysyłką
 Mondu: Something went wrong, Mondu: Coś poszło nie tak
-Mondu: The order with the id %1 was successfully canceled, Mondu: Zamówienie o id %1 zostało pomyślnie anulowane
+Authorize, Autoryzuj
+something went wrong, Coś poszło nie tak
+No order uid provided to adjust the order, Nie podano uid zamówienia do skorygowania zamówienia
+"%1 method is not supported.", "Metoda %1 nie jest obsługiwana."
+Success, Sukces
+Fraud, Oszustwo
+Place Order, Złóż zamówienie
 Api Configuration, Konfiguracja API
+Api key, Klucz API
 Send order line items, Wysyłanie pozycji zamówienia
+"Require invoice for shipment", Wymagaj faktury do wysyłki
 Sandbox mode, Tryb piaskownicy
 General configuration, Konfiguracja ogólna
-Enable Bank Transfer, Włącz przelew bankowy
-Enable SEPA Direct Debit, Polecenie zapłaty Ensble SEPA
-Enable Split Payments, Włącz płatności podzielone
-Bank Transfer Title, Tytuł przelewu bankowego
-SEPA Direct Debit Title, Tytuł polecenia zapłaty SEPA
-Split Payments Title, Tytuł podzielonej płatności
+New Order Status, Status nowego zamówienia
+Payment From Applicable Countries, Płatność z odpowiednich krajów
+Payment From Specific Countries, Płatność z określonych krajów
 Enable automatic order processing, Włącz automatyczne przetwarzanie zamówień
 Enable Logs, Włącz dzienniki
+General Information, Informacje ogólne
+State, Stan
+"-- Order status --", "-- Status zamówienia --"
+ID, ID
+Order ID, ID zamówienia
+Payment Method, Metoda płatności
+Reference ID, ID referencyjny
+Api Mode, Tryb API
+Actions, Akcje
+Created At, Utworzono
 Mondu: Invoice orders, Mondu: Zamówienia faktur
 Mondu: Sync orders, Mondu: Synchronizacja zamówień
-Not found, Nie znaleziono
-Api key, Klucz API
-Pay later via bank transfer, Zapłać później przelewem bankowym
-Pay later via SEPA Direct Debit, Zapłać później za pomocą polecenia zapłaty SEPA
-Split Payments, Podzielone płatności
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Informacje na temat przetwarzania danych osobowych przez Mondu GmbH można znaleźć <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>tutaj.</a>
-"Require invoice for shipment", Wymagaj faktury do wysyłki
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Niniejsza faktura została wystawiona zgodnie z ogólnymi warunkami <strong>%1</strong> i <strong>Mondu</strong> GmbH dla modelu płatności purchase on account"".
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Ponieważ wybrałeś metodę płatności polegającą na zakupie na konto z płatnością za pomocą polecenia zapłaty SEPA za pośrednictwem Mondu, kwota faktury zostanie pobrana z Twojego konta bankowego w terminie płatności.
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Zanim kwota zostanie pobrana z Twojego konta, otrzymasz powiadomienie o poleceniu zapłaty. Uprzejmie prosimy o upewnienie się, że na koncie znajdują się wystarczające środki.
@@ -47,3 +62,46 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Numer referencyjny płatności:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termin płatności:</strong> %1 dni
+
+"Invoice (30 days)","Faktura (30 dni)"
+"SEPA direct debit (30 days)","Polecenie zapłaty SEPA (30 dni)"
+"Installments (3, 6, 12 months)","Raty (3, 6, 12 miesięcy)"
+"Installments (3, 6, 12 months) via Bank Transfer","Raty (3, 6, 12 miesięcy) przelewem bankowym"
+"Instant Pay","Natychmiastowa płatność"
+
+"Bank Transfer Title","Tytuł Faktura"
+"SEPA Direct Debit Title","Tytuł Polecenie zapłaty SEPA"
+"Installments Title","Tytuł Raty"
+"Installments by Invoice Title","Tytuł Raty przelewem bankowym"
+"Pay Now Title","Tytuł Natychmiastowa płatność"
+
+"Enable Bank Transfer","Włącz Fakturę"
+"Enable SEPA Direct Debit","Włącz Polecenie zapłaty SEPA"
+"Enable Installments","Włącz Raty"
+"Enable Installments By Invoice","Włącz Raty przelewem bankowym"
+"Enable Pay Now","Włącz Natychmiastową płatność"
+
+"Bank Transfer Description","Opis Faktura"
+"SEPA Direct Debit Description","Opis Polecenie zapłaty SEPA"
+"Installments Description","Opis Raty"
+"Installments by Invoice Description","Opis Raty przelewem bankowym"
+"Pay Now Description","Opis Natychmiastowa płatność"
+
+"Bank Transfer Sort Order","Kolejność Faktura"
+"SEPA Direct Debit Sort Order","Kolejność Polecenie zapłaty SEPA"
+"Installments Sort Order","Kolejność Raty"
+"Installments By Invoice Sort Order","Kolejność Raty przelewem bankowym"
+"Pay Now Sort Order","Kolejność Natychmiastowa płatność"
+
+"Mondu: Order has been declined","Mondu: Zamówienie zostało odrzucone"
+"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Status zamówienia zmieniony na Przegląd płatności, ponieważ wymaga ręcznego potwierdzenia"
+"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Status zamówienia zmieniony na Przegląd płatności przez webhook"
+"Mondu: Order Status changed to Processing by a webhook","Mondu: Status zamówienia zmieniony na Przetwarzanie przez webhook"
+"Unregistered topic","Niezarejestrowany temat"
+"Order not found: %1","Zamówienie nie znalezione: %1"
+"Missing external_reference_id for signature validation","Brak external_reference_id do walidacji podpisu"
+"Missing X-Mondu-Signature header","Brak nagłówka X-Mondu-Signature"
+"Signature validation failed for all stores","Walidacja podpisu nie powiodła się dla wszystkich sklepów"
+<strong>Bank:</strong> %1,<strong>Bank:</strong> %1
+<strong>Sort Code:</strong> %1,<strong>Kod oddziału:</strong> %1
+<strong>Account Number:</strong> %1,<strong>Numer konta:</strong> %1
