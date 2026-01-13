@@ -1,11 +1,17 @@
-Error placing an order, please try again later., Eroare plasarea unei comenzi, vă rugăm să încercați din nou mai târziu.
+Configure, Configurare
+Close, Închide
+Adjust, Ajustează
+Not found, Nu a fost găsit
+"Error placing an order. Please try again later.","Eroare la plasarea unei comenzi. Vă rugăm să încercați din nou mai târziu."
 Error placing an order, Eroare la plasarea unei comenzi
-Order has been declined, Comanda a fost refuzată
+"Order has been declined.","Comanda a fost refuzată."
 This order was not placed with Mondu, Această comandă nu a fost plasată cu Mondu
 Mondu: order with id %1 was adjusted, Mondu: comanda cu id %1 a fost ajustată
 Mondu api error: %1, Eroare api Mondu: %1
+"'Mondu api error: ' .", "'Eroare api Mondu: ' ."
 Mondu: The order with the id %1 was successfully canceled., Mondu: Comanda cu ID-ul %1 a fost anulată cu succes.
-Cant enable Mondu payments API key is missing, Nu pot activa plățile Mondu Lipsește cheia API
+Mondu: The order with the id %1 was successfully canceled, Mondu: Comanda cu ID-ul %1 a fost anulată cu succes
+"Cannot enable Mondu payments: API key is missing.","Nu se pot activa plățile Mondu: lipsește cheia API."
 Mondu: order id %1, Mondu: id comandă %1
 Mondu: Invalid shipment amount, Mondu: Suma de expediere invalidă
 Can't ship order: Mondu order state must be confirmed or partially_shipped, Nu se poate expedia comanda: Starea comenzii Mondu trebuie să fie confirmată sau parțial_expediată
@@ -13,28 +19,37 @@ Mondu: Invoice is required to ship the order., Mondu: Factura este necesară pen
 Mondu: invoice created with id %1, Mondu: factură creată cu ID %1
 Mondu: You cant partially refund order before shipment, Mondu: Nu puteți rambursa parțial comanda înainte de expediere
 Mondu: Something went wrong, Mondu: Ceva nu a mers bine
-Mondu: The order with the id %1 was successfully canceled, Mondu: Comanda cu ID-ul %1 a fost anulată cu succes
+Authorize, Autorizare
+something went wrong, Ceva a mers greșit
+No order uid provided to adjust the order, Nu a fost furnizat niciun uid de comandă pentru a ajusta comanda
+"%1 method is not supported.", "Metoda %1 nu este suportată."
+Success, Succes
+Fraud, Fraudă
+Place Order, Plasați comanda
 Api Configuration, Configurarea Api
+Api key, Cheia Api
 Send order line items, Trimiteți articole de linie de comandă
+"Require invoice for shipment", Cer factură pentru expediere
 Sandbox mode, Modul Sandbox
 General configuration, Configurație generală
-Enable Bank Transfer, Activați transferul bancar
-Enable SEPA Direct Debit, Debit direct SEPA Ensble
-Enable Split Payments, Activați plățile fracționate
-Bank Transfer Title, Transfer bancar Titlu
-SEPA Direct Debit Title, SEPA Direct Debit Titlu
-Split Payments Title, Plăți fracționate Titlu
+New Order Status, Status comandă nouă
+Payment From Applicable Countries, Plată din țările aplicabile
+Payment From Specific Countries, Plată din țări specifice
 Enable automatic order processing, Activați procesarea automată a comenzilor
 Enable Logs, Activarea jurnalelor
+General Information, Informații generale
+State, Stare
+"-- Order status --", "-- Status comandă --"
+ID, ID
+Order ID, ID comandă
+Payment Method, Metodă de plată
+Reference ID, ID de referință
+Api Mode, Mod API
+Actions, Acțiuni
+Created At, Creat la
 Mondu: Invoice orders, Mondu: Ordine de facturare
 Mondu: Sync orders, Mondu: Comenzi de sincronizare
-Not found, Nu a fost găsit
-Api key, Cheia Api
-Pay later via bank transfer, Plătiți mai târziu prin transfer bancar
-Pay later via SEPA Direct Debit, Plătiți mai târziu prin intermediul SEPA Direct Debit
-Split Payments, Plăți fracționate
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Informații privind prelucrarea datelor dvs. personale de către Mondu GmbH pot fi găsite <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>aici.</a>
-"Require invoice for shipment", Cer factură pentru expediere
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Această factură a fost creată în conformitate cu termenii și condițiile generale ale <strong>%1</strong> și <strong>Mondu GmbH</strong> pentru modelul de plată cumpărare în cont.
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Deoarece ați ales metoda de plată achiziție în cont cu plată prin debit direct SEPA prin Mondu, valoarea facturii va fi debitată din contul dvs. bancar la data scadenței.
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Înainte ca suma să fie debitată din contul dvs., veți primi o notificare de debitare directă. Vă rugăm să vă asigurați că aveți suficiente fonduri în cont.
@@ -47,3 +62,46 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Referința plății:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termen de plată:</strong> %1 zile
+
+"Invoice (30 days)","Factură (30 zile)"
+"SEPA direct debit (30 days)","Debit direct SEPA (30 zile)"
+"Installments (3, 6, 12 months)","Rate (3, 6, 12 luni)"
+"Installments (3, 6, 12 months) via Bank Transfer","Rate (3, 6, 12 luni) prin transfer bancar"
+"Instant Pay","Plată instantanee"
+
+"Bank Transfer Title","Titlu Factură"
+"SEPA Direct Debit Title","Titlu Debit direct SEPA"
+"Installments Title","Titlu Rate"
+"Installments by Invoice Title","Titlu Rate prin transfer bancar"
+"Pay Now Title","Titlu Plată instantanee"
+
+"Enable Bank Transfer","Activare Factură"
+"Enable SEPA Direct Debit","Activare Debit direct SEPA"
+"Enable Installments","Activare Rate"
+"Enable Installments By Invoice","Activare Rate prin transfer bancar"
+"Enable Pay Now","Activare Plată instantanee"
+
+"Bank Transfer Description","Descriere Factură"
+"SEPA Direct Debit Description","Descriere Debit direct SEPA"
+"Installments Description","Descriere Rate"
+"Installments by Invoice Description","Descriere Rate prin transfer bancar"
+"Pay Now Description","Descriere Plată instantanee"
+
+"Bank Transfer Sort Order","Ordine Factură"
+"SEPA Direct Debit Sort Order","Ordine Debit direct SEPA"
+"Installments Sort Order","Ordine Rate"
+"Installments By Invoice Sort Order","Ordine Rate prin transfer bancar"
+"Pay Now Sort Order","Ordine Plată instantanee"
+
+"Mondu: Order has been declined","Mondu: Comanda a fost refuzată"
+"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Statusul comenzii a fost schimbat în Revizuire plată deoarece necesită confirmare manuală"
+"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Statusul comenzii a fost schimbat în Revizuire plată de un webhook"
+"Mondu: Order Status changed to Processing by a webhook","Mondu: Statusul comenzii a fost schimbat în Procesare de un webhook"
+"Unregistered topic","Subiect neînregistrat"
+"Order not found: %1","Comanda nu a fost găsită: %1"
+"Missing external_reference_id for signature validation","Lipsește external_reference_id pentru validarea semnăturii"
+"Missing X-Mondu-Signature header","Lipsește antetul X-Mondu-Signature"
+"Signature validation failed for all stores","Validarea semnăturii a eșuat pentru toate magazinele"
+<strong>Bank:</strong> %1,<strong>Bancă:</strong> %1
+<strong>Sort Code:</strong> %1,<strong>Cod sucursală:</strong> %1
+<strong>Account Number:</strong> %1,<strong>Număr de cont:</strong> %1
