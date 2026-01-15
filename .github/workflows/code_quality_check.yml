@@ -23,7 +23,7 @@ jobs:
         run: composer config http-basic.repo.magento.com 5a828b358382e3a772039c11a81485c4 0c59305c4d6554d0087ff128f86602ee
 
       - name: Install Magento 2
-        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:2.4.7 magento
+        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:2.4.7-p8 magento
 
       - name: Configure Composer allow-plugins
         working-directory: magento
