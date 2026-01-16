@@ -17,6 +17,11 @@ class MonduInstallmentByInvoice extends AbstractMethod
     protected $_code = 'monduinstallmentbyinvoice';
 
     /**
+     * @var bool
+     */
+    protected $_canUseInternal = false;
+
+    /**
      * Authorize.
      *
      * @param InfoInterface $payment

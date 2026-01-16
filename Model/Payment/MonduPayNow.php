@@ -18,6 +18,11 @@ class MonduPayNow extends AbstractMethod
     protected $_code = 'mondupaynow';
 
     /**
+     * @var bool
+     */
+    protected $_canUseInternal = false;
+
+    /**
      * Authorize.
      *
      * @param InfoInterface $payment
