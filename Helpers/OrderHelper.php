@@ -278,6 +278,12 @@ class OrderHelper
                     continue;
                 }
 
+                $orderItem = $i->getOrderItem();
+                if ($orderItem->getParentItem() &&
+                    $orderItem->getParentItem()->getProductType() === 'bundle') {
+                    continue;
+                }
+
                 $variationId = isset($mapping[$i->getProductId()]) ? $mapping[$i->getProductId()] : $i->getProductId();
 
                 $lineItems[] = [

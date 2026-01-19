@@ -311,16 +311,36 @@ class InvoiceOrderHelper
             $this->messageManager->addErrorMessage(
                 'Mondu: Unexpected error: Order could not be found, please contact Mondu Support to resolve this issue.'
             );
-            return false;
+            throw new LocalizedException(
+                __('Mondu: Unexpected error - Order could not be found. Please contact Mondu Support.')
+            );
         }
 
         if (isset($data['errors'])) {
+            $errorName = $data['errors'][0]['name'] ?? 'unknown';
+            $errorDetails = $data['errors'][0]['details'] ?? 'unknown error';
+
             $this->monduFileLogger->info(
                 'InvoiceOrderHelper: handleInvoiceOrderErrors',
-                ['errors' => $data['errors']]
+                ['errors' => $data['errors'], 'monduId' => $monduId]
+            );
+
+            if ($errorName === 'external_reference_id' && str_contains($errorDetails, 'must be unique')) {
+                $this->monduFileLogger->info(
+                    'InvoiceOrderHelper: Invoice already exists in Mondu (duplicate external_reference_id)',
+                    ['monduId' => $monduId]
+                );
+                $this->messageManager->addWarningMessage(
+                    __('Mondu: Invoice with this ID was already registered. Skipping duplicate.')
+                );
+                return false;
+            }
+
+            $this->messageManager->addErrorMessage(
+                __('Mondu: %1 - %2', $errorName, $errorDetails)
             );
             throw new LocalizedException(
-                __('Mondu: ' . $data['errors'][0]['name'] . ' ' . $data['errors'][0]['details'])
+                __('Mondu: %1 - %2', $errorName, $errorDetails)
             );
         }
 
