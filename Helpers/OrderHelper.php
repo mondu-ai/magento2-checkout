@@ -191,7 +191,7 @@ class OrderHelper
 
             $lineItems[] = [
                 'title' => $quoteItem->getName(),
-                'net_price_per_item_cents' => $price * 100,
+                'net_price_per_item_cents' => $price ? round($price * 100) : 0,
                 'variation_id' => $variationId,
                 'item_type' => $quoteItem->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
                 'external_reference_id' => $variationId . '-' . $quoteItem->getItemId(),
