@@ -94,6 +94,9 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 "Pay Now Sort Order","Ordem Pagamento instantâneo"
 
 "Mondu: Order has been declined","Mondu: A encomenda foi recusada"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu: Infelizmente, neste momento não podemos disponibilizar este método de pagamento para a sua compra.
+Por favor, selecione outro método de pagamento para concluir a sua encomenda."
 "Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Estado da encomenda alterado para Revisão de Pagamento porque necessita de confirmação manual"
 "Mondu: Order Status changed to Payment Review by a webhook","Mondu: Estado da encomenda alterado para Revisão de Pagamento por um webhook"
 "Mondu: Order Status changed to Processing by a webhook","Mondu: Estado da encomenda alterado para Processamento por um webhook"

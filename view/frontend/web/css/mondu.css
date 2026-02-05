@@ -1,4 +1,11 @@
 /********************************************
+ * 0. Checkout decline/cancel messages - preserve line breaks (\n)
+ ********************************************/
+.checkout-index-index .message {
+    white-space: pre-line;
+}
+
+/********************************************
  * 1. Base styles for all Mondu payment labels
  ********************************************/
 label[for^="mondu"] {

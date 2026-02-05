@@ -125,7 +125,20 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getApiKey(): ?string
     {
-        return $this->scopeConfig->getValue('payment/mondu/mondu_key', ScopeInterface::SCOPE_STORE, $this->contextCode);
+        $websiteId = $this->getWebsiteIdForContext();
+
+        if ($websiteId !== null) {
+            return $this->scopeConfig->getValue(
+                'payment/mondu/mondu_key',
+                ScopeInterface::SCOPE_WEBSITE,
+                $websiteId
+            );
+        }
+
+        return $this->scopeConfig->getValue(
+            'payment/mondu/mondu_key',
+            ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+        );
     }
 
     /**
@@ -378,6 +391,25 @@ class ConfigProvider implements ConfigProviderInterface
     public function clearConfigurationCache(): void
     {
         $this->cacheTypeList->cleanType('config');
+    }
+
+    /**
+     * Returns website ID for the current store context, if available.
+     *
+     * @return int|null
+     */
+    private function getWebsiteIdForContext(): ?int
+    {
+        if ($this->contextCode === null) {
+            return null;
+        }
+
+        try {
+            $store = $this->storeManager->getStore($this->contextCode);
+            return (int) $store->getWebsiteId();
+        } catch (NoSuchEntityException $e) {
+            return null;
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -22,12 +23,14 @@ class Save implements ObserverInterface
      * @param PaymentMethod $paymentMethod
      * @param RequestFactory $requestFactory
      * @param MonduFileLogger $monduFileLogger
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         private readonly ConfigProvider $monduConfig,
         private readonly PaymentMethod $paymentMethod,
         private readonly RequestFactory $requestFactory,
         private readonly MonduFileLogger $monduFileLogger,
+        private readonly StoreManagerInterface $storeManager,
     ) {
     }
 
@@ -46,6 +49,43 @@ class Save implements ObserverInterface
             $storeId = (int) $observer->getEvent()->getStore();
         } elseif ($observer->getEvent()->getData('store')) {
             $storeId = (int) $observer->getEvent()->getData('store');
+        }
+
+        // Derive store ID when config is saved on website scope
+        /** @var \Magento\Config\Model\Config|null $configData */
+        $configData = $observer->getEvent()->getData('configData')
+            ?? $observer->getEvent()->getData('config_data');
+
+        if ($configData && $storeId === null) {
+            $scope = $configData->getScope();
+            $scopeId = (int) $configData->getScopeId();
+
+            if ($scope === 'websites') {
+                try {
+                    $website = $this->storeManager->getWebsite($scopeId);
+                    $defaultStore = $website->getDefaultStore();
+
+                    if ($defaultStore) {
+                        $storeId = (int) $defaultStore->getId();
+                    } else {
+                        $stores = $website->getStores();
+                        if (!empty($stores)) {
+                            $firstStore = reset($stores);
+                            $storeId = (int) $firstStore->getId();
+                        }
+                    }
+
+                    $this->monduFileLogger->info(
+                        'Config Save Observer: Derived store ID from website scope',
+                        ['website_id' => $scopeId, 'store_id' => $storeId]
+                    );
+                } catch (Exception $e) {
+                    $this->monduFileLogger->error(
+                        'Config Save Observer: Failed to derive store from website scope',
+                        ['website_id' => $scopeId, 'error' => $e->getMessage()]
+                    );
+                }
+            }
         }
 
         $this->monduFileLogger->info('Config Save Observer: Store ID detected', ['store_id' => $storeId]);

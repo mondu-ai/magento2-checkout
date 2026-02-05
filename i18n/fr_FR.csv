@@ -93,6 +93,9 @@ Actions,Actions
 "Pay Now Sort Order","Ordre Virement instantané"
 
 "Mondu: Order has been declined","Mondu: La commande a été refusée"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu : Malheureusement, nous ne pouvons pas vous proposer ce moyen de paiement pour le moment.
+Veuillez choisir un autre moyen de paiement pour finaliser votre achat."
 "Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Statut de la commande changé en Examen du paiement car une confirmation manuelle est nécessaire"
 "Mondu: Order Status changed to Payment Review by a webhook","Mondu: Statut de la commande changé en Examen du paiement par un webhook"
 "Mondu: Order Status changed to Processing by a webhook","Mondu: Statut de la commande changé en Traitement par un webhook"

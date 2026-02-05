@@ -93,6 +93,9 @@ Actions,Acties
 "Pay Now Sort Order","Volgorde Instant Pay"
 
 "Mondu: Order has been declined","Mondu: Bestelling is geweigerd"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu: Helaas kunnen we deze betaalmethode momenteel niet voor uw aankoop aanbieden.
+Kies alstublieft een andere betaalmethode om uw bestelling af te ronden."
 "Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Bestelstatus gewijzigd naar Betalingsbeoordeling omdat handmatige bevestiging nodig is"
 "Mondu: Order Status changed to Payment Review by a webhook","Mondu: Bestelstatus gewijzigd naar Betalingsbeoordeling door een webhook"
 "Mondu: Order Status changed to Processing by a webhook","Mondu: Bestelstatus gewijzigd naar Verwerking door een webhook"

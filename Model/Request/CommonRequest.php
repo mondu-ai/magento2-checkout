@@ -131,8 +131,8 @@ abstract class CommonRequest implements RequestInterface
         if ($statusFirstDigit !== '1' && $statusFirstDigit !== '2') {
             $curlData = [
                 'response_status' => (string) $this->curl->getStatus(),
-                'response_body' => json_decode($this->curl->getBody(), true) ?? [],
-                'request_body' => json_decode($this->requestParams ?? '', true) ?? [],
+                'response_body' => json_decode((string) $this->curl->getBody(), true) ?? [],
+                'request_body' => json_decode((string) ($this->requestParams ?? ''), true) ?? [],
                 'origin_event' => $this->requestOrigin,
             ];
 

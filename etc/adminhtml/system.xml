@@ -8,10 +8,10 @@
                 <fieldset_css>complex mondu-section</fieldset_css>
                 <frontend_model>Mondu\Mondu\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <group id="monduapi" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
-                       showInStore="1">
+                       showInStore="0">
                     <label>Api Configuration</label>
                     <field id="mondu_key" translate="label" type="obscure" sortOrder="30" showInDefault="1"
-                           showInWebsite="1" showInStore="1" canRestore="1">
+                           showInWebsite="1" showInStore="0" canRestore="1">
                         <label>Api key</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <config_path>payment/mondu/mondu_key</config_path>
@@ -168,23 +168,23 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
                 </group>
-                <group id="monducron" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                <group id="monducron" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
                        showInStore="0">
                     <label>Cron configuration</label>
-                    <field id="cron" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0"
+                    <field id="cron" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1"
                            showInStore="0" canRestore="1">
                         <label>Enable Cron job for sending invoices to Mondu</label>
                         <config_path>payment/mondu/cron</config_path>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
                     <field id="monducron_status" translate="label" type="select" sortOrder="2" showInDefault="1"
-                           showInWebsite="0" showInStore="0" canRestore="1">
+                           showInWebsite="1" showInStore="0" canRestore="1">
                         <label>Order status in which order will be processed by the Cron job</label>
                         <config_path>payment/mondu/cron_status</config_path>
                         <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     </field>
                     <field id="monducron_requireinvoice" translate="label" type="select" sortOrder="2"
-                           showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                         <label>Require Invoice document for processing orders</label>
                         <config_path>payment/mondu/cron_require_invoice</config_path>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

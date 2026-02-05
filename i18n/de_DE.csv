@@ -77,7 +77,7 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 "Enable Bank Transfer","Aktiviere Rechnungskauf"
 "Enable SEPA Direct Debit","Aktiviere SEPA-Lastschrift"
 "Enable Installments","Aktiviere Ratenkauf"
-"Enable Installments By Invoice","AktiviereRatenkauf per Überweisung"
+"Enable Installments By Invoice","Aktiviere Ratenkauf per Überweisung"
 "Enable Pay Now","Aktiviere Echtzeitüberweisung"
 
 "Bank Transfer Description","Beschreibung Rechnungskauf"
@@ -92,7 +92,15 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 "Installments By Invoice Sort Order","Reihenfolge Ratenkauf per Überweisung"
 "Pay Now Sort Order","Reihenfolge Echtzeitüberweisung"
 
+"Cron configuration","Cron-Konfiguration"
+"Enable Cron job for sending invoices to Mondu","Cron-Job zum Senden von Rechnungen an Mondu aktivieren"
+"Order status in which order will be processed by the Cron job","Bestellstatus, in dem der Cron-Job die Bestellung verarbeitet"
+"Require Invoice document for processing orders","Rechnungsdokument für die Verarbeitung von Bestellungen erforderlich"
+
 "Mondu: Order has been declined","Mondu: Bestellung wurde abgelehnt"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu: Leider können wir Ihnen diese Zahlungsoption für Ihren Einkauf momentan nicht anbieten.
+Bitte wählen Sie eine andere Zahlungsart aus und versuchen Sie es erneut."
 "Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Bestellstatus wurde auf Zahlungsprüfung geändert, da eine manuelle Bestätigung erforderlich ist"
 "Mondu: Order Status changed to Payment Review by a webhook","Mondu: Bestellstatus wurde durch einen Webhook auf Zahlungsprüfung geändert"
 "Mondu: Order Status changed to Processing by a webhook","Mondu: Bestellstatus wurde durch einen Webhook auf Verarbeitung geändert"

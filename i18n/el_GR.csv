@@ -94,6 +94,9 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 "Pay Now Sort Order","Προτεραιότητα Ταχεία πληρωμή"
 
 "Mondu: Order has been declined","Mondu: Η παραγγελία έχει απορριφθεί"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu: Δυστυχώς, αυτήν τη στιγμή δεν μπορούμε να σας προσφέρουμε αυτή τη μέθοδο πληρωμής για την αγορά σας.
+Παρακαλούμε επιλέξτε έναν άλλο τρόπο πληρωμής για να ολοκληρώσετε την παραγγελία σας."
 "Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Η κατάσταση παραγγελίας άλλαξε σε Έλεγχος πληρωμής επειδή απαιτείται χειροκίνητη επιβεβαίωση"
 "Mondu: Order Status changed to Payment Review by a webhook","Mondu: Η κατάσταση παραγγελίας άλλαξε σε Έλεγχος πληρωμής από ένα webhook"
 "Mondu: Order Status changed to Processing by a webhook","Mondu: Η κατάσταση παραγγελίας άλλαξε σε Επεξεργασία από ένα webhook"
