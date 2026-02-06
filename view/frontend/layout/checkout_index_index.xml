@@ -5,13 +5,6 @@
         <css src="Mondu_Mondu::css/mondu.css"/>
     </head>
     <body>
-        <!-- Restore page.messages for Mondu decline/cancel error display (checkout removes it by default) -->
-        <referenceContainer name="content">
-            <container name="mondu.checkout.messages.wrapper" htmlTag="div" htmlClass="mondu-checkout-messages" before="checkout.root">
-                <block class="Magento\Framework\View\Element\Messages" name="mondu.checkout.messages"
-                       template="Magento_Theme::messages.phtml"/>
-            </container>
-        </referenceContainer>
         <referenceBlock name="checkout.root">
             <arguments>
                 <argument name="jsLayout" xsi:type="array">
@@ -21,7 +14,6 @@
                                 <item name="steps" xsi:type="array">
                                     <item name="children" xsi:type="array">
                                         <item name="billing-step" xsi:type="array">
-                                            <item name="component" xsi:type="string">uiComponent</item>
                                             <item name="children" xsi:type="array">
                                                 <item name="payment" xsi:type="array">
                                                     <item name="children" xsi:type="array">

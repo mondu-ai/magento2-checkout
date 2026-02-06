@@ -16,6 +16,6 @@ class Cancel extends AbstractPaymentController
      */
     public function execute(): ResponseInterface|ResultInterface
     {
-        return $this->redirectWithErrorMessage('Mondu: Order has been canceled', 'cancel');
+        return $this->redirectWithErrorMessage('Mondu: Order has been canceled');
     }
 }

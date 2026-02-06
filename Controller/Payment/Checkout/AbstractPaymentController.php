@@ -57,32 +57,16 @@ abstract class AbstractPaymentController implements ActionInterface
      * Redirects to the specified path.
      *
      * @param string $path
-     * @param array $arguments
      * @return ResponseInterface
      */
-    protected function redirect(string $path, array $arguments = []): ResponseInterface
+    protected function redirect(string $path): ResponseInterface
     {
-        $this->redirect->redirect($this->response, $path, $arguments);
+        $this->redirect->redirect($this->response, $path);
         return $this->response;
     }
 
     /**
-     * Redirects to checkout payment step.
-     *
-     * @param string|null $monduError Pass 'decline' or 'cancel' to show error via URL param (session may be lost)
-     * @return ResponseInterface
-     */
-    protected function redirectToCheckoutPayment(?string $monduError = null): ResponseInterface
-    {
-        $arguments = ['_fragment' => 'payment'];
-        if ($monduError !== null) {
-            $arguments['_query'] = ['mondu_error' => $monduError];
-        }
-        return $this->redirect('checkout', $arguments);
-    }
-
-    /**
-     * Handles exception and redirects back to checkout with error message.
+     * Handles exception and redirects to cart with error message.
      *
      * @param Exception $e
      * @param string $message
@@ -91,17 +75,18 @@ abstract class AbstractPaymentController implements ActionInterface
     protected function processException(Exception $e, string $message): ResponseInterface
     {
         $this->messageManager->addExceptionMessage($e, __($message));
-        return $this->redirectToCheckoutPayment();
+        return $this->redirect('checkout/cart');
     }
 
     /**
-     * Adds error message and redirects back to checkout.
+     * Adds error message and redirects to cart.
      *
      * @param string $message
      * @return ResponseInterface
      */
-    protected function redirectWithErrorMessage(string $message, ?string $monduError = 'decline'): ResponseInterface
+    protected function redirectWithErrorMessage(string $message): ResponseInterface
     {
-        return $this->redirectToCheckoutPayment($monduError);
+        $this->messageManager->addErrorMessage(__($message));
+        return $this->redirect('checkout/cart');
     }
 }

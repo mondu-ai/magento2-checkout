@@ -183,6 +183,11 @@ class Transactions extends CommonRequest implements RequestInterface
             'phone' => $billing->getTelephone(),
         ];
 
+        $vatId = $billing->getVatId();
+        if ($vatId !== null && $vatId !== '') {
+            $params['vat_number'] = (string) $vatId;
+        }
+
         return $this->buyerParams->getBuyerParams($params, $quote);
     }
 
