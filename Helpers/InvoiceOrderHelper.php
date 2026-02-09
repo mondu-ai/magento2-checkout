@@ -10,6 +10,7 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\ShipmentInterface;
+use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -28,6 +29,7 @@ class InvoiceOrderHelper
      * @param OrderHelper $orderHelper
      * @param RequestFactory $requestFactory
      * @param SerializerInterface $serializer
+     * @param ShippingHelper $shippingHelper
      */
     public function __construct(
         private readonly ConfigProvider $configProvider,
@@ -38,6 +40,7 @@ class InvoiceOrderHelper
         private readonly OrderHelper $orderHelper,
         private readonly RequestFactory $requestFactory,
         private readonly SerializerInterface $serializer,
+        private readonly ShippingHelper $shippingHelper,
     ) {
     }
 
@@ -79,7 +82,7 @@ class InvoiceOrderHelper
             $this->validateQuantities($order, $shipment, $createdInvoices);
             $this->createOrderInvoices($order, $shipment, $monduLog);
         } else {
-            $invoiceData = $this->createInvoiceForWholeOrder($order);
+            $invoiceData = $this->createInvoiceForWholeOrder($order, $shipment);
             $this->handleInvoiceOrderErrors($monduId, $invoiceData);
         }
     }
@@ -88,10 +91,11 @@ class InvoiceOrderHelper
      * Creates a single invoice for the full order and sends it to Mondu.
      *
      * @param OrderInterface $order
+     * @param ShipmentInterface|null $shipment
      * @throws LocalizedException
      * @return array
      */
-    public function createInvoiceForWholeOrder(OrderInterface $order): array
+    public function createInvoiceForWholeOrder(OrderInterface $order, ?ShipmentInterface $shipment = null): array
     {
         $monduId = $order->getMonduReferenceId();
         $body = [
@@ -100,6 +104,8 @@ class InvoiceOrderHelper
             'external_reference_id' => $order->getIncrementId(),
             'gross_amount_cents' => round($order->getBaseGrandTotal(), 2) * 100,
         ];
+
+        $this->addShipmentDetailsToBody($body, $order, $shipment);
 
         $this->monduFileLogger->info(
             'InvoiceOrderHelper: createInvoiceForWholeOrder',
@@ -217,7 +223,7 @@ class InvoiceOrderHelper
         array &$invoiceMapping,
         array $externalReferenceIdMapping
     ) {
-        $invoiceBody = $this->getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping);
+        $invoiceBody = $this->getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping, $shipment);
         $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)->process($invoiceBody);
 
         $this->monduFileLogger->info(
@@ -249,7 +255,8 @@ class InvoiceOrderHelper
     private function getInvoiceItemBody(
         string $monduId,
         InvoiceInterface $invoiceItem,
-        array $externalReferenceIdMapping
+        array $externalReferenceIdMapping,
+        ?ShipmentInterface $shipment = null
     ): array {
         $grossAmountCents = round((float) $invoiceItem->getBaseGrandTotal(), 2) * 100;
         $invoiceUrl = $this->configProvider->getPdfUrl($monduId, $invoiceItem->getIncrementId());
@@ -260,7 +267,78 @@ class InvoiceOrderHelper
             'invoice_url' => $invoiceUrl,
         ];
 
+        $order = $invoiceItem->getOrder();
+        $this->addShipmentDetailsToBody($invoiceBody, $order, $shipment);
+
         return $this->orderHelper->addLineItemsToInvoice($invoiceItem, $invoiceBody, $externalReferenceIdMapping);
+    }
+
+    /**
+     * Adds shipment details to Mondu invoice request body.
+     * Supports: shipping_method, shipping_company, tracking_number, tracking_url.
+     * return_* fields require custom Magento extensions (RMA/returns).
+     *
+     * @param array $body
+     * @param OrderInterface|null $order
+     * @param ShipmentInterface|null $shipment
+     * @return void
+     */
+    private function addShipmentDetailsToBody(
+        array &$body,
+        ?OrderInterface $order,
+        ?ShipmentInterface $shipment
+    ): void {
+        if ($order !== null) {
+            $shippingMethod = $order->getShippingMethod();
+            if ($shippingMethod !== null && $shippingMethod !== '') {
+                $body['shipping_method'] = (string) $shippingMethod;
+            }
+        }
+
+        if ($shipment === null) {
+            return;
+        }
+
+        $shippingCompany = null;
+        $trackingNumber = null;
+        $firstTrack = null;
+
+        foreach ($shipment->getAllTracks() as $track) {
+            if ($firstTrack === null) {
+                $firstTrack = $track;
+            }
+            if ($shippingCompany === null) {
+                $shippingCompany = $track->getTitle() ?: $track->getCarrierCode();
+            }
+            if ($trackingNumber === null && $track->getTrackNumber()) {
+                $trackingNumber = $track->getTrackNumber();
+            }
+            if ($shippingCompany !== null && $trackingNumber !== null) {
+                break;
+            }
+        }
+
+        if ($shippingCompany !== null) {
+            $body['shipping_company'] = (string) $shippingCompany;
+        }
+
+        if ($trackingNumber !== null) {
+            $body['tracking_number'] = (string) $trackingNumber;
+        }
+
+        if ($firstTrack !== null) {
+            try {
+                $trackingUrl = $this->shippingHelper->getTrackingPopupUrlBySalesModel($firstTrack);
+                if ($trackingUrl !== null && $trackingUrl !== '') {
+                    $body['tracking_url'] = (string) $trackingUrl;
+                }
+            } catch (\Throwable $e) {
+                $this->monduFileLogger->warning('Could not get tracking URL for Mondu invoice', [
+                    'track_id' => $firstTrack->getEntityId(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**
