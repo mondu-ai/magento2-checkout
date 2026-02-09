@@ -10,7 +10,6 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\ShipmentInterface;
-use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -29,7 +28,6 @@ class InvoiceOrderHelper
      * @param OrderHelper $orderHelper
      * @param RequestFactory $requestFactory
      * @param SerializerInterface $serializer
-     * @param ShippingHelper $shippingHelper
      */
     public function __construct(
         private readonly ConfigProvider $configProvider,
@@ -40,7 +38,6 @@ class InvoiceOrderHelper
         private readonly OrderHelper $orderHelper,
         private readonly RequestFactory $requestFactory,
         private readonly SerializerInterface $serializer,
-        private readonly ShippingHelper $shippingHelper,
     ) {
     }
 
@@ -275,7 +272,7 @@ class InvoiceOrderHelper
 
     /**
      * Adds shipment details to Mondu invoice request body.
-     * Supports: shipping_method, shipping_company, tracking_number, tracking_url.
+     * Supports: shipping_method, shipping_company, tracking_number.
      * return_* fields require custom Magento extensions (RMA/returns).
      *
      * @param array $body
@@ -301,12 +298,8 @@ class InvoiceOrderHelper
 
         $shippingCompany = null;
         $trackingNumber = null;
-        $firstTrack = null;
 
         foreach ($shipment->getAllTracks() as $track) {
-            if ($firstTrack === null) {
-                $firstTrack = $track;
-            }
             if ($shippingCompany === null) {
                 $shippingCompany = $track->getTitle() ?: $track->getCarrierCode();
             }
@@ -324,20 +317,6 @@ class InvoiceOrderHelper
 
         if ($trackingNumber !== null) {
             $body['tracking_number'] = (string) $trackingNumber;
-        }
-
-        if ($firstTrack !== null) {
-            try {
-                $trackingUrl = $this->shippingHelper->getTrackingPopupUrlBySalesModel($firstTrack);
-                if ($trackingUrl !== null && $trackingUrl !== '') {
-                    $body['tracking_url'] = (string) $trackingUrl;
-                }
-            } catch (\Throwable $e) {
-                $this->monduFileLogger->warning('Could not get tracking URL for Mondu invoice', [
-                    'track_id' => $firstTrack->getEntityId(),
-                    'error' => $e->getMessage(),
-                ]);
-            }
         }
     }
 
