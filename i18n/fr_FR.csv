@@ -2,8 +2,8 @@ Configure,Configurer
 Close,Fermer
 Adjust,Ajuster
 "Not found","Non trouvé"
-"Error placing an order Please try again later.","Erreur lors de la commande Veuillez réessayer plus tard."
-"Order has been declined","La commande a été refusée"
+"Error placing an order. Please try again later.","Erreur lors de la commande. Veuillez réessayer plus tard."
+"Order has been declined.","La commande a été refusée."
 "Mondu: Invoice is required to ship the order.","Mondu: Une facture est nécessaire pour expédier la commande."
 "Mondu: invoice created with id %1","Mondu: facture créée avec l'identifiant %1"
 "Mondu: Invalid shipment amount","Mondu: Montant de l'envoi invalide"
@@ -21,7 +21,7 @@ Success,Succès
 "Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>","Des informations sur la façon dont Mondu GmbH traite vos données personnelles peuvent être trouvées <a href=\"https://mondu.ai/fr/gdpr-notification-for-buyers\" target=\"_blank\">ici</a>."
 Fraud,Fraude
 "Mondu: The order with the id %1 was successfully canceled.","Mondu: La commande avec l'identifiant %1 a été annulée avec succès."
-"Cant enable Mondu payments API key is missing","Impossible d'activer la clé API des paiements Mondu manquante"
+"Cannot enable Mondu payments: API key is missing.","Impossible d'activer les paiements Mondu: la clé API est manquante."
 "Mondu: order id %1","Mondu: numéro de commande %1"
 "Can't ship order: Mondu order state must be confirmed or partially_shipped","Impossible d'expédier la commande: L'état de la commande Mondu doit être confirmed ou partially_shipped"
 "Mondu: You cant partially refund order before shipment","Mondu: Vous ne pouvez pas rembourser partiellement la commande avant l'expédition"
@@ -32,15 +32,6 @@ Fraud,Fraude
 "Require invoice for shipment","Exiger une facture pour l'expédition"
 "Sandbox mode","Exiger une facture pour l'envoie"
 "General configuration","Paramétrage général"
-"Enable Bank Transfer","Activer le virement bancaire"
-"Bank Transfer Title","Titre du virement bancaire"
-"Bank Transfer Description","Description du virement bancaire"
-"Enable SEPA Direct Debit","Activer le prélèvement SEPA"
-"SEPA Direct Debit Title","Titre de prélèvement SEPA"
-"SEPA Direct Debit Description","Prélèvement SEPA Description"
-"Enable Split Payments","Activer les paiements fractionnés"
-"Split Payments Title","Titre des paiements fractionnés"
-"Split Payments Description","Paiements fractionnés Description"
 "New Order Status","Statut de la nouvelle commande"
 "Payment From Applicable Countries","Paiement depuis les pays concernés"
 "Payment From Specific Countries","Paiement depuis des pays spécifiques"
@@ -58,9 +49,6 @@ Actions,Actions
 "Created At","Créé à"
 "Mondu: Invoice orders","Mondu: Commandes par facture"
 "Mondu: Sync orders","Mondu: Synchroniser les commandes"
-Pay later via bank transfer,"Payez plus tard par virement"
-Pay later via SEPA Direct Debit,"SEPA - Payer plus tard par prélèvement automatique"
-Split Payments,Paiements Fractionnés - Payer facilement en plusieurs fois par prélèvement automatique
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.","Cette facture a été cédée conformément aux conditions générales de <strong>%1</strong> et de <strong>Mondu GmbH</strong> pour le modèle d'achat sur facture."
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.","Comme vous avez choisi le mode de paiement de l'achat sur facture avec règlement via prélèvement SEPA via Mondu, le montant de la facture sera débité de votre compte bancaire à la date d'échéance."
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.","Vous recevrez un avis avant le prélèvement automatique sur votre compte. Veuillez alors vous assurer que votre compte contient les fonds suffisants pour assurer la transaction à la date du prélèvement."
@@ -73,3 +61,49 @@ Split Payments,Paiements Fractionnés - Payer facilement en plusieurs fois par p
 <strong>BIC:</strong> %1,<strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1,<strong>Objet:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Date limite de paiement:</strong> %1 jours
+
+"Invoice (30 days)","Facture (30 jours)"
+"SEPA direct debit (30 days)","Prélèvement automatique SEPA (30 jours)"
+"Installments (3, 6, 12 months)","Paiement échelonnés (3, 6, 12 mois)"
+"Installments (3, 6, 12 months) via Bank Transfer","Paiement échelonnés (3, 6, 12 mois) par virement bancaire"
+"Instant Pay","Virement instantané"
+
+"Bank Transfer Title","Titre Facture" 
+"SEPA Direct Debit Title","Titre Prélèvement automatique SEPA"
+"Installments Title","Titre Paiement échelonnés"
+"Installments by Invoice Title","Titre Paiement échelonnés par virement bancaire"
+"Pay Now Title","Titre Virement instantané"
+
+"Enable Bank Transfer","Activez Facture"
+"Enable SEPA Direct Debit","Activez Prélèvement automatique SEPA"
+"Enable Installments","Activez Paiement échelonnés"
+"Enable Installments By Invoice","Activez Paiement échelonnés par virement bancaire"
+"Enable Pay Now","Activez Virement instantané"
+
+"Bank Transfer Description","Description Facture"
+"SEPA Direct Debit Description","Description Prélèvement automatique SEPA"
+"Installments Description","Description Paiement échelonnés"
+"Installments by Invoice Description","Description Paiement échelonnés par virement bancaire"
+"Pay Now Description","Description Virement instantané"
+
+"Bank Transfer Sort Order","Ordre Facture"
+"SEPA Direct Debit Sort Order","Ordre Prélèvement automatique SEPA"
+"Installments Sort Order","Ordre Paiement échelonnés"
+"Installments By Invoice Sort Order","Ordre Paiement échelonnés par virement bancaire"
+"Pay Now Sort Order","Ordre Virement instantané"
+
+"Mondu: Order has been declined","Mondu: La commande a été refusée"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu : Malheureusement, nous ne pouvons pas vous proposer ce moyen de paiement pour le moment.
+Veuillez choisir un autre moyen de paiement pour finaliser votre achat."
+"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Statut de la commande changé en Examen du paiement car une confirmation manuelle est nécessaire"
+"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Statut de la commande changé en Examen du paiement par un webhook"
+"Mondu: Order Status changed to Processing by a webhook","Mondu: Statut de la commande changé en Traitement par un webhook"
+"Unregistered topic","Sujet non enregistré"
+"Order not found: %1","Commande non trouvée: %1"
+"Missing external_reference_id for signature validation","external_reference_id manquant pour la validation de la signature"
+"Missing X-Mondu-Signature header","En-tête X-Mondu-Signature manquant"
+"Signature validation failed for all stores","La validation de la signature a échoué pour tous les magasins"
+<strong>Bank:</strong> %1,<strong>Banque:</strong> %1
+<strong>Sort Code:</strong> %1,<strong>Code guichet:</strong> %1
+<strong>Account Number:</strong> %1,<strong>Numéro de compte:</strong> %1

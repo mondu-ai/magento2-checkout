@@ -10,12 +10,15 @@ use Magento\Framework\Controller\ResultInterface;
 class Decline extends AbstractPaymentController
 {
     /**
-     * Redirects the customer to the cart with a decline message.
+     * Redirects the customer back to checkout with a decline message.
      *
      * @return ResponseInterface|ResultInterface
      */
     public function execute(): ResponseInterface|ResultInterface
     {
-        return $this->redirectWithErrorMessage('Mondu: Order has been declined');
+        return $this->redirectWithErrorMessage(
+            "Mondu: Unfortunately, we cannot offer you this payment method at the moment.\n"
+            . 'Please select another payment option to complete your purchase.'
+        );
     }
 }

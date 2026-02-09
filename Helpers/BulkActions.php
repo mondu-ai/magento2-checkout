@@ -262,7 +262,9 @@ class BulkActions
                 ->create(RequestFactory::SHIP_ORDER)->process($invoiceBody);
 
             if (isset($shipOrderData['errors'])) {
-                $errors[] = $order->getIncrementId();
+                $errorName = $shipOrderData['errors'][0]['name'] ?? 'unknown';
+                $errorDetails = $shipOrderData['errors'][0]['details'] ?? 'unknown error';
+
                 $this->monduFileLogger->info(
                     'Order '
                     . $order->getIncrementId()
@@ -270,6 +272,16 @@ class BulkActions
                     . $invoiceItem->getIncrementId() . $this->serializer->serialize($invoiceBody),
                     $shipOrderData['errors']
                 );
+
+                if ($errorName === 'external_reference_id' && str_contains($errorDetails, 'must be unique')) {
+                    $this->monduFileLogger->info(
+                        'Order ' . $order->getIncrementId()
+                        . ': Invoice already exists in Mondu (duplicate external_reference_id), skipping'
+                    );
+                    continue;
+                }
+
+                $errors[] = $order->getIncrementId();
                 continue;
             }
 

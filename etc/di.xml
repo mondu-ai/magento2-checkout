@@ -40,6 +40,16 @@
         <plugin name="mondu_filter_payment_methods" type="Mondu\Mondu\Plugin\Magento\Payment\Helper\Data"/>
     </type>
     <type name="Magento\Email\Model\Template">
-        <plugin name="addTemplateVariable" type="Mondu\Mondu\Plugin\Magento\Email\Model\Template"/>
+        <plugin name="addTemplateVariable" type="Mondu\Mondu\Plugin\Magento\Email\Model\Template"/>                                                                                             
+    </type>
+    <type name="Mondu\Mondu\Observer\Config\Save">
+        <arguments>
+            <argument name="monduFileLogger" xsi:type="object">Mondu\Mondu\Helpers\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Mondu\Mondu\Controller\Webhooks\Index">
+        <arguments>
+            <argument name="monduFileLogger" xsi:type="object">Mondu\Mondu\Helpers\Logger\Logger</argument>
+        </arguments>
     </type>
 </config>

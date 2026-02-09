@@ -95,7 +95,7 @@ class Transactions extends CommonRequest implements RequestInterface
                 return [
                     'error' => 1,
                     'body' => json_decode($result, true),
-                    'message' => __('Error placing an order Please try again later.'),
+                    'message' => __('Error placing an order. Please try again later.'),
                 ];
             }
 
@@ -182,6 +182,11 @@ class Transactions extends CommonRequest implements RequestInterface
             'last_name' => $billing->getLastname(),
             'phone' => $billing->getTelephone(),
         ];
+
+        $vatId = $billing->getVatId();
+        if ($vatId !== null && $vatId !== '') {
+            $params['vat_number'] = (string) $vatId;
+        }
 
         return $this->buyerParams->getBuyerParams($params, $quote);
     }

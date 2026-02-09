@@ -55,7 +55,10 @@ class TransactionService
     {
         if (($order['state'] ?? null) === OrderHelper::DECLINED) {
             $response['error'] = true;
-            $response['message'] = __('Order has been declined.');
+            $response['message'] = __(
+                "Mondu: Unfortunately, we cannot offer you this payment method at the moment.\n"
+                . 'Please select another payment option to complete your purchase.'
+            );
         }
     }
 

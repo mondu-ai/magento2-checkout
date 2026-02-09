@@ -1,11 +1,17 @@
-Error placing an order, please try again later., Errore nell'effettuare un ordine, riprovare più tardi.
+Configure, Configura
+Close, Chiudi
+Adjust, Modifica
+Not found, Non trovato
+"Error placing an order. Please try again later.","Errore nell'effettuare un ordine. Riprovare più tardi."
 Error placing an order, Errore nell'inoltro dell'ordine
-Order has been declined, L'ordine è stato rifiutato
+"Order has been declined.","L'ordine è stato rifiutato."
 This order was not placed with Mondu, Questo ordine non è stato effettuato con Mondu
 Mondu: order with id %1 was adjusted, Mondu: l'ordine con id %1 è stato modificato
 Mondu api error: %1, Errore Mondu api: %1
+"'Mondu api error: ' .", "'Errore Mondu api: ' ."
 Mondu: The order with the id %1 was successfully canceled., Mondu: L'ordine con l'id %1 è stato annullato con successo.
-Cant enable Mondu payments API key is missing, Impossibile abilitare i pagamenti di Mondu Manca la chiave API
+Mondu: The order with the id %1 was successfully canceled, Mondu: L'ordine con l'id %1 è stato annullato con successo.
+"Cannot enable Mondu payments: API key is missing.","Impossibile abilitare i pagamenti Mondu: manca la chiave API."
 Mondu: order id %1, Mondu: id ordine %1
 Mondu: Invalid shipment amount, Mondu: Importo della spedizione non valido
 Can't ship order: Mondu order state must be confirmed or partially_shipped, Impossibile spedire l'ordine: Lo stato dell'ordine di Mondu deve essere confermato o parzialmente spedito.
@@ -13,28 +19,37 @@ Mondu: Invoice is required to ship the order., Mondu: La fattura è necessaria p
 Mondu: invoice created with id %1, Mondu: fattura creata con id %1
 Mondu: You cant partially refund order before shipment, Mondu: Non è possibile rimborsare parzialmente l'ordine prima della spedizione
 Mondu: Something went wrong, Mondu: Qualcosa è andato storto
-Mondu: The order with the id %1 was successfully canceled, Mondu: L'ordine con l'id %1 è stato annullato con successo.
+Authorize, Autorizza
+something went wrong, Qualcosa è andato storto
+No order uid provided to adjust the order, Nessun uid dell'ordine fornito per modificare l'ordine
+"%1 method is not supported.", "Il metodo %1 non è supportato."
+Success, Successo
+Fraud, Frode
+Place Order, Effettua ordine
 Api Configuration, Configurazione Api
+Api key, Chiave Api
 Send order line items, Inviare le voci dell'ordine
+"Require invoice for shipment", Richiedere la fattura per la spedizione
 Sandbox mode, Modalità Sandbox
 General configuration, Configurazione generale
-Enable Bank Transfer, Abilita il bonifico bancario
-Enable SEPA Direct Debit, Addebito diretto SEPA Ensble
-Enable Split Payments, Abilitare i pagamenti frazionati
-Bank Transfer Title, Bonifico bancario Titolo
-SEPA Direct Debit Title, Titolo dell'addebito diretto SEPA
-Split Payments Title, Scissione dei pagamenti Titolo
+New Order Status, Stato nuovo ordine
+Payment From Applicable Countries, Pagamento dai paesi applicabili
+Payment From Specific Countries, Pagamento da paesi specifici
 Enable automatic order processing, Abilitare l'elaborazione automatica degli ordini
 Enable Logs, Abilita i registri
+General Information, Informazioni generali
+State, Stato
+"-- Order status --", "-- Stato dell'ordine --"
+ID, ID
+Order ID, ID ordine
+Payment Method, Metodo di pagamento
+Reference ID, ID riferimento
+Api Mode, Modalità Api
+Actions, Azioni
+Created At, Creato il
 Mondu: Invoice orders, Mondu: Ordini di fatturazione
 Mondu: Sync orders, Mondu: Ordini di sincronizzazione
-Not found, Non trovato
-Api key, Chiave Api
-Pay later via bank transfer, Pagamenti successivi tramite bonifico bancario
-Pay later via SEPA Direct Debit, Pagamenti successivi tramite addebito diretto SEPA
-Split Payments, Pagamenti frazionati
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Le informazioni sul trattamento dei vostri dati personali da parte di Mondu GmbH sono disponibili <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>qui.</a>
-"Require invoice for shipment", Richiedere la fattura per la spedizione
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Questa fattura è stata creata in conformità con le condizioni generali di <strong>%1</strong> e <strong>Mondu GmbH</strong> per il modello di pagamento acquisto per conto.
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Poiché avete scelto il metodo di pagamento per l'acquisto in conto corrente con pagamento tramite addebito diretto SEPA tramite Mondu, l'importo della fattura sarà addebitato sul vostro conto bancario alla data di scadenza.
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Prima che l'importo venga addebitato sul vostro conto, riceverete una notifica dell'addebito diretto. Assicuratevi di avere fondi sufficienti sul vostro conto.
@@ -47,3 +62,49 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Riferimento di pagamento:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termine di pagamento:</strong> %1 giorni
+
+"Invoice (30 days)","Fattura (30 giorni)"
+"SEPA direct debit (30 days)","Addebito diretto SEPA (30 giorni)"
+"Installments (3, 6, 12 months)","Rate (3, 6, 12 mesi)"
+"Installments (3, 6, 12 months) via Bank Transfer","Rate (3, 6, 12 mesi) per bonifico bancario"
+"Instant Pay","Bonifico istantaneo"
+
+"Bank Transfer Title","Titolo Fattura" 
+"SEPA Direct Debit Title","Titolo Addebito diretto SEPA"
+"Installments Title","Titolo Rate"
+"Installments by Invoice Title","Titolo Rate per bonifico bancario"
+"Pay Now Title","Titolo Bonifico istantaneo"
+
+"Enable Bank Transfer","Abilita Fattura"
+"Enable SEPA Direct Debit","Abilita Addebito diretto SEPA"
+"Enable Installments","Abilita Rate"
+"Enable Installments By Invoice","Abilita Rate per bonifico bancario"
+"Enable Pay Now","Abilita Bonifico istantaneo"
+
+"Bank Transfer Description","Descrizione Fattura"
+"SEPA Direct Debit Description","Descrizione Addebito diretto SEPA"
+"Installments Description","Descrizione Rate"
+"Installments by Invoice Description","Descrizione Rate per bonifico bancario"
+"Pay Now Description","Descrizione Bonifico istantaneo"
+
+"Bank Transfer Sort Order","Ordine Fattura"
+"SEPA Direct Debit Sort Order","Ordine Addebito diretto SEPA"
+"Installments Sort Order","Ordine Rate"
+"Installments By Invoice Sort Order","Ordine Rate per bonifico bancario"
+"Pay Now Sort Order","Ordine Bonifico istantaneo"
+
+"Mondu: Order has been declined","Mondu: L'ordine è stato rifiutato"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu: Purtroppo al momento non possiamo offrirti questo metodo di pagamento.
+Seleziona un altro metodo di pagamento per completare il tuo acquisto."
+"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Lo stato dell'ordine è stato modificato in Revisione pagamento perché necessita di conferma manuale"
+"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Lo stato dell'ordine è stato modificato in Revisione pagamento da un webhook"
+"Mondu: Order Status changed to Processing by a webhook","Mondu: Lo stato dell'ordine è stato modificato in Elaborazione da un webhook"
+"Unregistered topic","Argomento non registrato"
+"Order not found: %1","Ordine non trovato: %1"
+"Missing external_reference_id for signature validation","external_reference_id mancante per la validazione della firma"
+"Missing X-Mondu-Signature header","Header X-Mondu-Signature mancante"
+"Signature validation failed for all stores","Validazione della firma fallita per tutti i negozi"
+<strong>Bank:</strong> %1,<strong>Banca:</strong> %1
+<strong>Sort Code:</strong> %1,<strong>Codice filiale:</strong> %1
+<strong>Account Number:</strong> %1,<strong>Numero di conto:</strong> %1

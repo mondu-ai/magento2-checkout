@@ -7,6 +7,7 @@ namespace Mondu\Mondu\Observer;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
@@ -20,12 +21,14 @@ class AfterPlaceOrder extends MonduObserver
      * @param MonduFileLogger $monduFileLogger
      * @param PaymentMethodHelper $paymentMethodHelper
      * @param MonduLogHelper $monduLogHelper
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         ContextHelper $contextHelper,
         MonduFileLogger $monduFileLogger,
         PaymentMethodHelper $paymentMethodHelper,
         private readonly MonduLogHelper $monduLogHelper,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -49,12 +52,12 @@ class AfterPlaceOrder extends MonduObserver
             );
             $order->setState(Order::STATE_PAYMENT_REVIEW);
             $order->setStatus(Order::STATE_PAYMENT_REVIEW);
-            $order->save();
+            $this->orderRepository->save($order);
             return;
         }
 
         $order->setState(Order::STATE_PROCESSING);
         $order->setStatus(Order::STATE_PROCESSING);
-        $order->save();
+        $this->orderRepository->save($order);
     }
 }

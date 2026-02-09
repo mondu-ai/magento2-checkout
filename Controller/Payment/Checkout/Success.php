@@ -49,7 +49,7 @@ class Success extends AbstractSuccessController
 
             if ($order) {
                 $order->addCommentToStatusHistory(__('Mondu: order id %1', $monduId));
-                $order->save();
+                $this->orderRepository->save($order);
                 $this->checkoutSession->setLastOrderId($order->getId())
                     ->setLastRealOrderId($order->getIncrementId())
                     ->setLastOrderStatus($order->getStatus());

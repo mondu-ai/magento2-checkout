@@ -9,6 +9,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
@@ -27,6 +28,7 @@ class CancelOrder extends MonduObserver
      * @param PaymentMethodHelper $paymentMethodHelper
      * @param ManagerInterface $messageManager
      * @param RequestFactory $requestFactory
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -34,6 +36,7 @@ class CancelOrder extends MonduObserver
         PaymentMethodHelper $paymentMethodHelper,
         private readonly ManagerInterface $messageManager,
         private readonly RequestFactory $requestFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -72,7 +75,7 @@ class CancelOrder extends MonduObserver
             $order->addCommentToStatusHistory(
                 __('Mondu: The order with the id %1 was successfully canceled.', $monduId)
             );
-            $order->save();
+            $this->orderRepository->save($order);
             $this->monduFileLogger->info('Cancelled order ', ['orderNumber' => $orderIncrementId]);
         } catch (Exception $error) {
             $this->monduFileLogger->info(

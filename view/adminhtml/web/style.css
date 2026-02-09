@@ -1,11 +1,12 @@
 .mondu-section .mondu-payment-logo {
     background-size: 18rem;
-    background: url(https://checkout.mondu.ai/logo.svg) no-repeat scroll 0 10px;
+    background: url("plugin.png") no-repeat scroll 0 10px;
+    background-size: 120px;
     display: inline-block;
     height: 60px;
     padding-left: 20rem;
     vertical-align: middle;
-    width: auto;
+
 }
 
 .mondu-section .button-container {

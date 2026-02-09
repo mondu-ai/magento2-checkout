@@ -1,11 +1,17 @@
-Error placing an order, please try again later., Chyba při zadávání objednávky, zkuste to prosím později.
+Configure, Konfigurovat
+Close, Zavřít
+Adjust, Upravit
+Not found, Nenalezeno
+"Error placing an order. Please try again later.","Chyba při zadávání objednávky. Zkuste to prosím později."
 Error placing an order, Chyba při zadávání objednávky
-Order has been declined, Objednávka byla odmítnuta
+"Order has been declined.","Objednávka byla odmítnuta."
 This order was not placed with Mondu, Tato objednávka nebyla zadána společnosti Mondu
 Mondu: order with id %1 was adjusted, Mondu: objednávka s id %1 byla upravena
 Mondu api error: %1, Chyba API Mondu: %1
+"'Mondu api error: ' .", "'Chyba API Mondu: ' ."
 Mondu: The order with the id %1 was successfully canceled., Mondu: Objednávka s id %1 byla úspěšně zrušena.
-Cant enable Mondu payments API key is missing, Nelze povolit platby Mondu Chybí klíč API
+Mondu: The order with the id %1 was successfully canceled, Mondu: Objednávka s id %1 byla úspěšně zrušena.
+"Cannot enable Mondu payments: API key is missing.","Nelze povolit platby Mondu: chybí klíč API."
 Mondu: order id %1, Mondu: id objednávky %1
 Mondu: Invalid shipment amount, Mondu: Neplatná částka zásilky
 Can't ship order: Mondu order state must be confirmed or partially_shipped, Nelze odeslat objednávku: Stav objednávky Mondu musí být potvrzen nebo částečně_odeslán
@@ -13,28 +19,37 @@ Mondu: Invoice is required to ship the order., Mondu: K odeslání objednávky j
 Mondu: invoice created with id %1, Mondu: vytvořena faktura s id %1
 Mondu: You cant partially refund order before shipment, Mondu: Nemůžete částečně refundovat objednávku před odesláním
 Mondu: Something went wrong, Mondu: Něco se pokazilo
-Mondu: The order with the id %1 was successfully canceled, Mondu: Objednávka s id %1 byla úspěšně zrušena.
+Authorize, Autorizovat
+something went wrong, Něco se pokazilo
+No order uid provided to adjust the order, Nebylo poskytnuto uid objednávky pro úpravu objednávky
+"%1 method is not supported.", "Metoda %1 není podporována."
+Success, Úspěch
+Fraud, Podvod
+Place Order, Zadat objednávku
 Api Configuration, Konfigurace rozhraní Api
+Api key, Klíč API
 Send order line items, Odeslat položky objednávky
+"Require invoice for shipment", Vyžadovat fakturu za přepravu
 Sandbox mode, Režim Sandbox
 General configuration, Obecná konfigurace
-Enable Bank Transfer, Povolit bankovní převod
-Enable SEPA Direct Debit, Ensble SEPA Direct Debit
-Enable Split Payments, Povolení rozdělených plateb
-Bank Transfer Title, Název bankovního převodu
-SEPA Direct Debit Title, Přímé inkaso SEPA Název
-Split Payments Title, Dělené platby Název
+New Order Status, Stav nové objednávky
+Payment From Applicable Countries, Platba z příslušných zemí
+Payment From Specific Countries, Platba z konkrétních zemí
 Enable automatic order processing, Povolení automatického zpracování objednávek
 Enable Logs, Povolení protokolů
+General Information, Obecné informace
+State, Stav
+"-- Order status --", "-- Stav objednávky --"
+ID, ID
+Order ID, ID objednávky
+Payment Method, Platební metoda
+Reference ID, Referenční ID
+Api Mode, Režim API
+Actions, Akce
+Created At, Vytvořeno
 Mondu: Invoice orders, Mondu: Objednávky faktur
 Mondu: Sync orders, Mondu: Synchronizace objednávek
-Not found, Nenalezeno
-Api key, Klíč API
-Pay later via bank transfer, Zaplaťte později bankovním převodem
-Pay later via SEPA Direct Debit, Plaťte později prostřednictvím přímého inkasa SEPA
-Split Payments, Rozdělené platby
 Information on the processing of your personal data by Mondu GmbH can be found <a href='https://www.mondu.ai/de/datenschutzgrundverordnung-kaeufer/' target='_blank'>here.</a>, Informace o zpracování vašich osobních údajů společností Mondu GmbH naleznete <a href='https://www.mondu.ai/gdpr-notification-for-buyers/' target='_blank'>zde.</a>
-"Require invoice for shipment", Vyžadovat fakturu za přepravu
 "This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.", Tato faktura byla vytvořena v souladu s všeobecnými obchodními podmínkami <strong>%1</strong> a <strong>Mondu GmbH</strong> pro platební model nákupu na účet.
 "Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.", Vzhledem k tomu, že jste zvolili způsob platby nákup na účet s platbou prostřednictvím SEPA inkasa přes Mondu, bude částka na faktuře odepsána z vašeho bankovního účtu v den splatnosti.
 "Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.", Před odepsáním částky z vašeho účtu obdržíte oznámení o inkasu. Laskavě se ujistěte, že máte na účtu dostatek finančních prostředků.
@@ -47,3 +62,49 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>BIC:</strong> %1, <strong>BIC:</strong> %1
 <strong>Payment reference:</strong> %1, <strong>Odkaz na platbu:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Doba splatnosti:</strong> %1 dnů
+
+"Invoice (30 days)","Nákup na fakturu (30 dní)"
+"SEPA direct debit (30 days)","Přímé inkaso SEPA (30 dní)"
+"Installments (3, 6, 12 months)","Platba na splátky (3, 6, 12 měsíců)"
+"Installments (3, 6, 12 months) via Bank Transfer","Platba na splátky (3, 6, 12 měsíců) přes bankovní převod"
+"Instant Pay","Okamžitá platba"
+
+"Bank Transfer Title","Název Nákup na fakturuf" 
+"SEPA Direct Debit Title","Název Přímé inkaso SEPA"
+"Installments Title","Název Platba na splátky"
+"Installments by Invoice Title","Název Platba na splátky přes bankovní převod"
+"Pay Now Title","Název Okamžitá platba"
+
+"Enable Bank Transfer","Aktivovat Nákup na fakturu"
+"Enable SEPA Direct Debit","Aktivovat Přímé inkaso SEPA"
+"Enable Installments","Aktivovat Platba na splátky"
+"Enable Installments By Invoice","Aktivovat Platba na splátky přes bankovní převod"
+"Enable Pay Now","Aktivovat Okamžitá platba"
+
+"Bank Transfer Description","Popis Nákup na fakturu"
+"SEPA Direct Debit Description","Popis Přímé inkaso SEPA"
+"Installments Description","Popis Platba na splátky"
+"Installments by Invoice Description","Popis Platba na splátky přes bankovní převod"
+"Pay Now Description","Popis Okamžitá platba"
+
+"Bank Transfer Sort Order","Pořadí Nákup na fakturu"
+"SEPA Direct Debit Sort Order","Pořadí Přímé inkaso SEPA"
+"Installments Sort Order","Pořadí Platba na splátky"
+"Installments By Invoice Sort Order","Pořadí Platba na splátky přes bankovní převod"
+"Pay Now Sort Order","Pořadí Okamžitá platba"
+
+"Mondu: Order has been declined","Mondu: Objednávka byla odmítnuta"
+"Mondu: Unfortunately, we cannot offer you this payment method at the moment.
+Please select another payment option to complete your purchase.","Mondu: Bohužel vám v tuto chvíli nemůžeme tuto platební metodu pro váš nákup nabídnout.
+Vyberte prosím jiný způsob platby, abyste dokončili svou objednávku."
+"Mondu: Order Status changed to Payment Review because it needs manual confirmation","Mondu: Stav objednávky změněn na Kontrola platby, protože je nutné ruční potvrzení"
+"Mondu: Order Status changed to Payment Review by a webhook","Mondu: Stav objednávky změněn na Kontrola platby webhookem"
+"Mondu: Order Status changed to Processing by a webhook","Mondu: Stav objednávky změněn na Zpracování webhookem"
+"Unregistered topic","Neregistrované téma"
+"Order not found: %1","Objednávka nenalezena: %1"
+"Missing external_reference_id for signature validation","Chybí external_reference_id pro ověření podpisu"
+"Missing X-Mondu-Signature header","Chybí hlavička X-Mondu-Signature"
+"Signature validation failed for all stores","Ověření podpisu se nezdařilo pro všechny obchody"
+<strong>Bank:</strong> %1,<strong>Banka:</strong> %1
+<strong>Sort Code:</strong> %1,<strong>Kód pobočky:</strong> %1
+<strong>Account Number:</strong> %1,<strong>Číslo účtu:</strong> %1

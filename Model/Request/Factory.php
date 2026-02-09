@@ -63,10 +63,11 @@ class Factory
      * Create class using object manager.
      *
      * @param string $method
+     * @param int|null $storeId Store ID for multistore support
      * @throws LocalizedException
      * @return RequestInterface
      */
-    public function create(string $method): RequestInterface
+    public function create(string $method, ?int $storeId = null): RequestInterface
     {
         $className = $this->invokableClasses[$method] ?? null;
         if ($className === null) {
@@ -80,8 +81,12 @@ class Factory
             ->setEnvironmentInformation($this->moduleHelper->getEnvironmentInformation())
             ->setRequestOrigin($method);
 
+        if ($storeId !== null && method_exists($model, 'setStoreId')) {
+            $model->setStoreId($storeId);
+        }
+
         if ($method !== self::ERROR_EVENTS) {
-            $model->setErrorEventsHandler($this->create(self::ERROR_EVENTS));
+            $model->setErrorEventsHandler($this->create(self::ERROR_EVENTS, $storeId));
         }
 
         return $model;

@@ -17,6 +17,11 @@ class MonduSepa extends AbstractMethod
     protected $_code = 'mondusepa';
 
     /**
+     * @var bool
+     */
+    protected $_canUseInternal = false;
+
+    /**
      * Authorize.
      *
      * @param InfoInterface $payment

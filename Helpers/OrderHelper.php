@@ -12,6 +12,7 @@ use Magento\Quote\Model\Cart\CartTotalRepository;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\AdditionalCosts\AdditionalCostsInterface;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
@@ -32,6 +33,7 @@ class OrderHelper
      * @param MonduLogHelper $monduLogHelper
      * @param QuoteFactory $quoteFactory
      * @param RequestFactory $requestFactory
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         private readonly AdditionalCostsInterface $additionalCosts,
@@ -40,6 +42,7 @@ class OrderHelper
         private readonly MonduLogHelper $monduLogHelper,
         private readonly QuoteFactory $quoteFactory,
         private readonly RequestFactory $requestFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
     }
 
@@ -67,7 +70,7 @@ class OrderHelper
         return [
             [
                 'buyer_fee_cents' => $buyerFeeCents,
-                'shipping_price_cents' => $shippingTotal * 100,
+                'shipping_price_cents' => $shippingTotal ? round($shippingTotal * 100) : 0,
                 'tax_cents' => $totalTax * 100,
                 'line_items' => $lineItems,
             ],
@@ -116,7 +119,7 @@ class OrderHelper
             $orderPayment = $order->getPayment();
             $orderPayment->deny(false);
             $order->setStatus(Order::STATE_CANCELED);
-            $order->save();
+            $this->orderRepository->save($order);
             throw new LocalizedException(__('Mondu api error: ' . $e->getMessage()));
         }
     }
@@ -188,7 +191,7 @@ class OrderHelper
 
             $lineItems[] = [
                 'title' => $quoteItem->getName(),
-                'net_price_per_item_cents' => $price * 100,
+                'net_price_per_item_cents' => $price ? round($price * 100) : 0,
                 'variation_id' => $variationId,
                 'item_type' => $quoteItem->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
                 'external_reference_id' => $variationId . '-' . $quoteItem->getItemId(),
@@ -272,6 +275,12 @@ class OrderHelper
             foreach ($quoteItems as $i) {
                 $price = (float) $i->getBasePrice();
                 if (!$price) {
+                    continue;
+                }
+
+                $orderItem = $i->getOrderItem();
+                if ($orderItem->getParentItem() &&
+                    $orderItem->getParentItem()->getProductType() === 'bundle') {
                     continue;
                 }
 

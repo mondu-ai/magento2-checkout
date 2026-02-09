@@ -17,6 +17,11 @@ class Mondu extends AbstractMethod
     protected $_code = 'mondu';
 
     /**
+     * @var bool
+     */
+    protected $_canUseInternal = false;
+
+    /**
      * Authorize.
      *
      * @param InfoInterface $payment
