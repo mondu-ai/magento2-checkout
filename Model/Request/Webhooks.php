@@ -27,6 +27,11 @@ class Webhooks extends CommonRequest implements RequestInterface
     private ?int $storeId = null;
 
     /**
+     * @var int|null
+     */
+    private ?int $websiteId = null;
+
+    /**
      * @param Curl            $curl
      * @param ConfigProvider  $configProvider
      * @param UrlBuilder      $urlBuilder
@@ -49,14 +54,13 @@ class Webhooks extends CommonRequest implements RequestInterface
      */
     public function request($params = null): Webhooks
     {
-        $this->monduFileLogger->info('Webhooks::request() - Starting webhook registration');
-        
         if ($this->storeId !== null) {
             $this->configProvider->setContextCode($this->storeId);
-            $this->monduFileLogger->info('Webhooks::request() - Store context set', ['store_id' => $this->storeId]);
         }
 
-        $webhookUrl = $this->configProvider->getWebhookUrl($this->storeId);
+        $webhookUrl = $this->websiteId !== null
+            ? $this->configProvider->getWebhookUrlForWebsite($this->websiteId)
+            : $this->configProvider->getWebhookUrl($this->storeId);
         $topic = $this->getTopic();
         $monduApiUrl = $this->urlBuilder->getWebhooksUrl();
         
@@ -65,22 +69,7 @@ class Webhooks extends CommonRequest implements RequestInterface
             'topic' => $topic,
         ];
         
-        $this->monduFileLogger->info('Webhooks::request() - Preparing to send request', [
-            'webhook_url' => $webhookUrl,
-            'topic' => $topic,
-            'mondu_api_url' => $monduApiUrl,
-            'request_data' => $requestData
-        ]);
-
-        $this->monduFileLogger->info('Webhooks::request() - About to call sendRequestWithParams()');
-        
         $this->sendRequestWithParams('post', $monduApiUrl, json_encode($requestData));
-
-        $this->monduFileLogger->info('Webhooks::request() - sendRequestWithParams() completed successfully');
-        
-        // Legacy logging for compatibility
-        $this->monduFileLogger->info('Store ID ' . $this->storeId);
-        $this->monduFileLogger->info('Example of the request ' . json_encode($requestData));
 
         return $this;
     }
@@ -106,6 +95,18 @@ class Webhooks extends CommonRequest implements RequestInterface
     public function setStoreId(int $storeId): self
     {
         $this->storeId = $storeId;
+        return $this;
+    }
+
+    /**
+     * Sets the website ID so webhook URL uses the website's base URL (same scope as API key).
+     *
+     * @param int|null $websiteId
+     * @return $this
+     */
+    public function setWebsiteId(?int $websiteId): self
+    {
+        $this->websiteId = $websiteId;
         return $this;
     }
 

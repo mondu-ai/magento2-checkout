@@ -64,17 +64,17 @@ class Factory
      *
      * @param string $method
      * @param int|null $storeId Store ID for multistore support
+     * @param int|null $websiteId Website ID so webhook URL uses website scope (same as API key)
      * @throws LocalizedException
      * @return RequestInterface
      */
-    public function create(string $method, ?int $storeId = null): RequestInterface
+    public function create(string $method, ?int $storeId = null, ?int $websiteId = null): RequestInterface
     {
         $className = $this->invokableClasses[$method] ?? null;
         if ($className === null) {
             throw new LocalizedException(__('%1 method is not supported.'));
         }
 
-        $this->monduFileLogger->info('Sending a request to mondu api, action: ' . $method);
         /** @var RequestInterface $model */
         $model = $this->objectManager->create($className);
         $model->setCommonHeaders($this->headersHelper->getHeaders())
@@ -83,6 +83,10 @@ class Factory
 
         if ($storeId !== null && method_exists($model, 'setStoreId')) {
             $model->setStoreId($storeId);
+        }
+
+        if ($websiteId !== null && method_exists($model, 'setWebsiteId')) {
+            $model->setWebsiteId($websiteId);
         }
 
         if ($method !== self::ERROR_EVENTS) {
