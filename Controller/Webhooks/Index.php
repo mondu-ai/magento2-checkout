@@ -274,7 +274,7 @@ class Index implements ActionInterface
     private function validateWebhookSignatureAndFindOrder(string $content, array $headers, array $params): array
     {
         $externalReferenceId = $params['external_reference_id'] ?? null;
-        $receivedSignature = $headers['X-Mondu-Signature'] ?? null;
+        $receivedSignature = $headers['x-mondu-signature'] ?? $headers['X-Mondu-Signature'] ?? null;
 
         if (!$externalReferenceId) {
             throw new AuthorizationException(__('Missing external_reference_id for signature validation'));
@@ -286,7 +286,8 @@ class Index implements ActionInterface
 
         $this->monduFileLogger->info('Starting signature validation', [
             'external_reference_id' => $externalReferenceId,
-            'received_signature' => $receivedSignature
+            'received_signature' => $receivedSignature,
+            'available_headers' => array_keys($headers)
         ]);
 
         try {
@@ -299,7 +300,14 @@ class Index implements ActionInterface
             ]);
 
             $this->monduConfig->setContextCode($storeId);
-            $expectedSignature = hash_hmac('sha256', $content, $this->monduConfig->getWebhookSecret());
+            $webhookSecret = $this->monduConfig->getWebhookSecret();
+            
+            if (empty($webhookSecret)) {
+                $this->monduFileLogger->warning('Webhook secret is empty for store, will try other stores', ['store_id' => $storeId]);
+                throw new AuthorizationException(__('Webhook secret not configured for store'));
+            }
+            
+            $expectedSignature = hash_hmac('sha256', $content, $webhookSecret);
 
             if ($expectedSignature === $receivedSignature) {
                 $this->monduFileLogger->info('Signature validation successful for found order');
@@ -328,7 +336,14 @@ class Index implements ActionInterface
 
             try {
                 $this->monduConfig->setContextCode($storeId);
-                $expectedSignature = hash_hmac('sha256', $content, $this->monduConfig->getWebhookSecret());
+                $webhookSecret = $this->monduConfig->getWebhookSecret();
+                
+                if (empty($webhookSecret)) {
+                    $this->monduFileLogger->info('Webhook secret is empty for store, skipping', ['store_id' => $storeId]);
+                    continue;
+                }
+                
+                $expectedSignature = hash_hmac('sha256', $content, $webhookSecret);
 
                 if ($expectedSignature === $receivedSignature) {
                     $this->monduFileLogger->info('Signature match found for store', [
