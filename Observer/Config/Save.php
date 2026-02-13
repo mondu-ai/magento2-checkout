@@ -106,34 +106,57 @@ class Save implements ObserverInterface
         }
 
         try {
-            $this->monduFileLogger->info('Config Save Observer: Starting webhook registration process');
-            
+            $this->monduFileLogger->info(
+                'Config Save Observer: Starting webhook registration process'
+            );
+
             $this->monduConfig->updateNewOrderStatus();
             $this->paymentMethod->resetAllowedCache();
 
-            $this->monduFileLogger->info('Config Save Observer: Creating webhook keys request');
+            $this->monduFileLogger->info(
+                'Config Save Observer: Creating webhook keys request'
+            );
             $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD, $storeId)
                 ->process()
                 ->checkSuccess()
                 ->update();
-            $this->monduFileLogger->info('Config Save Observer: Webhook keys request completed successfully');
+            $this->monduFileLogger->info(
+                'Config Save Observer: Webhook keys request completed successfully'
+            );
 
-            $this->monduFileLogger->info('Config Save Observer: Starting webhook subscriptions', ['topics' => self::SUBSCRIPTIONS]);
+            $this->monduFileLogger->info(
+                'Config Save Observer: Starting webhook subscriptions',
+                ['topics' => self::SUBSCRIPTIONS]
+            );
             foreach (self::SUBSCRIPTIONS as $topic) {
-                $this->monduFileLogger->info('Config Save Observer: Creating webhook subscription request', ['topic' => $topic]);
+                $this->monduFileLogger->info(
+                    'Config Save Observer: Creating webhook subscription request',
+                    ['topic' => $topic]
+                );
                 $webhookRequest = $this->requestFactory
                     ->create(RequestFactory::WEBHOOKS_REQUEST_METHOD, $storeId)
                     ->setTopic($topic);
-                
-                $this->monduFileLogger->info('Config Save Observer: About to call process() for webhook request', ['topic' => $topic]);
+
+                $this->monduFileLogger->info(
+                    'Config Save Observer: About to call process() for webhook request',
+                    ['topic' => $topic]
+                );
                 $webhookRequest->process();
-                $this->monduFileLogger->info('Config Save Observer: Webhook subscription request completed', ['topic' => $topic]);
+                $this->monduFileLogger->info(
+                    'Config Save Observer: Webhook subscription request completed',
+                    ['topic' => $topic]
+                );
             }
 
             $this->monduConfig->clearConfigurationCache();
-            $this->monduFileLogger->info('Config Save Observer: All webhook registrations completed successfully');
+            $this->monduFileLogger->info(
+                'Config Save Observer: All webhook registrations completed successfully'
+            );
         } catch (Exception $e) {
-            $this->monduFileLogger->error('Config Save Observer: Exception occurred', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            $this->monduFileLogger->error(
+                'Config Save Observer: Exception occurred',
+                ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]
+            );
             throw new LocalizedException(__($e->getMessage()));
         }
     }

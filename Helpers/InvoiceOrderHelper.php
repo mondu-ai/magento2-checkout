@@ -247,6 +247,7 @@ class InvoiceOrderHelper
      * @param string $monduId
      * @param InvoiceInterface $invoiceItem
      * @param array $externalReferenceIdMapping
+     * @param ShipmentInterface|null $shipment
      * @return array
      */
     private function getInvoiceItemBody(

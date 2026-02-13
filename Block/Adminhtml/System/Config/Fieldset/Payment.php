@@ -82,14 +82,18 @@ class Payment extends Fieldset
             'button#' . $htmlId . '-head'
         );
 
-        $html .= '</div>'; 
+        $html .= '</div>';
         $html .= '<div class="heading"><strong>' . $element->getLegend() . '</strong></div>';
         $html .= '<div class="config-alt"></div></div>';
 
         return $html;
-
     }
 
+    /**
+     * Returns the installed module version from Composer.
+     *
+     * @return string
+     */
     private function getModuleVersion()
     {
         try {
