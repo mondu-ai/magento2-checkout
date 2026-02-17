@@ -40,7 +40,8 @@ class Success extends AbstractSuccessController
             }
 
             $quote = $this->checkoutSession->getQuote();
-            $this->authorizeMonduOrder($monduId, $this->getExternalReferenceId($quote));
+            $storeId = $quote ? (int) $quote->getStoreId() : null;
+            $this->authorizeMonduOrder($monduId, $this->getExternalReferenceId($quote), $storeId);
 
             $order = $this->placeOrder($quote);
             $this->checkoutSession->clearHelperData();

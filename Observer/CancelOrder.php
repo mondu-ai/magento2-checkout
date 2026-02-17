@@ -62,7 +62,8 @@ class CancelOrder extends MonduObserver
 
             $this->monduFileLogger->info('Trying to cancel Order ' . $orderIncrementId);
 
-            $cancelData = $this->requestFactory->create(RequestFactory::CANCEL)
+            $storeId = (int) $order->getStoreId();
+            $cancelData = $this->requestFactory->create(RequestFactory::CANCEL, $storeId)
                 ->process(['orderUid' => $monduId]);
             if (!$cancelData) {
                 $this->messageManager->addErrorMessage(

@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\HeadersHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\ModuleHelper;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Factory
 {
@@ -46,16 +49,20 @@ class Factory
     ];
 
     /**
+     * @param ConfigProvider $configProvider
      * @param HeadersHelper $headersHelper
      * @param ModuleHelper $moduleHelper
      * @param MonduFileLogger $monduFileLogger
      * @param ObjectManagerInterface $objectManager
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
+        private readonly ConfigProvider $configProvider,
         private readonly HeadersHelper $headersHelper,
         private readonly ModuleHelper $moduleHelper,
         private readonly MonduFileLogger $monduFileLogger,
         private readonly ObjectManagerInterface $objectManager,
+        private readonly StoreManagerInterface $storeManager,
     ) {
     }
 
@@ -73,6 +80,22 @@ class Factory
         $className = $this->invokableClasses[$method] ?? null;
         if ($className === null) {
             throw new LocalizedException(__('%1 method is not supported.'));
+        }
+
+        $storeIdForContext = $storeId;
+        if ($storeIdForContext === null && $websiteId !== null) {
+            try {
+                $website = $this->storeManager->getWebsite($websiteId);
+                $store = $website->getDefaultStore();
+                if ($store) {
+                    $storeIdForContext = (int) $store->getId();
+                }
+            } catch (NoSuchEntityException $e) {
+                // leave storeIdForContext null
+            }
+        }
+        if ($storeIdForContext !== null) {
+            $this->configProvider->setContextCode($storeIdForContext);
         }
 
         /** @var RequestInterface $model */

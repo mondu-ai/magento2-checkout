@@ -109,7 +109,8 @@ class InvoiceOrderHelper
             ['orderNumber' => $order->getIncrementId(), 'body' => $body]
         );
 
-        $data = $this->requestFactory->create(RequestFactory::SHIP_ORDER)->process($body);
+        $storeId = (int) $order->getStoreId();
+        $data = $this->requestFactory->create(RequestFactory::SHIP_ORDER, $storeId)->process($body);
 
         if ($data && !isset($data['errors'])) {
             $this->monduLogHelper->updateLogSkipObserver($monduId, true);
@@ -221,7 +222,8 @@ class InvoiceOrderHelper
         array $externalReferenceIdMapping
     ) {
         $invoiceBody = $this->getInvoiceItemBody($monduId, $invoiceItem, $externalReferenceIdMapping, $shipment);
-        $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER)->process($invoiceBody);
+        $storeId = (int) $invoiceItem->getOrder()->getStoreId();
+        $shipOrderData = $this->requestFactory->create(RequestFactory::SHIP_ORDER, $storeId)->process($invoiceBody);
 
         $this->monduFileLogger->info(
             'InvoiceOrderHelper: createInvoiceForItem',

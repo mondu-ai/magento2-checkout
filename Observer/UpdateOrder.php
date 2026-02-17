@@ -76,7 +76,8 @@ class UpdateOrder extends MonduObserver
                         'external_reference_id' => $creditMemo->getIncrementId(),
                     ];
 
-                    $memoData = $this->requestFactory->create(RequestFactory::MEMO)->process($data);
+                    $storeId = (int) $order->getStoreId();
+                    $memoData = $this->requestFactory->create(RequestFactory::MEMO, $storeId)->process($data);
 
                     if (isset($memoData['errors'])) {
                         $this->monduFileLogger->info(
@@ -118,7 +119,8 @@ class UpdateOrder extends MonduObserver
                     'Whole order amount is being refunded, canceling the order',
                     ['orderNumber' => $order->getIncrementId()]
                 );
-                $cancelData = $this->requestFactory->create(RequestFactory::CANCEL)
+                $storeId = (int) $order->getStoreId();
+                $cancelData = $this->requestFactory->create(RequestFactory::CANCEL, $storeId)
                     ->process(['orderUid' => $monduId]);
 
                 if (isset($cancelData['errors']) && !isset($cancelData['order'])) {

@@ -106,10 +106,13 @@ class Token extends AbstractPaymentController
             $this->monduFileLogger->info('Token controller, trying to create the order');
             $paymentMethod = $this->request->getParam('payment_method') ?? null;
 
+            $quote = $this->checkoutSession->getQuote();
+            $storeId = $quote ? (int) $quote->getStoreId() : null;
             $response = $this->transactionService->createTransaction([
                 'email' => $this->request->getParam('email'),
                 'user-agent' => $userAgent,
                 'payment_method' => $paymentMethod,
+                'store_id' => $storeId,
             ]);
 
             return $result->setHttpResponseCode(Response::HTTP_OK)->setData($response);

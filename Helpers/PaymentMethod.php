@@ -74,7 +74,7 @@ class PaymentMethod
                 return $this->serializer->unserialize($result);
             }
 
-            $paymentMethods = $this->requestFactory->create(RequestFactory::PAYMENT_METHODS)->process();
+            $paymentMethods = $this->requestFactory->create(RequestFactory::PAYMENT_METHODS, $storeId)->process();
             $result = [];
             foreach ($paymentMethods as $value) {
                 $result[] = self::MAPPING[$value['identifier']] ?? '';

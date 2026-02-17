@@ -88,9 +88,9 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      * @throws Exception
      * @return mixed
      */
-    protected function authorizeMonduOrder(string $monduId, string $referenceId)
+    protected function authorizeMonduOrder(string $monduId, string $referenceId, ?int $storeId = null)
     {
-        $authorizeRequest = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER);
+        $authorizeRequest = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER, $storeId);
 
         return $authorizeRequest->process(['orderUid' => $monduId, 'referenceId' => $referenceId]);
     }
