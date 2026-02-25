@@ -41,7 +41,6 @@ class Success extends AbstractSuccessController
 
             $quote = $this->checkoutSession->getQuote();
             $storeId = $quote ? (int) $quote->getStoreId() : null;
-            $this->authorizeMonduOrder($monduId, $this->getExternalReferenceId($quote), $storeId);
 
             $order = $this->placeOrder($quote);
             $this->checkoutSession->clearHelperData();
@@ -49,6 +48,8 @@ class Success extends AbstractSuccessController
             $this->checkoutSession->setLastQuoteId($quoteId)->setLastSuccessQuoteId($quoteId);
 
             if ($order) {
+                $this->authorizeMonduOrder($monduId, $order->getIncrementId(), $storeId);
+
                 $order->addCommentToStatusHistory(__('Mondu: order id %1', $monduId));
                 $this->orderRepository->save($order);
                 $this->checkoutSession->setLastOrderId($order->getId())

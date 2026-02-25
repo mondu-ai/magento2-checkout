@@ -1,0 +1,54 @@
+/* Mondu menu icon styling - targeting all possible menu item selectors */
+.admin__menu [data-ui-id="menu-Mondu_Mondu-log"] > a:before,
+.admin__menu li[data-ui-id="menu-Mondu_Mondu-log"] > a:before,
+.admin__menu .item-mondu-mondu-log > a:before,
+.admin__menu #menu-Mondu_Mondu-log > a:before,
+.admin__menu [id*="Mondu_Mondu-log"] > a:before,
+.admin__menu a[href*="mondu/log"]:before {
+    content: '' !important;
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 auto 6px auto !important;
+    background-image: url('../images/mondu-icon.png') !important;
+    background-size: 18px 18px !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    opacity: 0.7 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+/* Ensure parent link displays as block with centered content */
+.admin__menu [data-ui-id="menu-Mondu_Mondu-log"] > a,
+.admin__menu li[data-ui-id="menu-Mondu_Mondu-log"] > a,
+.admin__menu .item-mondu-mondu-log > a,
+.admin__menu #menu-Mondu_Mondu-log > a,
+.admin__menu [id*="Mondu_Mondu-log"] > a,
+.admin__menu a[href*="mondu/log"] {
+    display: block !important;
+    text-align: center !important;
+    padding: 12px 8px !important;
+}
+
+.admin__menu [data-ui-id="menu-Mondu_Mondu-log"] > a:hover:before,
+.admin__menu li[data-ui-id="menu-Mondu_Mondu-log"] > a:hover:before,
+.admin__menu .item-mondu-mondu-log > a:hover:before,
+.admin__menu #menu-Mondu_Mondu-log > a:hover:before,
+.admin__menu [id*="Mondu_Mondu-log"] > a:hover:before,
+.admin__menu a[href*="mondu/log"]:hover:before,
+.admin__menu li[data-ui-id="menu-Mondu_Mondu-log"]._active > a:before,
+.admin__menu .item-mondu-mondu-log._active > a:before,
+.admin__menu #menu-Mondu_Mondu-log._active > a:before,
+.admin__menu [id*="Mondu_Mondu-log"]._active > a:before {
+    opacity: 1 !important;
+}
+
+/* For inactive state - make it grayscale */
+.admin__menu [data-ui-id="menu-Mondu_Mondu-log"]:not(._active) > a:before,
+.admin__menu li[data-ui-id="menu-Mondu_Mondu-log"]:not(._active) > a:before,
+.admin__menu .item-mondu-mondu-log:not(._active) > a:before,
+.admin__menu #menu-Mondu_Mondu-log:not(._active) > a:before,
+.admin__menu [id*="Mondu_Mondu-log"]:not(._active) > a:before {
+    filter: grayscale(100%) !important;
+    opacity: 0.6 !important;
+}

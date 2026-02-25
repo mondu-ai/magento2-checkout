@@ -67,7 +67,11 @@ abstract class CommonRequest implements RequestInterface
         }
 
         if ($this->sendEvents) {
-            $this->sendEvents($exception);
+            try {
+                $this->sendEvents($exception);
+            } catch (Exception $eventsException) {
+                // do not let sendEvents swallow the original exception
+            }
         }
 
         if ($exception) {

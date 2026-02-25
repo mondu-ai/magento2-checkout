@@ -45,4 +45,20 @@ class Logger extends MonologLogger
 
         parent::info($message, $context);
     }
+
+    /**
+     * Logs order status changes. Only logs if debug mode is enabled.
+     *
+     * @param string|Stringable $message
+     * @param array $context
+     * @return void
+     */
+    public function logOrderStatus($message, array $context = []): void
+    {
+        if (!$this->monduConfig->isDebugModeEnabled()) {
+            return;
+        }
+
+        parent::info($message, $context);
+    }
 }

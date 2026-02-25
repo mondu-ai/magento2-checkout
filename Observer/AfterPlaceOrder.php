@@ -44,7 +44,8 @@ class AfterPlaceOrder extends MonduObserver
     {
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
-        $orderData = $this->monduLogHelper->getTransactionByOrderUid($order->getMonduReferenceId());
+        $monduReferenceId = $order->getMonduReferenceId();
+        $orderData = $this->monduLogHelper->getTransactionByOrderUid($monduReferenceId);
 
         if (isset($orderData['mondu_state']) && $orderData['mondu_state'] === 'pending') {
             $order->addCommentToStatusHistory(

@@ -133,11 +133,18 @@ class Index implements ActionInterface
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
-        $this->monduFileLogger->info('Processing pending webhook', [
+        $currentState = $order->getState();
+        $currentStatus = $order->getStatus();
+
+        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing pending webhook - BEFORE status change', [
             'external_reference_id' => $externalReferenceId,
             'order_id' => $order->getEntityId(),
+            'order_increment_id' => $order->getIncrementId(),
             'store_id' => $storeId,
-            'current_state' => $order->getState()
+            'current_state' => $currentState,
+            'current_status' => $currentStatus,
+            'mondu_order_state' => $params['order_state'] ?? 'unknown',
+            'mondu_order_uuid' => $monduId
         ]);
 
         $order->setState(Order::STATE_PAYMENT_REVIEW);
@@ -174,10 +181,18 @@ class Index implements ActionInterface
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
-        $this->monduFileLogger->info('Processing confirmed webhook', [
+        $currentState = $order->getState();
+        $currentStatus = $order->getStatus();
+
+        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing confirmed webhook - BEFORE status change', [
             'external_reference_id' => $externalReferenceId,
             'order_id' => $order->getEntityId(),
+            'order_increment_id' => $order->getIncrementId(),
             'store_id' => $storeId,
+            'current_state' => $currentState,
+            'current_status' => $currentStatus,
+            'mondu_order_state' => $params['order_state'] ?? 'unknown',
+            'mondu_order_uuid' => $monduId,
             'viban' => $viban
         ]);
 
@@ -188,6 +203,18 @@ class Index implements ActionInterface
         );
         $this->orderRepository->save($order);
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'], $viban);
+
+        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing confirmed webhook - AFTER status change', [
+            'external_reference_id' => $externalReferenceId,
+            'order_id' => $order->getEntityId(),
+            'order_increment_id' => $order->getIncrementId(),
+            'previous_state' => $currentState,
+            'previous_status' => $currentStatus,
+            'new_state' => $order->getState(),
+            'new_status' => $order->getStatus(),
+            'reason' => 'Webhook topic: order/confirmed - Order confirmed by Mondu',
+            'mondu_order_state' => $params['order_state'] ?? 'unknown'
+        ]);
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
@@ -215,30 +242,72 @@ class Index implements ActionInterface
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
 
-        $this->monduFileLogger->info('Processing declined/canceled webhook', [
+        $currentState = $order->getState();
+        $currentStatus = $order->getStatus();
+        $declineReason = $params['reason'] ?? null;
+
+        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing declined/canceled webhook - BEFORE status change', [
             'external_reference_id' => $externalReferenceId,
             'order_id' => $order->getEntityId(),
+            'order_increment_id' => $order->getIncrementId(),
             'store_id' => $storeId,
-            'order_state' => $orderState
+            'current_state' => $currentState,
+            'current_status' => $currentStatus,
+            'mondu_order_state' => $orderState,
+            'mondu_order_uuid' => $monduId,
+            'decline_reason' => $declineReason
         ]);
 
         $order->addCommentToStatusHistory(
             __('Mondu: Order has been declined')
         );
 
+        $newStatus = null;
+        $statusChangeReason = null;
+        
         if ($orderState === OrderHelper::CANCELED) {
-            $order->setStatus(Order::STATE_CANCELED);
+            $newStatus = Order::STATE_CANCELED;
+            $statusChangeReason = 'Webhook topic: order/declined - Order state is CANCELED';
+            $order->setStatus($newStatus);
             $this->orderRepository->save($order);
         } elseif ($orderState === OrderHelper::DECLINED) {
             if (isset($params['reason']) && $params['reason'] === 'buyer_fraud') {
-                $order->setStatus(Order::STATUS_FRAUD);
+                $newStatus = Order::STATUS_FRAUD;
+                $statusChangeReason = 'Webhook topic: order/declined - Order declined due to buyer_fraud';
             } else {
-                $order->setStatus(Order::STATE_CANCELED);
+                $newStatus = Order::STATE_CANCELED;
+                $statusChangeReason = 'Webhook topic: order/declined - Order declined (reason: ' . ($declineReason ?? 'unknown') . ')';
             }
+            $order->setStatus($newStatus);
             $this->orderRepository->save($order);
+        } else {
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing declined/canceled webhook - NO status change', [
+                'external_reference_id' => $externalReferenceId,
+                'order_id' => $order->getEntityId(),
+                'order_increment_id' => $order->getIncrementId(),
+                'current_state' => $currentState,
+                'current_status' => $currentStatus,
+                'mondu_order_state' => $orderState,
+                'reason' => 'Unknown order_state value, status not changed'
+            ]);
         }
 
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
+
+        if ($newStatus !== null) {
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing declined/canceled webhook - AFTER status change', [
+                'external_reference_id' => $externalReferenceId,
+                'order_id' => $order->getEntityId(),
+                'order_increment_id' => $order->getIncrementId(),
+                'previous_state' => $currentState,
+                'previous_status' => $currentStatus,
+                'new_state' => $order->getState(),
+                'new_status' => $order->getStatus(),
+                'reason' => $statusChangeReason,
+                'mondu_order_state' => $orderState,
+                'decline_reason' => $declineReason
+            ]);
+        }
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
@@ -295,22 +364,35 @@ class Index implements ActionInterface
             return null;
         }
 
-        $this->monduFileLogger->info('Starting signature validation', [
-            'external_reference_id' => $externalReferenceId,
-            'received_signature' => $receivedSignature
-        ]);
-
         $websites = $this->storeManager->getWebsites(true);
         $order = null;
+        $orderUuid = $params['order_uuid'] ?? null;
 
-        try {
-            $order = $this->getOrderByIncrementId($externalReferenceId);
-            $this->monduFileLogger->info('Order found by increment_id', [
-                'order_id' => $order->getEntityId(),
-                'store_id' => $order->getStoreId()
-            ]);
-        } catch (AuthorizationException $e) {
-            $this->monduFileLogger->info('Order not found by increment_id, will check websites anyway');
+        // Primary: look up via mondu_transactions by Mondu UUID — avoids ambiguity when
+        // multiple stores share the same increment_id sequence.
+        if ($orderUuid) {
+            $transaction = $this->monduLogHelper->getTransactionByOrderUid($orderUuid);
+            if ($transaction && !empty($transaction['order_id'])) {
+                try {
+                    $order = $this->orderRepository->get($transaction['order_id']);
+                } catch (Exception $e) {
+                    $this->monduFileLogger->warning('Order entity not found for mondu_transactions order_id', [
+                        'order_id' => $transaction['order_id'],
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // Fallback: search by increment_id (may find wrong order on multi-store setups)
+        if (!$order) {
+            try {
+                $order = $this->getOrderByIncrementId($externalReferenceId);
+            } catch (AuthorizationException $e) {
+                $this->monduFileLogger->info('Order not found by increment_id', [
+                    'external_reference_id' => $externalReferenceId,
+                ]);
+            }
         }
 
         foreach ($websites as $website) {
@@ -320,23 +402,16 @@ class Index implements ActionInterface
                 continue;
             }
 
-            $this->monduFileLogger->info('Checking signature for website', ['website_id' => $websiteId]);
-
             try {
                 $webhookSecret = $this->getWebhookSecretForWebsite($websiteId);
-                
+
                 if (empty($webhookSecret)) {
-                    $this->monduFileLogger->info('Webhook secret is empty for website, skipping', ['website_id' => $websiteId]);
                     continue;
                 }
-                
+
                 $expectedSignature = hash_hmac('sha256', $content, $webhookSecret);
 
                 if ($expectedSignature === $receivedSignature) {
-                    $this->monduFileLogger->info('Signature match found for website', [
-                        'website_id' => $websiteId,
-                        'signature' => $expectedSignature
-                    ]);
 
                     $storeId = null;
                     if ($order) {
