@@ -59,6 +59,22 @@ class Collection extends LogCollection implements SearchResultInterface
     }
 
     /**
+     * Join sales_order to expose increment_id for display in the grid.
+     *
+     * @return $this
+     */
+    protected function _initSelect(): self
+    {
+        parent::_initSelect();
+        $this->getSelect()->joinLeft(
+            ['so' => $this->getTable('sales_order')],
+            'main_table.order_id = so.entity_id',
+            ['increment_id']
+        );
+        return $this;
+    }
+
+    /**
      * Get aggregation interface instance.
      *
      * @return AggregationInterface
