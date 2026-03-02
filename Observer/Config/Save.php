@@ -67,7 +67,7 @@ class Save implements ObserverInterface
 
         // Try to get scope information from event directly
         $eventScope = $observer->getEvent()->getData('scope');
-        $eventScopeId = $observer->getEvent()->getData('scope_id') 
+        $eventScopeId = $observer->getEvent()->getData('scope_id')
             ?? $observer->getEvent()->getData('website')
             ?? $observer->getEvent()->getData('store_group');
 
