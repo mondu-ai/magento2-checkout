@@ -52,4 +52,7 @@
             <argument name="monduFileLogger" xsi:type="object">Mondu\Mondu\Helpers\Logger\Logger</argument>
         </arguments>
     </type>
+    <type name="Magento\Sales\Model\Order\ShipmentRepository">
+        <plugin sortOrder="10" name="processShipmentSave" type="Mondu\Mondu\Plugin\ProcessShipmentSave" />
+    </type>
 </config>
