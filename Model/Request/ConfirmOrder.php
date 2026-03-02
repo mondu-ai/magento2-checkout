@@ -6,6 +6,7 @@ namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\LogFactory;
 
@@ -20,11 +21,13 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
      * @param Curl $curl
      * @param LogFactory $monduLogger
      * @param UrlBuilder $urlBuilder
+     * @param MonduFileLogger $monduFileLogger
      */
     public function __construct(
         Curl $curl,
         private readonly LogFactory $monduLogger,
         private readonly UrlBuilder $urlBuilder,
+        private readonly MonduFileLogger $monduFileLogger,
     ) {
         $this->curl = $curl;
     }
@@ -44,13 +47,15 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
             return true;
         }
 
-        $resultJson = $this->sendRequestWithParams(
-            'post',
-            $this->urlBuilder->getOrderConfirmUrl($params['orderUid']),
-            json_encode(['external_reference_id' => $params['referenceId']])
-        );
+        $payload = json_encode(['external_reference_id' => $params['referenceId']]);
+        $confirmUrl = $this->urlBuilder->getOrderConfirmUrl($params['orderUid']);
+
+        $resultJson = $this->sendRequestWithParams('post', $confirmUrl, $payload);
 
         if (!$resultJson) {
+            $this->monduFileLogger->error('ConfirmOrder: empty response from Mondu', [
+                'order_uid' => $params['orderUid'],
+            ]);
             throw new LocalizedException(__('Mondu: Something went wrong'));
         }
 

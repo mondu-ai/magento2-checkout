@@ -302,7 +302,8 @@ class Log
      */
     public function syncOrder(string $orderUid): void
     {
-        $data = $this->requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD)
+        $storeId = $this->getStoreIdByOrderUid($orderUid);
+        $data = $this->requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD, $storeId)
             ->setValidate(false)
             ->process(['orderUid' => $orderUid]);
         $this->updateLogMonduData($orderUid, $data['order']['state'], $data['order']['merchant']['viban'] ?? null);
@@ -317,7 +318,8 @@ class Log
      */
     public function syncOrderInvoices(string $orderUid): void
     {
-        $data = $this->requestFactory->create(Factory::ORDER_INVOICES)
+        $storeId = $this->getStoreIdByOrderUid($orderUid);
+        $data = $this->requestFactory->create(Factory::ORDER_INVOICES, $storeId)
             ->process(['order_uuid' => $orderUid]);
 
         if (!count($data)) {
@@ -349,5 +351,26 @@ class Log
         }
 
         $this->updateLogMonduData($orderUid, null, null, $addons);
+    }
+
+    /**
+     * Returns store ID for the given Mondu order UUID (from log -> order_id).
+     *
+     * @param string $orderUid
+     * @return int|null
+     */
+    private function getStoreIdByOrderUid(string $orderUid): ?int
+    {
+        $log = $this->getTransactionByOrderUid($orderUid);
+        $orderId = $log['order_id'] ?? null;
+        if ($orderId === null) {
+            return null;
+        }
+        try {
+            $order = $this->orderRepository->get($orderId);
+            return (int) $order->getStoreId();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

@@ -45,8 +45,16 @@ class Save extends Action implements HttpPostActionInterface
         $resultRedirect = $this->resultRedirectFactory->create();
         $data = $this->getRequest()->getPostValue();
         $requestObject = ['orderUid' => $data['reference_id'], 'state' => $data['mondu_state']];
-
-        $response = $this->requestFactory->create(RequestFactory::ADJUST_ORDER)->process($requestObject);
+        $storeId = null;
+        if (!empty($data['order_id'])) {
+            try {
+                $order = $this->orderRepository->get($data['order_id']);
+                $storeId = (int) $order->getStoreId();
+            } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+                // leave storeId null
+            }
+        }
+        $response = $this->requestFactory->create(RequestFactory::ADJUST_ORDER, $storeId)->process($requestObject);
         if (isset($response['status']) && $response['status'] === 422) {
             $this->messageManager->addErrorMessage(
                 $response['errors'][0]['name'] . ' ' . $response['errors'][0]['details']

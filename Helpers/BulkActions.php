@@ -258,8 +258,9 @@ class BulkActions
                     ->addLineItemsToInvoice($invoiceItem, $invoiceBody, $externalReferenceIdMapping);
             }
 
+            $storeId = (int) $order->getStoreId();
             $shipOrderData = $this->requestFactory
-                ->create(RequestFactory::SHIP_ORDER)->process($invoiceBody);
+                ->create(RequestFactory::SHIP_ORDER, $storeId)->process($invoiceBody);
 
             if (isset($shipOrderData['errors'])) {
                 $errorName = $shipOrderData['errors'][0]['name'] ?? 'unknown';

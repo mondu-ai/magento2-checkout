@@ -6,6 +6,7 @@ namespace Mondu\Mondu\Model\Request\Webhooks;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\Request\CommonRequest;
 use Mondu\Mondu\Model\Request\RequestInterface;
@@ -32,11 +33,13 @@ class Keys extends CommonRequest implements RequestInterface
      * @param Curl $curl
      * @param UrlBuilder $urlBuilder
      * @param ConfigProvider $configProvider
+     * @param MonduFileLogger $monduFileLogger
      */
     public function __construct(
         Curl $curl,
         private readonly UrlBuilder $urlBuilder,
         private readonly ConfigProvider $configProvider,
+        private readonly MonduFileLogger $monduFileLogger,
     ) {
         $this->curl = $curl;
     }
@@ -49,14 +52,15 @@ class Keys extends CommonRequest implements RequestInterface
      */
     protected function request($params = null): Keys
     {
-        $resultJson = $this->sendRequestWithParams('get', $this->urlBuilder->getWebhookKeysUrl());
+        $webhookKeysUrl = $this->urlBuilder->getWebhookKeysUrl();
+        $resultJson = $this->sendRequestWithParams('get', $webhookKeysUrl);
+        $this->responseStatus = $this->curl->getStatus();
 
+        $result = null;
         if ($resultJson) {
             $result = json_decode($resultJson, true);
         }
-
         $this->webhookSecret = $result['webhook_secret'] ?? null;
-        $this->responseStatus = $this->curl->getStatus();
 
         return $this;
     }
@@ -70,12 +74,26 @@ class Keys extends CommonRequest implements RequestInterface
     public function checkSuccess(): Keys
     {
         if ($this->responseStatus !== 200 && $this->responseStatus !== 201) {
+            $this->monduFileLogger->error('Webhook Keys Request failed', [
+                'response_status' => $this->responseStatus,
+                'response_body' => $this->curl->getBody()
+            ]);
             throw new LocalizedException(__(
                 'Could\'t register webhooks, check to see if you entered Mondu api key correctly'
             ));
         }
 
         return $this;
+    }
+    
+    /**
+     * Returns the response status code.
+     *
+     * @return int
+     */
+    public function getResponseStatus(): int
+    {
+        return $this->responseStatus;
     }
 
     /**
@@ -85,16 +103,23 @@ class Keys extends CommonRequest implements RequestInterface
      */
     public function update(): Keys
     {
-        $this->configProvider->updateWebhookSecret($this->getWebhookSecret());
+        $webhookSecret = $this->getWebhookSecret();
+        
+        if (!$webhookSecret) {
+            return $this;
+        }
+        
+        $this->configProvider->updateWebhookSecret($webhookSecret);
+
         return $this;
     }
 
     /**
      * Returns the webhook secret obtained from the API.
      *
-     * @return string
+     * @return string|null
      */
-    public function getWebhookSecret(): string
+    public function getWebhookSecret(): ?string
     {
         return $this->webhookSecret;
     }

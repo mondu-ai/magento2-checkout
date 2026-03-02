@@ -84,13 +84,14 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      *
      * @param string $monduId
      * @param string $referenceId
+     * @param int|null $storeId
      * @throws LocalizedException
      * @throws Exception
      * @return mixed
      */
-    protected function authorizeMonduOrder(string $monduId, string $referenceId)
+    protected function authorizeMonduOrder(string $monduId, string $referenceId, ?int $storeId = null)
     {
-        $authorizeRequest = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER);
+        $authorizeRequest = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER, $storeId);
 
         return $authorizeRequest->process(['orderUid' => $monduId, 'referenceId' => $referenceId]);
     }
@@ -155,24 +156,5 @@ abstract class AbstractSuccessController extends AbstractPaymentController
         $quote->collectTotals();
 
         return $this->quoteManagement->submit($quote);
-    }
-
-    /**
-     * Get External reference id to be used.
-     *
-     * @param CartInterface $quote
-     * @throws Exception
-     * @return string
-     */
-    protected function getExternalReferenceId(CartInterface $quote): string
-    {
-        $reservedOrderId = $quote->getReservedOrderId();
-        if (!$reservedOrderId) {
-            $quote->reserveOrderId();
-            $this->cartRepository->save($quote);
-            $reservedOrderId = $quote->getReservedOrderId();
-        }
-
-        return $reservedOrderId;
     }
 }

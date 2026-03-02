@@ -2,3 +2,11 @@
 
 # Magento authentication file
 auth.json
+
+# E2E test environment
+.env
+
+# Node / Playwright
+node_modules/
+playwright-report/
+test-results/

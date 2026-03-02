@@ -100,7 +100,8 @@ class OrderHelper
         $adjustment = $this->getOrderAdjustmentData($order);
 
         try {
-            $editData = $this->requestFactory->create(RequestFactory::EDIT_ORDER)
+            $storeId = (int) $order->getStoreId();
+            $editData = $this->requestFactory->create(RequestFactory::EDIT_ORDER, $storeId)
                 ->setOrderUid($orderUid)
                 ->process($adjustment);
 
@@ -313,7 +314,8 @@ class OrderHelper
             return;
         }
 
-        $this->requestFactory->create(RequestFactory::CANCEL)->process(['orderUid' => $log['reference_id']]);
+        $storeId = (int) $order->getStoreId();
+        $this->requestFactory->create(RequestFactory::CANCEL, $storeId)->process(['orderUid' => $log['reference_id']]);
     }
 
     /**

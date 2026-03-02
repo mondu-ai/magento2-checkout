@@ -1,0 +1,17 @@
+{
+  "name": "mondu-magento2-e2e",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:checkout": "playwright test playwright/checkout/",
+    "test:order-states": "playwright test playwright/order-states/",
+    "test:order-management": "playwright test playwright/order-management/",
+    "test:admin": "playwright test playwright/admin/",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.2",
+    "@types/node": "^20.11.16",
+    "dotenv": "^16.4.1"
+  }
+}

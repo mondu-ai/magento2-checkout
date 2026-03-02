@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Model\Request;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\HeadersHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\ModuleHelper;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Factory
 {
@@ -46,16 +49,20 @@ class Factory
     ];
 
     /**
+     * @param ConfigProvider $configProvider
      * @param HeadersHelper $headersHelper
      * @param ModuleHelper $moduleHelper
      * @param MonduFileLogger $monduFileLogger
      * @param ObjectManagerInterface $objectManager
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
+        private readonly ConfigProvider $configProvider,
         private readonly HeadersHelper $headersHelper,
         private readonly ModuleHelper $moduleHelper,
         private readonly MonduFileLogger $monduFileLogger,
         private readonly ObjectManagerInterface $objectManager,
+        private readonly StoreManagerInterface $storeManager,
     ) {
     }
 
@@ -64,17 +71,33 @@ class Factory
      *
      * @param string $method
      * @param int|null $storeId Store ID for multistore support
+     * @param int|null $websiteId Website ID so webhook URL uses website scope (same as API key)
      * @throws LocalizedException
      * @return RequestInterface
      */
-    public function create(string $method, ?int $storeId = null): RequestInterface
+    public function create(string $method, ?int $storeId = null, ?int $websiteId = null): RequestInterface
     {
         $className = $this->invokableClasses[$method] ?? null;
         if ($className === null) {
             throw new LocalizedException(__('%1 method is not supported.'));
         }
 
-        $this->monduFileLogger->info('Sending a request to mondu api, action: ' . $method);
+        $storeIdForContext = $storeId;
+        if ($storeIdForContext === null && $websiteId !== null) {
+            try {
+                $website = $this->storeManager->getWebsite($websiteId);
+                $store = $website->getDefaultStore();
+                if ($store) {
+                    $storeIdForContext = (int) $store->getId();
+                }
+            } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+                // leave storeIdForContext null
+            }
+        }
+        if ($storeIdForContext !== null) {
+            $this->configProvider->setContextCode($storeIdForContext);
+        }
+
         /** @var RequestInterface $model */
         $model = $this->objectManager->create($className);
         $model->setCommonHeaders($this->headersHelper->getHeaders())
@@ -83,6 +106,10 @@ class Factory
 
         if ($storeId !== null && method_exists($model, 'setStoreId')) {
             $model->setStoreId($storeId);
+        }
+
+        if ($websiteId !== null && method_exists($model, 'setWebsiteId')) {
+            $model->setWebsiteId($websiteId);
         }
 
         if ($method !== self::ERROR_EVENTS) {

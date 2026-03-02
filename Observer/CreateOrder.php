@@ -93,24 +93,23 @@ class CreateOrder extends MonduObserver
         }
 
         try {
-            $this->monduFileLogger
-                ->info('Validating order status in Mondu. ', ['orderNumber' => $order->getIncrementId()]);
-
-            $orderData = $this->requestFactory->create(RequestFactory::TRANSACTION_CONFIRM_METHOD)
+            $storeId = (int) $order->getStoreId();
+            $orderData = $this->requestFactory->create(RequestFactory::TRANSACTION_CONFIRM_METHOD, $storeId)
                 ->setValidate(true)
                 ->process(['orderUid' => $orderUid]);
 
             $orderData = $orderData['order'];
-            $authorizationData = $this->confirmAuthorizedOrder($orderData, $order->getIncrementId());
+
+            $authorizationData = $this->confirmAuthorizedOrder(
+                $orderData,
+                $order->getIncrementId(),
+                (int) $order->getStoreId()
+            );
             $orderData['state'] = $authorizationData['state'];
 
             $order->setData('mondu_reference_id', $orderUid);
             $order->addCommentToStatusHistory(__('Mondu: order id %1', $orderData['uuid']));
             $this->orderRepository->save($order);
-            $this->monduFileLogger->info(
-                'Saved the order in Magento ',
-                ['orderNumber' => $order->getIncrementId()]
-            );
 
             if ($createMonduDatabaseRecord) {
                 $this->monduLogHelper
@@ -123,10 +122,10 @@ class CreateOrder extends MonduObserver
                 $this->monduTransactionItem->createTransactionItemsForOrder((int) $transactionId, $order);
             }
         } catch (Exception $e) {
-            $this->monduFileLogger->info(
-                'Error in CreateOrder observer',
-                ['orderNumber' => $order->getIncrementId()]
-            );
+            $this->monduFileLogger->error('Error in CreateOrder observer', [
+                'orderNumber' => $order->getIncrementId(),
+                'error' => $e->getMessage(),
+            ]);
             throw new LocalizedException(__($e->getMessage()));
         }
     }
@@ -136,14 +135,16 @@ class CreateOrder extends MonduObserver
      *
      * @param array $orderData
      * @param string $orderNumber
+     * @param int $storeId
      * @throws LocalizedException
      * @return array
      */
-    protected function confirmAuthorizedOrder(array $orderData, string $orderNumber): array
+    protected function confirmAuthorizedOrder(array $orderData, string $orderNumber, int $storeId): array
     {
-        if ($orderData['state'] === OrderHelper::AUTHORIZED) {
-            $authorizationData = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER)
+        if ($orderData['state'] === OrderHelper::AUTHORIZED || $orderData['state'] === 'pending') {
+            $authorizationData = $this->requestFactory->create(RequestFactory::CONFIRM_ORDER, $storeId)
                 ->process(['orderUid' => $orderData['uuid'], 'referenceId' => $orderNumber]);
+
             return $authorizationData['order'];
         }
 

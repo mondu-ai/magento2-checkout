@@ -97,7 +97,7 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Returns the webhook endpoint URL.
+     * Returns the webhook endpoint URL for a store.
      *
      * @param int|null $storeId Store ID for multistore support (optional, uses contextCode if not provided)
      * @return string
@@ -119,13 +119,46 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Returns the webhook endpoint URL for a website (same scope as API key).
+     *
+     * Uses the default store of that website for the base URL.
+     *
+     * @param int|null $websiteId Website ID (optional)
+     * @return string
+     */
+    public function getWebhookUrlForWebsite(?int $websiteId = null): string
+    {
+        if ($websiteId === null) {
+            return $this->getWebhookUrl(null);
+        }
+        try {
+            $website = $this->storeManager->getWebsite($websiteId);
+            $store = $website->getDefaultStore();
+            if (!$store) {
+                $stores = $website->getStores();
+                $store = !empty($stores) ? reset($stores) : null;
+            }
+            if ($store) {
+                return $store->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'mondu/webhooks/index';
+            }
+        } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+            // fall through to default
+        }
+        return $this->urlBuilder->getBaseUrl() . 'mondu/webhooks/index';
+    }
+
+    /**
      * Returns the configured API key.
      *
+     * @param int|null $websiteId Optional website ID to get API key for specific website
      * @return string|null
      */
-    public function getApiKey(): ?string
+    public function getApiKey(?int $websiteId = null): ?string
     {
-        $websiteId = $this->getWebsiteIdForContext();
+        // Use provided websiteId or get from context
+        if ($websiteId === null) {
+            $websiteId = $this->getWebsiteIdForContext();
+        }
 
         if ($websiteId !== null) {
             return $this->scopeConfig->getValue(

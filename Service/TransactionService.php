@@ -33,7 +33,8 @@ class TransactionService
      */
     public function createTransaction(array $requestData): array
     {
-        $result = $this->requestFactory->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD)
+        $storeId = isset($requestData['store_id']) ? (int) $requestData['store_id'] : null;
+        $result = $this->requestFactory->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD, $storeId)
             ->process($requestData);
 
         $response = $this->aBTesting->formatApiResult($result);

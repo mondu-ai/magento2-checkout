@@ -140,6 +140,8 @@ class Transactions extends CommonRequest implements RequestInterface
         $locale = $this->store->getLocale();
         $language = $locale ? strstr($locale, '_', true) : 'de';
 
+        $tokenExternalRefId = uniqid('M2_');
+
         $order = [
             'language' => $language,
             'currency' => $quote->getBaseCurrencyCode(),
@@ -149,7 +151,7 @@ class Transactions extends CommonRequest implements RequestInterface
             'declined_url' => $declinedUrl,
             'total_discount_cents' => abs($discountAmount) * 100,
             'buyer' => $this->getBuyerParams($quote),
-            'external_reference_id' => uniqid('M2_'),
+            'external_reference_id' => $tokenExternalRefId,
             'billing_address' => $this->getBillingAddressParams($quote),
             'shipping_address' => $this->getShippingAddressParams($quote),
         ];

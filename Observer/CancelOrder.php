@@ -54,17 +54,42 @@ class CancelOrder extends MonduObserver
         $order = $observer->getEvent()->getOrder();
         $orderIncrementId = $order->getIncrementId();
         $monduId = $order->getMonduReferenceId();
+        $currentState = $order->getState();
+        $currentStatus = $order->getStatus();
 
         try {
             if ($order->getRelationChildId()) {
+                $this->monduFileLogger->logOrderStatus('[ORDER STATUS] CancelOrder observer - SKIPPED', [
+                    'order_id' => $order->getEntityId(),
+                    'order_increment_id' => $orderIncrementId,
+                    'current_state' => $currentState,
+                    'current_status' => $currentStatus,
+                    'reason' => 'Order has child relation, skipping cancellation'
+                ]);
                 return;
             }
 
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] CancelOrder observer - START', [
+                'order_id' => $order->getEntityId(),
+                'order_increment_id' => $orderIncrementId,
+                'current_state' => $currentState,
+                'current_status' => $currentStatus,
+                'mondu_reference_id' => $monduId
+            ]);
+
             $this->monduFileLogger->info('Trying to cancel Order ' . $orderIncrementId);
 
-            $cancelData = $this->requestFactory->create(RequestFactory::CANCEL)
+            $storeId = (int) $order->getStoreId();
+            $cancelData = $this->requestFactory->create(RequestFactory::CANCEL, $storeId)
                 ->process(['orderUid' => $monduId]);
             if (!$cancelData) {
+                $this->monduFileLogger->logOrderStatus('[ORDER STATUS] CancelOrder observer - FAILED', [
+                    'order_id' => $order->getEntityId(),
+                    'order_increment_id' => $orderIncrementId,
+                    'current_state' => $currentState,
+                    'current_status' => $currentStatus,
+                    'reason' => 'Cancel request returned no data - order not found in Mondu'
+                ]);
                 $this->messageManager->addErrorMessage(
                     'Mondu: Unexpected error: Order could not be found,'
                     . ' please contact Mondu Support to resolve this issue.'
@@ -72,12 +97,42 @@ class CancelOrder extends MonduObserver
                 return;
             }
 
+            $monduCancelState = $cancelData['order']['state'] ?? 'unknown';
+            
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] CancelOrder observer - BEFORE status change', [
+                'order_id' => $order->getEntityId(),
+                'order_increment_id' => $orderIncrementId,
+                'current_state' => $currentState,
+                'current_status' => $currentStatus,
+                'mondu_order_state_after_cancel' => $monduCancelState,
+                'reason' => 'Order cancellation successful in Mondu, updating order status'
+            ]);
+
             $order->addCommentToStatusHistory(
                 __('Mondu: The order with the id %1 was successfully canceled.', $monduId)
             );
             $this->orderRepository->save($order);
+            
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] CancelOrder observer - AFTER status change', [
+                'order_id' => $order->getEntityId(),
+                'order_increment_id' => $orderIncrementId,
+                'previous_state' => $currentState,
+                'previous_status' => $currentStatus,
+                'current_state' => $order->getState(),
+                'current_status' => $order->getStatus(),
+                'mondu_order_state' => $monduCancelState
+            ]);
+            
             $this->monduFileLogger->info('Cancelled order ', ['orderNumber' => $orderIncrementId]);
         } catch (Exception $error) {
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] CancelOrder observer - EXCEPTION', [
+                'order_id' => $order->getEntityId(),
+                'order_increment_id' => $orderIncrementId,
+                'current_state' => $currentState,
+                'current_status' => $currentStatus,
+                'error' => $error->getMessage(),
+                'reason' => 'Exception occurred during order cancellation'
+            ]);
             $this->monduFileLogger->info(
                 'Failed to cancel Order ' . $orderIncrementId,
                 ['e' => $error->getMessage()]

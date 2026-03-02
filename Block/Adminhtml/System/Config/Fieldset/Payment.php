@@ -10,6 +10,7 @@ use Magento\Config\Block\System\Config\Form\Fieldset;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\View\Helper\Js;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
+use Mondu\Mondu\Helpers\ModuleHelper;
 use Composer\InstalledVersions;
 
 class Payment extends Fieldset
@@ -19,6 +20,7 @@ class Payment extends Fieldset
      * @param Session $authSession
      * @param Js $jsHelper
      * @param SecureHtmlRenderer $secureRenderer
+     * @param ModuleHelper $moduleHelper
      * @param array $data
      */
     public function __construct(
@@ -26,6 +28,7 @@ class Payment extends Fieldset
         Session $authSession,
         Js $jsHelper,
         protected SecureHtmlRenderer $secureRenderer,
+        private readonly ModuleHelper $moduleHelper,
         array $data = [],
     ) {
         parent::__construct($context, $authSession, $jsHelper, $data, $secureRenderer);
@@ -90,15 +93,26 @@ class Payment extends Fieldset
     }
 
     /**
-     * Returns the installed module version from Composer.
+     * Returns the current module version string, falling back to ModuleHelper if Composer data is unavailable.
      *
      * @return string
      */
-    private function getModuleVersion()
+    private function getModuleVersion(): string
     {
         try {
-            return InstalledVersions::getPrettyVersion('mondu_gmbh/magento2-payment');
-        } catch (\Throwable $e) {
+            if (class_exists(InstalledVersions::class)) {
+                $version = InstalledVersions::getPrettyVersion('mondu_gmbh/magento2-payment');
+                if ($version && $version !== 'dev-master' && $version !== 'dev-main') {
+                    return $version;
+                }
+            }
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+            // Continue to ModuleHelper fallback
+        }
+
+        try {
+            return $this->moduleHelper->getModuleVersion();
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             return 'unknown';
         }
     }

@@ -43,7 +43,7 @@ class OrderIdButton extends Column
                         'href' => $this->urlBuilder->getUrl('sales/order/view', [
                             'order_id' => $item['order_id'],
                         ]),
-                        'label' => $item['order_id'],
+                        'label' => $item['increment_id'] ?? $item['order_id'],
                     ],
                 ];
             }
