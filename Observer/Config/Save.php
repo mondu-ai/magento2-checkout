@@ -64,7 +64,7 @@ class Save implements ObserverInterface
         $requestScopeId = $this->request->getParam('scope_id');
         $requestWebsite = $this->request->getParam('website');
         $requestStore = $this->request->getParam('store');
-        
+
         // Try to get scope information from event directly
         $eventScope = $observer->getEvent()->getData('scope');
         $eventScopeId = $observer->getEvent()->getData('scope_id') 
@@ -140,7 +140,7 @@ class Save implements ObserverInterface
                 try {
                     $store = $this->storeManager->getStore($storeId);
                     $websiteId = (int) $store->getWebsiteId();
-                } catch (\Exception $e) {
+                } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                     // Website ID not available
                 }
             }
@@ -159,7 +159,7 @@ class Save implements ObserverInterface
             try {
                 $store = $this->storeManager->getStore($storeId);
                 $websiteId = (int) $store->getWebsiteId();
-            } catch (\Exception $e) {
+            } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                 // Website ID not available
             }
         }
@@ -174,7 +174,11 @@ class Save implements ObserverInterface
             $this->monduConfig->updateNewOrderStatus();
             $this->paymentMethod->resetAllowedCache();
 
-            $webhookKeysRequest = $this->requestFactory->create(RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD, $storeId, $websiteId);
+            $webhookKeysRequest = $this->requestFactory->create(
+                RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD,
+                $storeId,
+                $websiteId
+            );
             $webhookKeysRequest->process();
             $webhookSecret = $webhookKeysRequest->getWebhookSecret();
             $webhookKeysRequest->checkSuccess();

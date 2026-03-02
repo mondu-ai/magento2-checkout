@@ -85,14 +85,18 @@ class Payment extends Fieldset
             'button#' . $htmlId . '-head'
         );
 
-        $html .= '</div>'; 
+        $html .= '</div>';
         $html .= '<div class="heading"><strong>' . $element->getLegend() . '</strong></div>';
         $html .= '<div class="config-alt"></div></div>';
 
         return $html;
-
     }
 
+    /**
+     * Returns the current module version string, falling back to ModuleHelper if Composer data is unavailable.
+     *
+     * @return string
+     */
     private function getModuleVersion(): string
     {
         try {
@@ -102,13 +106,13 @@ class Payment extends Fieldset
                     return $version;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // Continue to ModuleHelper fallback
         }
 
         try {
             return $this->moduleHelper->getModuleVersion();
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             return 'unknown';
         }
     }

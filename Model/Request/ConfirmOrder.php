@@ -21,6 +21,7 @@ class ConfirmOrder extends CommonRequest implements RequestInterface
      * @param Curl $curl
      * @param LogFactory $monduLogger
      * @param UrlBuilder $urlBuilder
+     * @param MonduFileLogger $monduFileLogger
      */
     public function __construct(
         Curl $curl,

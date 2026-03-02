@@ -120,6 +120,7 @@ class ConfigProvider implements ConfigProviderInterface
 
     /**
      * Returns the webhook endpoint URL for a website (same scope as API key).
+     *
      * Uses the default store of that website for the base URL.
      *
      * @param int|null $websiteId Website ID (optional)
@@ -140,7 +141,7 @@ class ConfigProvider implements ConfigProviderInterface
             if ($store) {
                 return $store->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'mondu/webhooks/index';
             }
-        } catch (NoSuchEntityException $e) {
+        } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // fall through to default
         }
         return $this->urlBuilder->getBaseUrl() . 'mondu/webhooks/index';

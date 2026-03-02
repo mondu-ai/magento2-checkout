@@ -39,8 +39,8 @@ class PaymentMethod extends Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 $paymentMethodCode = $item['payment_method'] ?? null;
-                $item[$this->getData('name')] = $paymentMethodCode !== null 
-                    ? $this->paymentMethodHelper->getLabel($paymentMethodCode) 
+                $item[$this->getData('name')] = $paymentMethodCode !== null
+                    ? $this->paymentMethodHelper->getLabel($paymentMethodCode)
                     : null;
             }
         }

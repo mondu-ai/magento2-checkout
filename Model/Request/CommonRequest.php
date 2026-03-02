@@ -69,7 +69,7 @@ abstract class CommonRequest implements RequestInterface
         if ($this->sendEvents) {
             try {
                 $this->sendEvents($exception);
-            } catch (Exception $eventsException) {
+            } catch (Exception $eventsException) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                 // do not let sendEvents swallow the original exception
             }
         }

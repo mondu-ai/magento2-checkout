@@ -96,9 +96,9 @@ class Token extends AbstractPaymentController
 
             return $result->setHttpResponseCode(ResponseAlias::STATUS_CODE_400)
                 ->setData([
-                  'error' => true,
-                  'message' => __('Error placing an order. Please try again later.')]
-                );
+                    'error' => true,
+                    'message' => __('Error placing an order. Please try again later.'),
+                ]);
         }
 
         try {

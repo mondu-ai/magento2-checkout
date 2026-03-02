@@ -50,7 +50,7 @@ class Save extends Action implements HttpPostActionInterface
             try {
                 $order = $this->orderRepository->get($data['order_id']);
                 $storeId = (int) $order->getStoreId();
-            } catch (\Exception $e) {
+            } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                 // leave storeId null
             }
         }

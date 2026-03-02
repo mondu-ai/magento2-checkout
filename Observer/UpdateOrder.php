@@ -75,16 +75,21 @@ class UpdateOrder extends MonduObserver
         ]);
 
         try {
-            $canCreditMemo = $order->canCreditmemo() || $order->canInvoice() || $this->monduLogHelper->canCreditMemo($monduId);
+            $canCreditMemo = $order->canCreditmemo()
+                || $order->canInvoice()
+                || $this->monduLogHelper->canCreditMemo($monduId);
             
-            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Checking credit memo conditions', [
-                'order_id' => $order->getEntityId(),
-                'order_increment_id' => $order->getIncrementId(),
-                'can_creditmemo' => $order->canCreditmemo(),
-                'can_invoice' => $order->canInvoice(),
-                'mondu_can_creditmemo' => $this->monduLogHelper->canCreditMemo($monduId),
-                'will_create_creditmemo' => $canCreditMemo
-            ]);
+            $this->monduFileLogger->logOrderStatus(
+                '[ORDER STATUS] UpdateOrder observer - Checking credit memo conditions',
+                [
+                    'order_id' => $order->getEntityId(),
+                    'order_increment_id' => $order->getIncrementId(),
+                    'can_creditmemo' => $order->canCreditmemo(),
+                    'can_invoice' => $order->canInvoice(),
+                    'mondu_can_creditmemo' => $this->monduLogHelper->canCreditMemo($monduId),
+                    'will_create_creditmemo' => $canCreditMemo
+                ]
+            );
             
             if ($canCreditMemo) {
                 $this->monduFileLogger
@@ -98,27 +103,33 @@ class UpdateOrder extends MonduObserver
                         'external_reference_id' => $creditMemo->getIncrementId(),
                     ];
 
-                    $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Creating credit memo', [
-                        'order_id' => $order->getEntityId(),
-                        'order_increment_id' => $order->getIncrementId(),
-                        'current_state' => $currentState,
-                        'current_status' => $currentStatus,
-                        'creditmemo_amount' => $grossAmountCents,
-                        'invoice_uid' => $requestParams['creditmemo']['creditmemo_mondu_id']
-                    ]);
+                    $this->monduFileLogger->logOrderStatus(
+                        '[ORDER STATUS] UpdateOrder observer - Creating credit memo',
+                        [
+                            'order_id' => $order->getEntityId(),
+                            'order_increment_id' => $order->getIncrementId(),
+                            'current_state' => $currentState,
+                            'current_status' => $currentStatus,
+                            'creditmemo_amount' => $grossAmountCents,
+                            'invoice_uid' => $requestParams['creditmemo']['creditmemo_mondu_id']
+                        ]
+                    );
 
                     $storeId = (int) $order->getStoreId();
                     $memoData = $this->requestFactory->create(RequestFactory::MEMO, $storeId)->process($data);
 
                     if (isset($memoData['errors'])) {
-                        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Credit memo creation FAILED', [
-                            'order_id' => $order->getEntityId(),
-                            'order_increment_id' => $order->getIncrementId(),
-                            'current_state' => $currentState,
-                            'current_status' => $currentStatus,
-                            'error' => $memoData['errors'][0]['details'] ?? 'unknown',
-                            'reason' => 'Credit memo creation failed in Mondu API'
-                        ]);
+                        $this->monduFileLogger->logOrderStatus(
+                            '[ORDER STATUS] UpdateOrder observer - Credit memo creation FAILED',
+                            [
+                                'order_id' => $order->getEntityId(),
+                                'order_increment_id' => $order->getIncrementId(),
+                                'current_state' => $currentState,
+                                'current_status' => $currentStatus,
+                                'error' => $memoData['errors'][0]['details'] ?? 'unknown',
+                                'reason' => 'Credit memo creation failed in Mondu API'
+                            ]
+                        );
                         $this->monduFileLogger->info(
                             'Error in UpdateOrder observer ',
                             ['orderNumber' => $order->getIncrementId(), 'e' => $memoData['errors'][0]['details']]
@@ -129,13 +140,16 @@ class UpdateOrder extends MonduObserver
                         return;
                     }
 
-                    $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Credit memo created successfully', [
-                        'order_id' => $order->getEntityId(),
-                        'order_increment_id' => $order->getIncrementId(),
-                        'current_state' => $currentState,
-                        'current_status' => $currentStatus,
-                        'reason' => 'Credit memo created in Mondu, order status may change after sync'
-                    ]);
+                    $this->monduFileLogger->logOrderStatus(
+                        '[ORDER STATUS] UpdateOrder observer - Credit memo created successfully',
+                        [
+                            'order_id' => $order->getEntityId(),
+                            'order_increment_id' => $order->getIncrementId(),
+                            'current_state' => $currentState,
+                            'current_status' => $currentStatus,
+                            'reason' => 'Credit memo created in Mondu, order status may change after sync'
+                        ]
+                    );
                     $this->monduFileLogger->info(
                         'Created credit memo',
                         ['orderNumber' => $order->getIncrementId()]
@@ -143,13 +157,16 @@ class UpdateOrder extends MonduObserver
 
                     $this->bulkActions->execute([$order->getId()], BulkActions::BULK_SYNC_ACTION);
                 } else {
-                    $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Credit memo creation SKIPPED', [
-                        'order_id' => $order->getEntityId(),
-                        'order_increment_id' => $order->getIncrementId(),
-                        'current_state' => $currentState,
-                        'current_status' => $currentStatus,
-                        'reason' => 'No Mondu invoice id provided in credit memo request'
-                    ]);
+                    $this->monduFileLogger->logOrderStatus(
+                        '[ORDER STATUS] UpdateOrder observer - Credit memo creation SKIPPED',
+                        [
+                            'order_id' => $order->getEntityId(),
+                            'order_increment_id' => $order->getIncrementId(),
+                            'current_state' => $currentState,
+                            'current_status' => $currentStatus,
+                            'reason' => 'No Mondu invoice id provided in credit memo request'
+                        ]
+                    );
                     $this->monduFileLogger->info(
                         'Cant create a credit memo: no Mondu invoice id provided',
                         ['orderNumber' => $order->getIncrementId()]
@@ -158,23 +175,30 @@ class UpdateOrder extends MonduObserver
                     $monduState = $logData['mondu_state'] ?? 'unknown';
                     $allowedStates = ['shipped', 'partially_shipped', 'partially_complete', 'complete'];
                     
-                    $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Checking Mondu state for partial refund', [
-                        'order_id' => $order->getEntityId(),
-                        'order_increment_id' => $order->getIncrementId(),
-                        'mondu_order_state' => $monduState,
-                        'allowed_states' => $allowedStates,
-                        'can_partially_refund' => in_array($monduState, $allowedStates, true)
-                    ]);
-                    
-                    if (!in_array($monduState, $allowedStates, true)) {
-                        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Partial refund NOT ALLOWED', [
+                    $this->monduFileLogger->logOrderStatus(
+                        '[ORDER STATUS] UpdateOrder observer - Checking Mondu state for partial refund',
+                        [
                             'order_id' => $order->getEntityId(),
                             'order_increment_id' => $order->getIncrementId(),
-                            'current_state' => $currentState,
-                            'current_status' => $currentStatus,
                             'mondu_order_state' => $monduState,
-                            'reason' => 'Cannot partially refund order before shipment - Mondu state: ' . $monduState
-                        ]);
+                            'allowed_states' => $allowedStates,
+                            'can_partially_refund' => in_array($monduState, $allowedStates, true)
+                        ]
+                    );
+                    
+                    if (!in_array($monduState, $allowedStates, true)) {
+                        $this->monduFileLogger->logOrderStatus(
+                            '[ORDER STATUS] UpdateOrder observer - Partial refund NOT ALLOWED',
+                            [
+                                'order_id' => $order->getEntityId(),
+                                'order_increment_id' => $order->getIncrementId(),
+                                'current_state' => $currentState,
+                                'current_status' => $currentStatus,
+                                'mondu_order_state' => $monduState,
+                                'reason' => 'Cannot partially refund order before shipment - Mondu state: '
+                                    . $monduState
+                            ]
+                        );
                         throw new LocalizedException(
                             __('Mondu: You cant partially refund order before shipment')
                         );
@@ -186,13 +210,16 @@ class UpdateOrder extends MonduObserver
                 }
                 return;
             } else {
-                $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Whole order refund - canceling', [
-                    'order_id' => $order->getEntityId(),
-                    'order_increment_id' => $order->getIncrementId(),
-                    'current_state' => $currentState,
-                    'current_status' => $currentStatus,
-                    'reason' => 'Whole order amount is being refunded - canceling order in Mondu'
-                ]);
+                $this->monduFileLogger->logOrderStatus(
+                    '[ORDER STATUS] UpdateOrder observer - Whole order refund - canceling',
+                    [
+                        'order_id' => $order->getEntityId(),
+                        'order_increment_id' => $order->getIncrementId(),
+                        'current_state' => $currentState,
+                        'current_status' => $currentStatus,
+                        'reason' => 'Whole order amount is being refunded - canceling order in Mondu'
+                    ]
+                );
                 $this->monduFileLogger->info(
                     'Whole order amount is being refunded, canceling the order',
                     ['orderNumber' => $order->getIncrementId()]
@@ -202,14 +229,17 @@ class UpdateOrder extends MonduObserver
                     ->process(['orderUid' => $monduId]);
 
                 if (isset($cancelData['errors']) && !isset($cancelData['order'])) {
-                    $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - Cancel FAILED', [
-                        'order_id' => $order->getEntityId(),
-                        'order_increment_id' => $order->getIncrementId(),
-                        'current_state' => $currentState,
-                        'current_status' => $currentStatus,
-                        'error' => $cancelData['errors'] ?? 'unknown',
-                        'reason' => 'Cancel request failed in Mondu API'
-                    ]);
+                    $this->monduFileLogger->logOrderStatus(
+                        '[ORDER STATUS] UpdateOrder observer - Cancel FAILED',
+                        [
+                            'order_id' => $order->getEntityId(),
+                            'order_increment_id' => $order->getIncrementId(),
+                            'current_state' => $currentState,
+                            'current_status' => $currentStatus,
+                            'error' => $cancelData['errors'] ?? 'unknown',
+                            'reason' => 'Cancel request failed in Mondu API'
+                        ]
+                    );
                     $message = 'Mondu: Unexpected error: Could not cancel the order,' .
                         ' please contact Mondu Support to resolve this issue.';
                     $this->messageManager->addErrorMessage($message);
@@ -218,14 +248,17 @@ class UpdateOrder extends MonduObserver
 
                 $monduCancelState = $cancelData['order']['state'] ?? 'unknown';
                 
-                $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - BEFORE cancel status change', [
-                    'order_id' => $order->getEntityId(),
-                    'order_increment_id' => $order->getIncrementId(),
-                    'current_state' => $currentState,
-                    'current_status' => $currentStatus,
-                    'mondu_order_state_after_cancel' => $monduCancelState,
-                    'reason' => 'Whole order amount refunded - canceling order in Mondu'
-                ]);
+                $this->monduFileLogger->logOrderStatus(
+                    '[ORDER STATUS] UpdateOrder observer - BEFORE cancel status change',
+                    [
+                        'order_id' => $order->getEntityId(),
+                        'order_increment_id' => $order->getIncrementId(),
+                        'current_state' => $currentState,
+                        'current_status' => $currentStatus,
+                        'mondu_order_state_after_cancel' => $monduCancelState,
+                        'reason' => 'Whole order amount refunded - canceling order in Mondu'
+                    ]
+                );
 
                 $this->monduLogHelper->updateLogMonduData($monduId, $cancelData['order']['state']);
 
@@ -234,15 +267,18 @@ class UpdateOrder extends MonduObserver
                 );
                 $this->orderRepository->save($order);
                 
-                $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - AFTER cancel status change', [
-                    'order_id' => $order->getEntityId(),
-                    'order_increment_id' => $order->getIncrementId(),
-                    'previous_state' => $currentState,
-                    'previous_status' => $currentStatus,
-                    'current_state' => $order->getState(),
-                    'current_status' => $order->getStatus(),
-                    'mondu_order_state' => $monduCancelState
-                ]);
+                $this->monduFileLogger->logOrderStatus(
+                    '[ORDER STATUS] UpdateOrder observer - AFTER cancel status change',
+                    [
+                        'order_id' => $order->getEntityId(),
+                        'order_increment_id' => $order->getIncrementId(),
+                        'previous_state' => $currentState,
+                        'previous_status' => $currentStatus,
+                        'current_state' => $order->getState(),
+                        'current_status' => $order->getStatus(),
+                        'mondu_order_state' => $monduCancelState
+                    ]
+                );
             }
         } catch (Exception $error) {
             $this->monduFileLogger->logOrderStatus('[ORDER STATUS] UpdateOrder observer - EXCEPTION', [

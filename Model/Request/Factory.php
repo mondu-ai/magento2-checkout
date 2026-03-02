@@ -90,7 +90,7 @@ class Factory
                 if ($store) {
                     $storeIdForContext = (int) $store->getId();
                 }
-            } catch (NoSuchEntityException $e) {
+            } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                 // leave storeIdForContext null
             }
         }

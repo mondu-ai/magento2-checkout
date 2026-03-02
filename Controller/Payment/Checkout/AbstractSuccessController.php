@@ -84,6 +84,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      *
      * @param string $monduId
      * @param string $referenceId
+     * @param int|null $storeId
      * @throws LocalizedException
      * @throws Exception
      * @return mixed
@@ -156,5 +157,4 @@ abstract class AbstractSuccessController extends AbstractPaymentController
 
         return $this->quoteManagement->submit($quote);
     }
-
 }

@@ -280,8 +280,10 @@ class OrderHelper
                 }
 
                 $orderItem = $i->getOrderItem();
-                if ($orderItem->getParentItem() &&
-                    $orderItem->getParentItem()->getProductType() === 'bundle') {
+                if (
+                    $orderItem->getParentItem() &&
+                    $orderItem->getParentItem()->getProductType() === 'bundle'
+                ) {
                     continue;
                 }
 

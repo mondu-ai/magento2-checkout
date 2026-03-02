@@ -100,7 +100,11 @@ class CreateOrder extends MonduObserver
 
             $orderData = $orderData['order'];
 
-            $authorizationData = $this->confirmAuthorizedOrder($orderData, $order->getIncrementId(), (int) $order->getStoreId());
+            $authorizationData = $this->confirmAuthorizedOrder(
+                $orderData,
+                $order->getIncrementId(),
+                (int) $order->getStoreId()
+            );
             $orderData['state'] = $authorizationData['state'];
 
             $order->setData('mondu_reference_id', $orderUid);
