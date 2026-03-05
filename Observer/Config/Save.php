@@ -140,8 +140,11 @@ class Save implements ObserverInterface
                 try {
                     $store = $this->storeManager->getStore($storeId);
                     $websiteId = (int) $store->getWebsiteId();
-                } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                    // Website ID not available
+                } catch (\Exception $e) {
+                    $this->monduFileLogger->warning('Could not resolve website ID from store', [
+                        'store_id' => $storeId,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
         }
@@ -159,8 +162,11 @@ class Save implements ObserverInterface
             try {
                 $store = $this->storeManager->getStore($storeId);
                 $websiteId = (int) $store->getWebsiteId();
-            } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                // Website ID not available
+            } catch (\Exception $e) {
+                $this->monduFileLogger->warning('Could not resolve website ID from store', [
+                    'store_id' => $storeId,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

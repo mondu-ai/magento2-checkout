@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Service;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class TransactionService
 {
@@ -16,11 +18,15 @@ class TransactionService
      * @param ABTesting $aBTesting
      * @param MonduFileLogger $monduFileLogger
      * @param RequestFactory $requestFactory
+     * @param ConfigProvider $configProvider
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         private readonly ABTesting $aBTesting,
         private readonly MonduFileLogger $monduFileLogger,
         private readonly RequestFactory $requestFactory,
+        private readonly ConfigProvider $configProvider,
+        private readonly StoreManagerInterface $storeManager,
     ) {
     }
 
@@ -34,8 +40,32 @@ class TransactionService
     public function createTransaction(array $requestData): array
     {
         $storeId = isset($requestData['store_id']) ? (int) $requestData['store_id'] : null;
-        $result = $this->requestFactory->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD, $storeId)
-            ->process($requestData);
+
+        $websiteId = null;
+        if ($storeId !== null) {
+            try {
+                $websiteId = (int) $this->storeManager->getStore($storeId)->getWebsiteId();
+            } catch (\Exception $e) {
+                $this->monduFileLogger->warning('Could not resolve website ID for store', [
+                    'store_id' => $storeId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $request = $this->requestFactory->create(RequestFactory::TRANSACTIONS_REQUEST_METHOD, $storeId);
+
+        $apiKey = $this->configProvider->getApiKey($websiteId);
+        $apiKeyHint = $apiKey ? '...' . substr($apiKey, -6) : null;
+
+        $this->monduFileLogger->info('Mondu checkout initiated', [
+            'store_id'   => $storeId,
+            'website_id' => $websiteId,
+            'mode'       => $this->configProvider->getMode(),
+            'api_key'    => $apiKeyHint,
+        ]);
+
+        $result = $request->process($requestData);
 
         $response = $this->aBTesting->formatApiResult($result);
         $this->monduFileLogger->info('Received Mondu transaction response', $response);

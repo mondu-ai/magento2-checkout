@@ -7,6 +7,7 @@ namespace Mondu\Mondu\Model\Request;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
+use Psr\Log\LoggerInterface;
 
 abstract class CommonRequest implements RequestInterface
 {
@@ -41,6 +42,11 @@ abstract class CommonRequest implements RequestInterface
     protected ?RequestInterface $errorEventsHandler = null;
 
     /**
+     * @var LoggerInterface|null
+     */
+    protected ?LoggerInterface $logger = null;
+
+    /**
      * Sends a request to the Mondu API
      *
      * @param array|null $params
@@ -69,8 +75,11 @@ abstract class CommonRequest implements RequestInterface
         if ($this->sendEvents) {
             try {
                 $this->sendEvents($exception);
-            } catch (Exception $eventsException) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                // do not let sendEvents swallow the original exception
+            } catch (Exception $eventsException) {
+                $this->logger?->warning(
+                    'Mondu: sendEvents failed, original exception preserved',
+                    ['error' => $eventsException->getMessage()]
+                );
             }
         }
 
@@ -181,6 +190,18 @@ abstract class CommonRequest implements RequestInterface
         }
 
         return $this->curl->getBody();
+    }
+
+    /**
+     * Sets the logger instance for this request.
+     *
+     * @param LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+        return $this;
     }
 
     /**
