@@ -106,13 +106,17 @@ class Payment extends Fieldset
                     return $version;
                 }
             }
-        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-            // Continue to ModuleHelper fallback
+        } catch (\Throwable $e) {
+            $this->_logger->warning(
+                'Mondu: Could not get version from InstalledVersions',
+                ['error' => $e->getMessage()]
+            );
         }
 
         try {
             return $this->moduleHelper->getModuleVersion();
-        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+        } catch (\Throwable $e) {
+            $this->_logger->warning('Mondu: Could not get module version', ['error' => $e->getMessage()]);
             return 'unknown';
         }
     }

@@ -8,6 +8,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Psr\Log\LoggerInterface;
 
 class ModuleHelper
 {
@@ -18,12 +19,14 @@ class ModuleHelper
      * @param ProductMetadataInterface $productMetadata
      * @param ResourceConnection $resourceConnection
      * @param DirectoryList $directoryList
+     * @param LoggerInterface $logger
      */
     public function __construct(
         private readonly ModuleListInterface $moduleList,
         private readonly ProductMetadataInterface $productMetadata,
         private readonly ResourceConnection $resourceConnection,
         private readonly DirectoryList $directoryList,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -56,8 +59,8 @@ class ModuleHelper
             if ($moduleData && isset($moduleData['setup_version']) && !empty($moduleData['setup_version'])) {
                 return (string) $moduleData['setup_version'];
             }
-        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-            // Continue to next fallback
+        } catch (\Throwable $e) {
+            $this->logger->debug('Mondu: version fallback failed', ['error' => $e->getMessage()]);
         }
 
         try {
@@ -71,8 +74,8 @@ class ModuleHelper
             if ($version && !empty($version)) {
                 return (string) $version;
             }
-        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-            // Continue to next fallback
+        } catch (\Throwable $e) {
+            $this->logger->debug('Mondu: version fallback failed', ['error' => $e->getMessage()]);
         }
 
         try {
@@ -93,8 +96,8 @@ class ModuleHelper
                     }
                 }
             }
-        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-            // Continue to next fallback
+        } catch (\Throwable $e) {
+            $this->logger->debug('Mondu: version fallback failed', ['error' => $e->getMessage()]);
         }
 
         try {
@@ -118,8 +121,8 @@ class ModuleHelper
                     }
                 }
             }
-        } catch (\Throwable $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-            // Continue to default
+        } catch (\Throwable $e) {
+            $this->logger->debug('Mondu: version fallback failed', ['error' => $e->getMessage()]);
         }
 
         return '';

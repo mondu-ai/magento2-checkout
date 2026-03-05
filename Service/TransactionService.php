@@ -45,8 +45,11 @@ class TransactionService
         if ($storeId !== null) {
             try {
                 $websiteId = (int) $this->storeManager->getStore($storeId)->getWebsiteId();
-            } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                // website ID not resolvable
+            } catch (\Exception $e) {
+                $this->monduFileLogger->warning('Could not resolve website ID for store', [
+                    'store_id' => $storeId,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

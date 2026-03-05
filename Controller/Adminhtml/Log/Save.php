@@ -12,6 +12,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
@@ -24,12 +25,14 @@ class Save extends Action implements HttpPostActionInterface
      * @param MonduLogHelper $monduLogHelper
      * @param OrderRepositoryInterface $orderRepository
      * @param RequestFactory $requestFactory
+     * @param MonduFileLogger $monduFileLogger
      */
     public function __construct(
         Context $context,
         protected MonduLogHelper $monduLogHelper,
         protected OrderRepositoryInterface $orderRepository,
         protected RequestFactory $requestFactory,
+        protected MonduFileLogger $monduFileLogger,
     ) {
         parent::__construct($context);
     }
@@ -50,8 +53,11 @@ class Save extends Action implements HttpPostActionInterface
             try {
                 $order = $this->orderRepository->get($data['order_id']);
                 $storeId = (int) $order->getStoreId();
-            } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                // leave storeId null
+            } catch (\Exception $e) {
+                $this->monduFileLogger->warning('Could not load order to resolve store ID', [
+                    'order_id' => $data['order_id'],
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
         $response = $this->requestFactory->create(RequestFactory::ADJUST_ORDER, $storeId)->process($requestObject);

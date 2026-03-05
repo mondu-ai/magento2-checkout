@@ -90,8 +90,11 @@ class Factory
                 if ($store) {
                     $storeIdForContext = (int) $store->getId();
                 }
-            } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                // leave storeIdForContext null
+            } catch (NoSuchEntityException $e) {
+                $this->monduFileLogger->warning('Could not resolve store for website', [
+                    'website_id' => $websiteId,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
         if ($storeIdForContext !== null) {
@@ -102,7 +105,8 @@ class Factory
         $model = $this->objectManager->create($className);
         $model->setCommonHeaders($this->headersHelper->getHeaders())
             ->setEnvironmentInformation($this->moduleHelper->getEnvironmentInformation())
-            ->setRequestOrigin($method);
+            ->setRequestOrigin($method)
+            ->setLogger($this->monduFileLogger);
 
         if ($storeId !== null && method_exists($model, 'setStoreId')) {
             $model->setStoreId($storeId);
