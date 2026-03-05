@@ -30,6 +30,11 @@ class Keys extends CommonRequest implements RequestInterface
     protected int $responseStatus;
 
     /**
+     * @var int|null
+     */
+    private ?int $websiteId = null;
+
+    /**
      * @param Curl $curl
      * @param UrlBuilder $urlBuilder
      * @param ConfigProvider $configProvider
@@ -97,6 +102,18 @@ class Keys extends CommonRequest implements RequestInterface
     }
 
     /**
+     * Sets the website ID so the secret is saved at website scope.
+     *
+     * @param int|null $websiteId
+     * @return $this
+     */
+    public function setWebsiteId(?int $websiteId): self
+    {
+        $this->websiteId = $websiteId;
+        return $this;
+    }
+
+    /**
      * Updates the config with the latest webhook secret.
      *
      * @return $this
@@ -104,12 +121,12 @@ class Keys extends CommonRequest implements RequestInterface
     public function update(): Keys
     {
         $webhookSecret = $this->getWebhookSecret();
-        
+
         if (!$webhookSecret) {
             return $this;
         }
-        
-        $this->configProvider->updateWebhookSecret($webhookSecret);
+
+        $this->configProvider->updateWebhookSecret($webhookSecret, $this->websiteId);
 
         return $this;
     }

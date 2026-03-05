@@ -323,21 +323,27 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Updates webhook secret.
+     * Updates webhook secret for a specific website or globally.
      *
      * @param string $webhookSecret
-     * @param int|null $storeId Store ID for multistore support
+     * @param int|null $websiteId Website ID for per-website secret storage
      * @return $this
      */
-    public function updateWebhookSecret($webhookSecret = "", ?int $storeId = null): self
+    public function updateWebhookSecret($webhookSecret = "", ?int $websiteId = null): self
     {
-        $scope = $storeId !== null ? ScopeInterface::SCOPE_STORES : ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+        if ($websiteId !== null) {
+            $scope = ScopeInterface::SCOPE_WEBSITES;
+            $scopeId = $websiteId;
+        } else {
+            $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+            $scopeId = 0;
+        }
 
         $this->resourceConfig->saveConfig(
             'payment/mondu/' . $this->getMode() . '_webhook_secret',
             $this->encryptor->encrypt($webhookSecret),
             $scope,
-            $storeId
+            $scopeId
         );
 
         return $this;
