@@ -122,6 +122,17 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for updating external info on an async order.
+     *
+     * @param string $orderUid
+     * @return string
+     */
+    public function getUpdateExternalInfoUrl(string $orderUid): string
+    {
+        return $this->build("orders/{$orderUid}/update_external_info");
+    }
+
+    /**
      * Returns the API URL for listing plugin-triggered events.
      *
      * @return string

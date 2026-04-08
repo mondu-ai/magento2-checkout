@@ -68,6 +68,7 @@ class Log
      * @param array $response
      * @param array|null $addons
      * @param string $paymentMethod
+     * @param string $orderFlow  'authorization' for standard checkout, 'async' for admin back-office orders
      * @throws Exception
      * @return void
      */
@@ -75,7 +76,8 @@ class Log
         OrderInterface $order,
         array $response,
         ?array $addons = null,
-        string $paymentMethod = 'mondu'
+        string $paymentMethod = 'mondu',
+        string $orderFlow = 'authorization'
     ): void {
         $monduLogger = $this->monduLogger->create();
         $logData = [
@@ -88,8 +90,9 @@ class Log
             'mode' => $this->configProvider->getMode(),
             'addons' => $this->serializer->serialize($addons),
             'payment_method' => $paymentMethod,
-            'authorized_net_term' => $response['authorized_net_term'],
-            'is_confirmed' => 1,
+            'authorized_net_term' => $response['authorized_net_term'] ?? null,
+            'is_confirmed' => $orderFlow === 'async' ? 0 : 1,
+            'order_flow' => $orderFlow,
             'invoice_iban' => $response['merchant']['viban'] ?? null,
             'external_data' => $this->serializer->serialize([
                 'merchant_company_name' => $response['merchant']['company_name'] ?? null,

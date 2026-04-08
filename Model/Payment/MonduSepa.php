@@ -19,7 +19,7 @@ class MonduSepa extends AbstractMethod
     /**
      * @var bool
      */
-    protected $_canUseInternal = false;
+    protected $_canUseInternal = true;
 
     /**
      * Authorize.

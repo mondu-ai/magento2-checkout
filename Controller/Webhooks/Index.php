@@ -23,7 +23,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
+use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Setup\Patch\Data\PendingBuyerConfirmationStatus;
 
 class Index implements ActionInterface
 {
@@ -33,6 +35,7 @@ class Index implements ActionInterface
      * @param MonduLogHelper $monduLogHelper
      * @param MonduFileLogger $monduFileLogger
      * @param OrderRepositoryInterface $orderRepository
+     * @param RequestFactory $requestFactory
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param FilterBuilder $filterBuilder
      * @param RequestInterface $request
@@ -47,6 +50,7 @@ class Index implements ActionInterface
         private readonly MonduLogHelper $monduLogHelper,
         private readonly MonduFileLogger $monduFileLogger,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly RequestFactory $requestFactory,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly FilterBuilder $filterBuilder,
         private readonly RequestInterface $request,
@@ -91,6 +95,9 @@ class Index implements ActionInterface
             switch ($topic) {
                 case 'order/confirmed':
                     [$resBody, $resStatus] = $this->handleConfirmed($params, $order, $storeId);
+                    break;
+                case 'order/authorized':
+                    [$resBody, $resStatus] = $this->handleAuthorized($params, $order, $storeId);
                     break;
                 case 'order/pending':
                     [$resBody, $resStatus] = $this->handlePending($params, $order, $storeId);
@@ -161,7 +168,9 @@ class Index implements ActionInterface
     }
 
     /**
-     * Processes the 'order/confirmed' topic and updates the order to processing state.
+     * Processes the 'order/confirmed' topic.
+     * For async orders: sends final increment_id to Mondu via update_external_info before setting Processing.
+     * For standard orders: sets Processing directly.
      *
      * @param array|null $params
      * @param OrderInterface|null $order
@@ -198,6 +207,16 @@ class Index implements ActionInterface
             'viban' => $viban
         ]);
 
+        // For async orders: send the final M2 increment_id to Mondu
+        if ($monduId && $this->isAsyncOrder($monduId)) {
+            $this->requestFactory
+                ->create(RequestFactory::UPDATE_EXTERNAL_INFO, $storeId)
+                ->process([
+                    'orderUid'            => $monduId,
+                    'externalReferenceId' => $order->getIncrementId(),
+                ]);
+        }
+
         $order->setState(Order::STATE_PROCESSING);
         $order->setStatus(Order::STATE_PROCESSING);
         $order->addCommentToStatusHistory(
@@ -217,6 +236,51 @@ class Index implements ActionInterface
             'reason' => 'Webhook topic: order/confirmed - Order confirmed by Mondu',
             'mondu_order_state' => $params['order_state'] ?? 'unknown'
         ]);
+
+        return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * Processes the 'order/authorized' topic: sets order to Pending Buyer Confirmation.
+     * Triggered for async orders after Mondu approves but before buyer confirms via email.
+     *
+     * @param array|null $params
+     * @param OrderInterface|null $order
+     * @param int|null $storeId
+     * @throws Exception
+     * @return array
+     */
+    public function handleAuthorized(?array $params, ?OrderInterface $order = null, ?int $storeId = null): array
+    {
+        $monduId = $params['order_uuid'] ?? null;
+        $externalReferenceId = $params['external_reference_id'] ?? null;
+
+        if (!$externalReferenceId || !$monduId) {
+            throw new Exception('Required params missing');
+        }
+
+        if (!$order) {
+            return [['message' => 'Order does not exist', 'error' => 0], 200];
+        }
+
+        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing authorized webhook - BEFORE status change', [
+            'external_reference_id' => $externalReferenceId,
+            'order_id' => $order->getEntityId(),
+            'order_increment_id' => $order->getIncrementId(),
+            'store_id' => $storeId,
+            'current_state' => $order->getState(),
+            'current_status' => $order->getStatus(),
+            'mondu_order_state' => $params['order_state'] ?? 'unknown',
+            'mondu_order_uuid' => $monduId,
+        ]);
+
+        $order->setState(Order::STATE_PAYMENT_REVIEW);
+        $order->setStatus(PendingBuyerConfirmationStatus::STATUS_CODE);
+        $order->addCommentToStatusHistory(
+            __('Mondu: Order authorized. Waiting for buyer to confirm via email.')
+        );
+        $this->orderRepository->save($order);
+        $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
@@ -494,6 +558,18 @@ class Index implements ActionInterface
         }
 
         return $this->encryptor->decrypt($val);
+    }
+
+    /**
+     * Returns true if the Mondu order was created via the async flow.
+     *
+     * @param string $orderUid
+     * @return bool
+     */
+    private function isAsyncOrder(string $orderUid): bool
+    {
+        $transaction = $this->monduLogHelper->getTransactionByOrderUid($orderUid);
+        return isset($transaction['order_flow']) && $transaction['order_flow'] === 'async';
     }
 
     /**
