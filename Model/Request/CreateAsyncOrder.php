@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mondu\Mondu\Model\Request;
 
-use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Locale\Resolver;
@@ -25,7 +24,6 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     /**
      * @param Curl $curl
      * @param ConfigProvider $configProvider
-     * @param CustomerRepositoryInterface $customerRepository
      * @param MonduFileLogger $monduFileLogger
      * @param OrderHelper $orderHelper
      * @param Resolver $localeResolver
@@ -34,7 +32,6 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     public function __construct(
         Curl $curl,
         private readonly ConfigProvider $configProvider,
-        private readonly CustomerRepositoryInterface $customerRepository,
         private readonly MonduFileLogger $monduFileLogger,
         private readonly OrderHelper $orderHelper,
         private readonly Resolver $localeResolver,
@@ -94,10 +91,10 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         $language = $locale ? strstr($locale, '_', true) : 'de';
 
         $payload = [
-            'state_flow'           => 'async',
+            'state_flow'           => 'authorization_flow',
             'currency'             => $order->getBaseCurrencyCode(),
             'language'             => $language,
-            'external_reference_id' => uniqid('M2_ASYNC_'),
+            'external_reference_id' => $order->getIncrementId(),
             'gross_amount_cents'   => (int) round($order->getBaseGrandTotal() * 100),
             'buyer'                => $this->buildBuyerParams($order),
             'billing_address'      => $this->extractAddressParams($order->getBillingAddress()),
@@ -118,7 +115,10 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Builds buyer params: uses stored buyer_uuid when available, otherwise sends full details.
+     * Builds buyer params from order data.
+     *
+     * The async flow always requires full buyer details — Mondu performs a fresh
+     * credit evaluation and does not accept a buyer UUID shorthand here.
      *
      * @param OrderInterface $order
      * @return array
@@ -126,25 +126,7 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     private function buildBuyerParams(OrderInterface $order): array
     {
         $customerId = $order->getCustomerId();
-
-        if ($customerId) {
-            try {
-                $customer = $this->customerRepository->getById((int) $customerId);
-                $buyerUuidAttr = $customer->getCustomAttribute('mondu_buyer_uuid');
-                $buyerUuid = $buyerUuidAttr ? (string) $buyerUuidAttr->getValue() : null;
-
-                if ($buyerUuid) {
-                    return ['uuid' => $buyerUuid];
-                }
-            } catch (\Exception $e) {
-                $this->monduFileLogger->warning('CreateAsyncOrder: could not load customer for buyer_uuid', [
-                    'customer_id' => $customerId,
-                    'error'       => $e->getMessage(),
-                ]);
-            }
-        }
-
-        $billing = $order->getBillingAddress();
+        $billing    = $order->getBillingAddress();
 
         $params = [
             'is_registered' => (bool) $customerId,

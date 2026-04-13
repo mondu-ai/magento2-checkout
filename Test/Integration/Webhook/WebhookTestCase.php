@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 namespace Mondu\Mondu\Test\Integration\Webhook;
 
-use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Api\Data\CustomerInterface as CustomerData;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\HTTP\Client\Curl as MagentoCurl;
-use Mondu\Mondu\Helpers\HeadersHelper;
-use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -44,7 +39,6 @@ abstract class WebhookTestCase extends TestCase
     protected WebhookController $webhookController;
     protected MonduLogHelper $logHelper;
     protected OrderRepositoryInterface $orderRepository;
-    protected CustomerRepositoryInterface $customerRepository;
     protected SerializerInterface $serializer;
     protected EncryptorInterface $encryptor;
     protected StoreManagerInterface $storeManager;
@@ -63,15 +57,14 @@ abstract class WebhookTestCase extends TestCase
 
     protected function setUp(): void
     {
-        $this->om                 = ObjectManager::getInstance();
-        $this->webhookController  = $this->om->get(WebhookController::class);
-        $this->logHelper          = $this->om->get(MonduLogHelper::class);
-        $this->orderRepository    = $this->om->get(OrderRepositoryInterface::class);
-        $this->customerRepository = $this->om->get(CustomerRepositoryInterface::class);
-        $this->serializer         = $this->om->get(SerializerInterface::class);
-        $this->encryptor          = $this->om->get(EncryptorInterface::class);
-        $this->storeManager       = $this->om->get(StoreManagerInterface::class);
-        $this->resource           = $this->om->get(ResourceConnection::class);
+        $this->om                = ObjectManager::getInstance();
+        $this->webhookController = $this->om->get(WebhookController::class);
+        $this->logHelper         = $this->om->get(MonduLogHelper::class);
+        $this->orderRepository   = $this->om->get(OrderRepositoryInterface::class);
+        $this->serializer        = $this->om->get(SerializerInterface::class);
+        $this->encryptor         = $this->om->get(EncryptorInterface::class);
+        $this->storeManager      = $this->om->get(StoreManagerInterface::class);
+        $this->resource          = $this->om->get(ResourceConnection::class);
 
         $this->requireApiAvailable();
     }
@@ -242,20 +235,6 @@ abstract class WebhookTestCase extends TestCase
      */
     protected function createMonduAsyncOrder(OrderInterface $order): string
     {
-        return $this->createMonduAsyncOrderFull($order)['order_uuid'];
-    }
-
-    /**
-     * Calls CreateAsyncOrder and returns both order UUID and buyer UUID.
-     * Buyer UUID is retrieved via a subsequent GET /orders/{uuid} call because
-     * the POST response does not include buyer data.
-     *
-     * @param OrderInterface $order
-     * @return array{order_uuid: string, buyer_uuid: string}
-     * @throws \Exception
-     */
-    protected function createMonduAsyncOrderFull(OrderInterface $order): array
-    {
         $storeId = (int) $order->getStoreId();
 
         $result = $this->om->get(RequestFactory::class)
@@ -265,72 +244,13 @@ abstract class WebhookTestCase extends TestCase
         $orderData = $result['order'];
         $orderUuid = $orderData['uuid'];
 
-        // Persist UUID on order
         $order->setData('mondu_reference_id', $orderUuid);
         $order->addCommentToStatusHistory('Mondu test: async order created ' . $orderUuid);
         $this->orderRepository->save($order);
 
-        // Persist transaction log (async flow: is_confirmed=0)
         $this->logHelper->logTransaction($order, $orderData, null, 'mondu', 'async');
 
-        // POST response lacks buyer data — fetch it via GET /orders/{uuid}
-        $buyerUuid = $this->fetchBuyerUuidForOrder($orderUuid, $storeId);
-
-        return ['order_uuid' => $orderUuid, 'buyer_uuid' => $buyerUuid];
-    }
-
-    /**
-     * Fetches the buyer UUID for a Mondu order via GET /orders/{uuid}.
-     *
-     * @param string $orderUuid
-     * @param int    $storeId
-     * @return string  Empty string if not found.
-     */
-    /**
-     * Searches existing mondu_transactions for an order that has a buyer UUID in Mondu.
-     * Returns empty string if none found (caller should markTestSkipped).
-     *
-     * @return string  Buyer UUID or empty string.
-     */
-    protected function findExistingBuyerUuid(): string
-    {
-        $connection = $this->resource->getConnection();
-        $orderUuids = $connection->fetchCol(
-            $connection->select()
-                ->from($this->resource->getTableName('mondu_transactions'), ['reference_id'])
-                ->where('reference_id IS NOT NULL')
-                ->where('reference_id != ?', '')
-                ->limit(20)
-        );
-
-        foreach ($orderUuids as $orderUuid) {
-            $buyerUuid = $this->fetchBuyerUuidForOrder($orderUuid, 1);
-            if (!empty($buyerUuid)) {
-                return $buyerUuid;
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function fetchBuyerUuidForOrder(string $orderUuid, int $storeId): string
-    {
-        /** @var UrlBuilder $urlBuilder */
-        $urlBuilder = $this->om->get(UrlBuilder::class);
-        /** @var HeadersHelper $headersHelper */
-        $headersHelper = $this->om->get(HeadersHelper::class);
-        /** @var MagentoCurl $curl */
-        $curl = $this->om->create(MagentoCurl::class);
-
-        $curl->setHeaders($headersHelper->getHeaders());
-        $curl->get($urlBuilder->getOrderUrl($orderUuid));
-        $body = $curl->getBody();
-
-        $data = json_decode($body, true);
-        return $data['order']['buyer']['uuid'] ?? '';
+        return $orderUuid;
     }
 
     // -----------------------------------------------------------------------
@@ -444,131 +364,6 @@ abstract class WebhookTestCase extends TestCase
     protected function signWebhook(string $jsonPayload): string
     {
         return hash_hmac('sha256', $jsonPayload, $this->getWebhookSecret());
-    }
-
-    // -----------------------------------------------------------------------
-    // Customer helpers
-    // -----------------------------------------------------------------------
-
-    /**
-     * Creates a Magento customer with mondu_buyer_uuid custom attribute set.
-     *
-     * @param string $email
-     * @param string $buyerUuid
-     * @return CustomerData
-     */
-    protected function createTestCustomerWithBuyerUuid(
-        string $email,
-        string $buyerUuid
-    ): CustomerData {
-        /** @var CustomerData $customer */
-        $customer = $this->om->create(CustomerData::class);
-        $customer->setEmail($email)
-            ->setFirstname('Max')
-            ->setLastname('Mustermann')
-            ->setWebsiteId(1)
-            ->setStoreId(1);
-        $customer->setCustomAttribute('mondu_buyer_uuid', $buyerUuid);
-
-        return $this->customerRepository->save($customer);
-    }
-
-    /**
-     * Creates a test order linked to an existing customer (not a guest).
-     *
-     * @param CustomerData $customer
-     * @return OrderInterface
-     */
-    protected function createTestOrderForCustomer(CustomerData $customer): OrderInterface
-    {
-        /** @var Order $order */
-        $order = $this->om->create(Order::class);
-
-        $order->setIncrementId('TEST-' . uniqid())
-            ->setCustomerId((int) $customer->getId())
-            ->setCustomerEmail($customer->getEmail())
-            ->setCustomerFirstname($customer->getFirstname())
-            ->setCustomerLastname($customer->getLastname())
-            ->setCustomerIsGuest(false)
-            ->setBaseCurrencyCode('EUR')
-            ->setOrderCurrencyCode('EUR')
-            ->setStoreId(1)
-            ->setState(Order::STATE_NEW)
-            ->setStatus(Order::STATE_NEW)
-            ->setBaseGrandTotal(119.00)
-            ->setGrandTotal(119.00)
-            ->setBaseSubtotal(100.00)
-            ->setSubtotal(100.00)
-            ->setBaseTaxAmount(19.00)
-            ->setTaxAmount(19.00)
-            ->setBaseShippingAmount(0.00)
-            ->setShippingAmount(0.00);
-
-        /** @var \Magento\Sales\Model\Order\Payment $payment */
-        $payment = $this->om->create(\Magento\Sales\Model\Order\Payment::class);
-        $payment->setMethod('mondu');
-        $order->setPayment($payment);
-
-        /** @var Address $billing */
-        $billing = $this->om->create(Address::class);
-        $billing->setAddressType(Address::TYPE_BILLING)
-            ->setFirstname($customer->getFirstname())
-            ->setLastname($customer->getLastname())
-            ->setCompany('Test GmbH')
-            ->setStreet(['Musterstraße 1'])
-            ->setCity('Berlin')
-            ->setPostcode('10115')
-            ->setCountryId('DE')
-            ->setTelephone('+49300000000')
-            ->setEmail($customer->getEmail());
-
-        /** @var Address $shipping */
-        $shipping = $this->om->create(Address::class);
-        $shipping->setAddressType(Address::TYPE_SHIPPING)
-            ->setFirstname($customer->getFirstname())
-            ->setLastname($customer->getLastname())
-            ->setCompany('Test GmbH')
-            ->setStreet(['Musterstraße 1'])
-            ->setCity('Berlin')
-            ->setPostcode('10115')
-            ->setCountryId('DE')
-            ->setTelephone('+49300000000');
-
-        $order->setBillingAddress($billing);
-        $order->setShippingAddress($shipping);
-
-        /** @var Item $item */
-        $item = $this->om->create(Item::class);
-        $item->setProductId(1)
-            ->setSku('TEST-SKU-001')
-            ->setName('Test Product')
-            ->setQtyOrdered(1)
-            ->setBasePrice(100.00)
-            ->setPrice(100.00)
-            ->setBaseRowTotal(100.00)
-            ->setRowTotal(100.00)
-            ->setBaseTaxAmount(19.00)
-            ->setTaxAmount(19.00)
-            ->setProductType('simple');
-
-        $order->addItem($item);
-        $this->orderRepository->save($order);
-
-        return $order;
-    }
-
-    /**
-     * Deletes a test customer by ID.
-     *
-     * @param int $customerId
-     */
-    protected function cleanupCustomer(int $customerId): void
-    {
-        try {
-            $this->customerRepository->deleteById($customerId);
-        } catch (\Exception) {
-            // already deleted or never saved
-        }
     }
 
     // -----------------------------------------------------------------------
