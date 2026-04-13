@@ -5,8 +5,6 @@
     "test": "playwright test",
     "test:checkout": "playwright test playwright/checkout/",
     "test:order-states": "playwright test playwright/order-states/",
-    "test:order-management": "playwright test playwright/order-management/",
-    "test:admin": "playwright test playwright/admin/",
     "report": "playwright show-report"
   },
   "devDependencies": {
