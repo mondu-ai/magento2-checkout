@@ -7,7 +7,6 @@ namespace Mondu\Mondu\Controller\Webhooks;
 use Exception;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -59,7 +58,6 @@ class Index implements ActionInterface
         private readonly StoreManagerInterface $storeManager,
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly EncryptorInterface $encryptor,
-        private readonly CustomerRepositoryInterface $customerRepository,
     ) {
     }
 
@@ -82,11 +80,8 @@ class Index implements ActionInterface
             ]);
 
             $topic = $params['topic'] ?? '';
-            $isBuyerTopic = str_starts_with($topic, 'buyer/');
 
-            $validationResult = $isBuyerTopic
-                ? $this->validateWebhookSignature($content, $headers)
-                : $this->validateWebhookSignatureAndFindOrder($content, $headers, $params);
+            $validationResult = $this->validateWebhookSignatureAndFindOrder($content, $headers, $params);
 
             if ($validationResult === null) {
                 $this->monduFileLogger->info('Webhook signature not matched for any website, ignoring request');
@@ -95,9 +90,7 @@ class Index implements ActionInterface
                     ->setData(['message' => 'ok', 'error' => 0]);
             }
 
-            [$order, $storeId, $websiteId] = $isBuyerTopic
-                ? [null, null, $validationResult]
-                : $validationResult;
+            [$order, $storeId, $websiteId] = $validationResult;
 
             switch ($topic) {
                 case 'order/confirmed':
@@ -109,16 +102,8 @@ class Index implements ActionInterface
                 case 'order/pending':
                     [$resBody, $resStatus] = $this->handlePending($params, $order, $storeId);
                     break;
-                case 'order/authorized':
-                    [$resBody, $resStatus] = $this->handleAuthorized($params, $order, $storeId);
-                    break;
                 case 'order/declined':
                     [$resBody, $resStatus] = $this->handleDeclinedOrCanceled($params, $order, $storeId);
-                    break;
-                case 'buyer/accepted':
-                case 'buyer/declined':
-                case 'buyer/pending':
-                    [$resBody, $resStatus] = $this->handleBuyerWebhook($params, $topic);
                     break;
                 default:
                     throw new AuthorizationException(__('Unregistered topic'));
@@ -178,50 +163,6 @@ class Index implements ActionInterface
         );
         $this->orderRepository->save($order);
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
-
-        return [['message' => 'ok', 'error' => 0], 200];
-    }
-
-    /**
-     * Processes the 'order/authorized' topic — sets status to Pending Buyer Confirmation.
-     *
-     * @param array|null $params
-     * @param OrderInterface|null $order
-     * @param int|null $storeId
-     * @throws Exception
-     * @return array
-     */
-    private function handleAuthorized(?array $params, ?OrderInterface $order = null, ?int $storeId = null): array
-    {
-        $monduId = $params['order_uuid'] ?? null;
-        $externalReferenceId = $params['external_reference_id'] ?? null;
-
-        if (!$externalReferenceId || !$monduId) {
-            throw new Exception('Required params missing');
-        }
-
-        if (!$order) {
-            return [['message' => 'Order does not exist', 'error' => 0], 200];
-        }
-
-        $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing authorized webhook - BEFORE status change', [
-            'external_reference_id' => $externalReferenceId,
-            'order_id' => $order->getEntityId(),
-            'order_increment_id' => $order->getIncrementId(),
-            'store_id' => $storeId,
-            'current_state' => $order->getState(),
-            'current_status' => $order->getStatus(),
-            'mondu_order_state' => $params['order_state'] ?? 'unknown',
-            'mondu_order_uuid' => $monduId,
-        ]);
-
-        $order->setState(Order::STATE_PAYMENT_REVIEW);
-        $order->setStatus('mondu_pending_buyer_confirmation');
-        $order->addCommentToStatusHistory(
-            __('Mondu: Order authorized, waiting for buyer confirmation')
-        );
-        $this->orderRepository->save($order);
-        $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'] ?? 'authorized');
 
         return [['message' => 'ok', 'error' => 0], 200];
     }
@@ -473,97 +414,6 @@ class Index implements ActionInterface
 
         $orders = $orderList->getItems();
         return reset($orders);
-    }
-
-    /**
-     * Handles buyer webhook topics (buyer/accepted, buyer/declined, buyer/pending).
-     *
-     * @param array $params
-     * @param string $topic
-     * @return array
-     */
-    private function handleBuyerWebhook(array $params, string $topic): array
-    {
-        $buyerUuid = $params['uuid'] ?? $params['buyer_uuid'] ?? null;
-        $externalReferenceId = $params['external_reference_id'] ?? null;
-        $buyerState = match ($topic) {
-            'buyer/accepted' => 'accepted',
-            'buyer/declined' => 'declined',
-            'buyer/pending' => 'pending',
-            default => 'unknown',
-        };
-
-        $this->monduFileLogger->info('Processing buyer webhook', [
-            'topic' => $topic,
-            'buyer_uuid' => $buyerUuid,
-            'external_reference_id' => $externalReferenceId,
-            'buyer_state' => $buyerState,
-        ]);
-
-        if (!$externalReferenceId) {
-            return [['message' => 'Missing external_reference_id', 'error' => 1], 400];
-        }
-
-        try {
-            $customer = $this->customerRepository->get($externalReferenceId);
-            $customer->setCustomAttribute('mondu_buyer_uuid', $buyerUuid);
-            $customer->setCustomAttribute('mondu_buyer_state', $buyerState);
-            $this->customerRepository->save($customer);
-
-            $this->monduFileLogger->info('Buyer state updated', [
-                'customer_id' => $customer->getId(),
-                'buyer_uuid' => $buyerUuid,
-                'buyer_state' => $buyerState,
-            ]);
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            $this->monduFileLogger->info('Customer not found for buyer webhook', [
-                'external_reference_id' => $externalReferenceId,
-            ]);
-            return [['message' => 'Customer not found', 'error' => 0], 200];
-        }
-
-        return [['message' => 'ok', 'error' => 0], 200];
-    }
-
-    /**
-     * Validates webhook signature without requiring an order (for buyer webhooks).
-     *
-     * @param string $content
-     * @param array $headers
-     * @return int|null Website ID if signature matches, null otherwise
-     */
-    private function validateWebhookSignature(string $content, array $headers): ?int
-    {
-        $receivedSignature = $headers['x-mondu-signature'] ?? $headers['X-Mondu-Signature'] ?? null;
-
-        if (!$receivedSignature) {
-            return null;
-        }
-
-        $websites = $this->storeManager->getWebsites(true);
-
-        foreach ($websites as $website) {
-            $websiteId = (int) $website->getId();
-            if ($websiteId === 0) {
-                continue;
-            }
-
-            try {
-                $webhookSecret = $this->getWebhookSecretForWebsite($websiteId);
-                if (empty($webhookSecret)) {
-                    continue;
-                }
-
-                $expectedSignature = hash_hmac('sha256', $content, $webhookSecret);
-                if (hash_equals($expectedSignature, $receivedSignature)) {
-                    return $websiteId;
-                }
-            } catch (Exception $e) {
-                continue;
-            }
-        }
-
-        return null;
     }
 
     /**

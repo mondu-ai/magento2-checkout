@@ -164,37 +164,6 @@ class UrlBuilder
     }
 
     /**
-     * Returns the API URL for creating a Digital Trade Account onboarding session.
-     *
-     * @return string
-     */
-    public function getTradeAccountUrl(): string
-    {
-        return $this->build('trade_account');
-    }
-
-    /**
-     * Returns the API URL for creating a hosted buyer onboarding session.
-     *
-     * @return string
-     */
-    public function getHostedBuyerOnboardingUrl(): string
-    {
-        return $this->build('buyers/hosted_onboarding');
-    }
-
-    /**
-     * Returns the API URL for fetching a buyer's purchasing limit.
-     *
-     * @param string $buyerUuid
-     * @return string
-     */
-    public function getBuyerPurchasingLimitUrl(string $buyerUuid): string
-    {
-        return $this->build("buyers/{$buyerUuid}/purchasing_limit");
-    }
-
-    /**
      * Builds the full Mondu API URL based on the path and environment mode.
      *
      * @param string|null $path

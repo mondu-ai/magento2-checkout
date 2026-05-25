@@ -30,9 +30,6 @@ class Factory
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
     public const CREATE_ASYNC_ORDER = 'CREATE_ASYNC_ORDER';
     public const UPDATE_EXTERNAL_INFO = 'UPDATE_EXTERNAL_INFO';
-    public const TRADE_ACCOUNT = 'TRADE_ACCOUNT';
-    public const HOSTED_BUYER_ONBOARDING = 'HOSTED_BUYER_ONBOARDING';
-    public const BUYER_PURCHASING_LIMIT = 'BUYER_PURCHASING_LIMIT';
 
     /**
      * @var array
@@ -53,9 +50,6 @@ class Factory
         self::CONFIRM_ORDER => ConfirmOrder::class,
         self::CREATE_ASYNC_ORDER => CreateAsyncOrder::class,
         self::UPDATE_EXTERNAL_INFO => UpdateExternalInfo::class,
-        self::TRADE_ACCOUNT => TradeAccount::class,
-        self::HOSTED_BUYER_ONBOARDING => HostedBuyerOnboarding::class,
-        self::BUYER_PURCHASING_LIMIT => BuyerPurchasingLimit::class,
     ];
 
     /**
