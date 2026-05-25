@@ -4,4 +4,16 @@
     <event name="order_cancel_after">
         <observer name="mondu_order_cancel_after" instance="Mondu\Mondu\Observer\CancelOrder"/>
     </event>
+    <event name="payment_method_assign_data_mondu">
+        <observer name="mondu_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
+    <event name="payment_method_assign_data_mondusepa">
+        <observer name="mondusepa_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
+    <event name="payment_method_assign_data_monduinstallment">
+        <observer name="monduinstallment_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
+    <event name="payment_method_assign_data_monduinstallmentbyinvoice">
+        <observer name="monduinstallmentbyinvoice_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
 </config>

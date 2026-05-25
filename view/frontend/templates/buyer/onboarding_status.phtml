@@ -1,0 +1,34 @@
+<?php
+/** @var \Mondu\Mondu\Block\Buyer\OnboardingStatus $block */
+$buyerState = $block->getBuyerState();
+$initiateUrl = $block->getInitiateUrl();
+?>
+<div class="block mondu-trade-account">
+    <div class="block-title">
+        <strong><?= $block->escapeHtml(__('Mondu Trade Account')) ?></strong>
+    </div>
+    <div class="block-content">
+        <?php if ($buyerState === 'accepted'): ?>
+            <div class="message message-success">
+                <span><?= $block->escapeHtml(__('Your Mondu Trade Account is active.')) ?></span>
+            </div>
+        <?php elseif ($buyerState === 'pending'): ?>
+            <div class="message message-info">
+                <span><?= $block->escapeHtml(__('Your Mondu Trade Account application is being reviewed.')) ?></span>
+            </div>
+        <?php elseif ($buyerState === 'declined'): ?>
+            <div class="message message-error">
+                <span><?= $block->escapeHtml(__('Your Mondu Trade Account application was declined.')) ?></span>
+            </div>
+        <?php else: ?>
+            <p><?= $block->escapeHtml(__('Apply for a Mondu Trade Account to access flexible B2B payment options.')) ?></p>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <a href="<?= $block->escapeUrl($initiateUrl) ?>" class="action primary">
+                        <span><?= $block->escapeHtml(__('Start Onboarding')) ?></span>
+                    </a>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
