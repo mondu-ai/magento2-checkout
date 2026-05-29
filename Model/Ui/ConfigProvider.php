@@ -211,6 +211,30 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * @return bool
+     */
+    public function isBuyerOnboardingEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            'payment/mondu/buyer_onboarding_enabled',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getBuyerOnboardingType(): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            'payment/mondu/buyer_onboarding_type',
+            ScopeInterface::SCOPE_STORE,
+            $this->contextCode
+        ) ?: 'hosted_onboarding';
+    }
+
+    /**
      * Checks if Cron processing is enabled.
      *
      * @return bool

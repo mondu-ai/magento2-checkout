@@ -39,6 +39,46 @@
             <column name="entity_id"/>
         </constraint>
     </table>
+    <table name="mondu_buyers" resource="default" engine="innodb">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
+                comment="Buyer id"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="false" comment="Customer Id"/>
+        <column xsi:type="int" name="website_id" unsigned="true" nullable="false" comment="Website Id"/>
+        <column xsi:type="varchar" name="buyer_uuid" length="255" nullable="true" comment="Mondu Buyer UUID"/>
+        <column xsi:type="varchar" name="external_reference_id" length="255" nullable="false"
+                comment="External Reference Id"/>
+        <column xsi:type="varchar" name="onboarding_type" length="50" nullable="false"
+                comment="Onboarding type: hosted_onboarding or trade_account"/>
+        <column xsi:type="varchar" name="state" length="50" nullable="false" default="pending"
+                comment="Buyer state: pending, accepted, declined"/>
+        <column xsi:type="varchar" name="company_name" length="255" nullable="true" comment="Company Name"/>
+        <column xsi:type="int" name="purchasing_limit_cents" unsigned="true" nullable="true"
+                comment="Purchasing Limit in cents"/>
+        <column xsi:type="int" name="balance_cents" unsigned="true" nullable="true"
+                comment="Balance (unpaid invoices) in cents"/>
+        <column xsi:type="int" name="max_purchase_value_cents" unsigned="true" nullable="true"
+                comment="Max single purchase value in cents"/>
+        <column xsi:type="text" name="eligible_terms" nullable="true" comment="Eligible terms JSON"/>
+        <column xsi:type="timestamp" name="purchasing_limit_updated_at" nullable="true"
+                comment="Purchasing limit last updated"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" default="CURRENT_TIMESTAMP"
+                comment="Created at"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" default="CURRENT_TIMESTAMP"
+                comment="Updated at"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="MONDU_BUYERS_CUSTOMER_WEBSITE">
+            <column name="customer_id"/>
+            <column name="website_id"/>
+        </constraint>
+        <index referenceId="MONDU_BUYERS_BUYER_UUID" indexType="btree">
+            <column name="buyer_uuid"/>
+        </index>
+        <index referenceId="MONDU_BUYERS_EXTERNAL_REF" indexType="btree">
+            <column name="external_reference_id"/>
+        </index>
+    </table>
     <table name="sales_order" resource="sales">
         <column xsi:type="varchar" name="mondu_reference_id" nullable="false" comment="Mondu Reference id"/>
     </table>

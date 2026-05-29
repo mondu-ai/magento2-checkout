@@ -36,6 +36,33 @@
             "PRIMARY": true
         }
     },
+    "mondu_buyers": {
+        "column": {
+            "entity_id": true,
+            "customer_id": true,
+            "website_id": true,
+            "buyer_uuid": true,
+            "external_reference_id": true,
+            "onboarding_type": true,
+            "state": true,
+            "company_name": true,
+            "purchasing_limit_cents": true,
+            "balance_cents": true,
+            "max_purchase_value_cents": true,
+            "eligible_terms": true,
+            "purchasing_limit_updated_at": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "MONDU_BUYERS_BUYER_UUID": true,
+            "MONDU_BUYERS_EXTERNAL_REF": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MONDU_BUYERS_CUSTOMER_WEBSITE": true
+        }
+    },
     "sales_order": {
         "column": {
             "mondu_reference_id": true

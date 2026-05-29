@@ -43,6 +43,22 @@ define([
             return self;
         },
 
+        getBuyerPurchasingLimit: function () {
+            var buyerData = window.checkoutConfig.payment.mondu_buyer;
+            if (buyerData && buyerData.is_onboarded && buyerData.max_purchase_value_cents) {
+                return buyerData.max_purchase_value_cents;
+            }
+            return null;
+        },
+
+        getBuyerPurchasingLimitFormatted: function () {
+            var cents = this.getBuyerPurchasingLimit();
+            if (!cents) return '';
+            var amount = (cents / 100).toFixed(2);
+            var currency = quote.totals() ? quote.totals().base_currency_code : 'EUR';
+            return amount + ' ' + currency;
+        },
+
         getData: function () {
             return {
                 method: this.item.method,

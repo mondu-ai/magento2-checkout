@@ -1,0 +1,156 @@
+<?php
+/**
+ * @var \Mondu\Mondu\Block\Customer\BuyerAccount $block
+ */
+
+$buyerState = $block->getBuyerState();
+$buyerData = $block->getBuyerData();
+$onboardingType = $block->getOnboardingType();
+$applyUrl = $block->getApplyUrl();
+$gdprUrl = $block->getGdprUrl();
+?>
+
+<div class="mondu-buyer-account">
+    <?php if ($buyerState === 'none' || $buyerState === 'declined'): ?>
+        <div class="mondu-buyer-apply">
+            <div class="mondu-buyer-logo">
+                <img src="<?= $block->escapeUrl($block->getViewFileUrl('Mondu_Mondu::images/mondu_big.svg')) ?>"
+                     alt="Mondu" width="120"/>
+            </div>
+            <h2><?= $block->escapeHtml(__('Apply for a Mondu Trade Account')) ?></h2>
+            <?php if ($onboardingType === 'trade_account'): ?>
+                <p><?= $block->escapeHtml(__(
+                    'Get a Digital Trade Account and pay for multiple orders with a single billing statement.'
+                )) ?></p>
+            <?php else: ?>
+                <p><?= $block->escapeHtml(__(
+                    'Apply for a Mondu account to use flexible B2B payment methods at checkout.'
+                )) ?></p>
+            <?php endif; ?>
+
+            <?php if ($buyerState === 'declined'): ?>
+                <div class="message warning">
+                    <span><?= $block->escapeHtml(__('Your previous application was declined. You can re-apply below.')) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <div class="mondu-gdpr-notice">
+                <p>
+                    <?= /* @noEscape */ __(
+                        'Information on the processing of your personal data by Mondu GmbH can be found <a href="%1" target="_blank" rel="noopener">here</a>.',
+                        $block->escapeUrl($gdprUrl)
+                    ) ?>
+                </p>
+            </div>
+
+            <div class="mondu-consent-field">
+                <input type="checkbox" id="mondu-gdpr-consent" name="gdpr_consent" value="1"/>
+                <label for="mondu-gdpr-consent">
+                    <?= $block->escapeHtml(__(
+                        'I consent to the processing of my personal data by Mondu GmbH'
+                    )) ?>
+                </label>
+            </div>
+
+            <button type="button"
+                    class="action primary mondu-apply-btn"
+                    id="mondu-apply-button"
+                    data-apply-url="<?= $block->escapeUrl($applyUrl) ?>">
+                <span><?= $block->escapeHtml(__('Apply Now')) ?></span>
+            </button>
+        </div>
+
+    <?php elseif ($buyerState === 'pending'): ?>
+        <div class="mondu-buyer-pending">
+            <div class="mondu-buyer-logo">
+                <img src="<?= $block->escapeUrl($block->getViewFileUrl('Mondu_Mondu::images/mondu_big.svg')) ?>"
+                     alt="Mondu" width="120"/>
+            </div>
+            <h2><?= $block->escapeHtml(__('Application Under Review')) ?></h2>
+            <div class="mondu-status-badge pending">
+                <?= $block->escapeHtml(__('Pending')) ?>
+            </div>
+            <p><?= $block->escapeHtml(__(
+                'Your application is being reviewed. This typically takes up to 48 hours. You will be notified once a decision is made.'
+            )) ?></p>
+        </div>
+
+    <?php elseif ($buyerState === 'accepted'): ?>
+        <div class="mondu-buyer-approved">
+            <div class="mondu-buyer-header">
+                <div class="mondu-buyer-logo">
+                    <img src="<?= $block->escapeUrl($block->getViewFileUrl('Mondu_Mondu::images/mondu_big.svg')) ?>"
+                         alt="Mondu" width="120"/>
+                </div>
+                <div class="mondu-status-badge approved">
+                    <?= $block->escapeHtml(__('Approved')) ?>
+                </div>
+            </div>
+
+            <?php if (!empty($buyerData['company_name'])): ?>
+                <p class="mondu-company-name"><?= $block->escapeHtml($buyerData['company_name']) ?></p>
+            <?php endif; ?>
+
+            <div class="mondu-purchasing-limit">
+                <h3><?= $block->escapeHtml(__('Purchasing Limit')) ?></h3>
+                <div class="mondu-limit-grid">
+                    <div class="mondu-limit-item">
+                        <span class="label"><?= $block->escapeHtml(__('Total Limit')) ?></span>
+                        <span class="value"><?= $block->escapeHtml(
+                            $block->formatCents($buyerData['purchasing_limit_cents'] ?? null)
+                        ) ?></span>
+                    </div>
+                    <div class="mondu-limit-item">
+                        <span class="label"><?= $block->escapeHtml(__('Outstanding Balance')) ?></span>
+                        <span class="value"><?= $block->escapeHtml(
+                            $block->formatCents($buyerData['balance_cents'] ?? null)
+                        ) ?></span>
+                    </div>
+                    <div class="mondu-limit-item highlight">
+                        <span class="label"><?= $block->escapeHtml(__('Available for Purchases')) ?></span>
+                        <span class="value"><?= $block->escapeHtml(
+                            $block->formatCents($buyerData['max_purchase_value_cents'] ?? null)
+                        ) ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <?php $eligibleTerms = $block->getEligibleTerms(); ?>
+            <?php if (!empty($eligibleTerms)): ?>
+                <div class="mondu-eligible-terms">
+                    <h3><?= $block->escapeHtml(__('Eligible Payment Methods')) ?></h3>
+                    <table class="data table">
+                        <thead>
+                            <tr>
+                                <th><?= $block->escapeHtml(__('Payment Method')) ?></th>
+                                <th><?= $block->escapeHtml(__('Net Terms (days)')) ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($eligibleTerms as $term): ?>
+                                <tr>
+                                    <td><?= $block->escapeHtml(ucfirst(str_replace('_', ' ', $term['payment_method'] ?? ''))) ?></td>
+                                    <td><?= $block->escapeHtml(implode(', ', $term['net_terms'] ?? [])) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($buyerData['purchasing_limit_updated_at'])): ?>
+                <p class="mondu-last-updated">
+                    <?= $block->escapeHtml(__('Last updated: %1', $buyerData['purchasing_limit_updated_at'])) ?>
+                </p>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<script type="text/x-magento-init">
+{
+    "#mondu-apply-button": {
+        "Mondu_Mondu/js/buyer/apply": {}
+    }
+}
+</script>

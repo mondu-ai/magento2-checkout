@@ -15,6 +15,7 @@ use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Cart\CartTotalRepository;
 use Mondu\Mondu\Helpers\BuyerParams\BuyerParamsInterface;
+use Mondu\Mondu\Helpers\BuyerStatus;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
@@ -47,6 +48,7 @@ class Transactions extends CommonRequest implements RequestInterface
     public function __construct(
         Curl $curl,
         private readonly BuyerParamsInterface $buyerParams,
+        private readonly BuyerStatus $buyerStatus,
         private readonly CartTotalRepository $cartTotalRepository,
         private readonly CheckoutSession $checkoutSession,
         private readonly UrlBuilder $monduUrlBuilder,
@@ -188,6 +190,23 @@ class Transactions extends CommonRequest implements RequestInterface
         $vatId = $billing->getVatId();
         if ($vatId !== null && $vatId !== '') {
             $params['vat_number'] = (string) $vatId;
+        }
+
+        $customerId = $quote->getCustomerId();
+        if ($customerId) {
+            try {
+                $store = $this->checkoutSession->getQuote()->getStore();
+                $websiteId = (int) $store->getWebsiteId();
+                $buyerUuid = $this->buyerStatus->getAcceptedBuyerUuidForCustomer((int) $customerId, $websiteId);
+                if ($buyerUuid) {
+                    $params['uuid'] = $buyerUuid;
+                }
+            } catch (Exception $e) {
+                $this->monduFileLogger->warning('Could not get buyer UUID for checkout', [
+                    'customer_id' => $customerId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return $this->buyerParams->getBuyerParams($params, $quote);

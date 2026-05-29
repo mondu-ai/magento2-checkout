@@ -72,3 +72,21 @@ export function buildOrderDeclinedPayload(
     reason,
   }
 }
+
+export function buildBuyerOnboardedPayload(
+  externalRefId: string,
+  buyerUuid: string,
+  state: 'accepted' | 'pending' | 'declined' = 'accepted',
+  companyName: string = 'Test Company GmbH'
+) {
+  return {
+    topic: 'buyer/onboarded',
+    external_reference_id: externalRefId,
+    buyer: {
+      uuid: buyerUuid,
+      state,
+      external_reference_id: externalRefId,
+      company_name: companyName,
+    },
+  }
+}

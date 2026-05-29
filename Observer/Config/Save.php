@@ -17,7 +17,7 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Save implements ObserverInterface
 {
-    private const SUBSCRIPTIONS = ['order/confirmed', 'order/declined', 'order/pending'];
+    private const SUBSCRIPTIONS = ['order/confirmed', 'order/declined', 'order/pending', 'buyer/onboarded'];
 
     /**
      * @param ConfigProvider $monduConfig

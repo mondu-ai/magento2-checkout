@@ -190,6 +190,24 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
                 </group>
+                <group id="mondubuyer" translate="label" type="text" sortOrder="3" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <label>Buyer Onboarding Configuration</label>
+                    <field id="buyer_onboarding_enabled" translate="label comment" type="select" sortOrder="1"
+                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Enable Buyer Onboarding</label>
+                        <comment>Allow customers to apply for a Mondu trade account from their account page</comment>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/mondu/buyer_onboarding_enabled</config_path>
+                    </field>
+                    <field id="buyer_onboarding_type" translate="label comment" type="select" sortOrder="2"
+                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Onboarding Type</label>
+                        <comment>Hosted Onboarding: standard payment methods. Digital Trade Account: adds billing statement (Pay on Account).</comment>
+                        <source_model>Mondu\Mondu\Model\Config\Source\OnboardingType</source_model>
+                        <config_path>payment/mondu/buyer_onboarding_type</config_path>
+                    </field>
+                </group>
             </group>
         </section>
     </system>

@@ -18,6 +18,8 @@
                 <sort_order>1</sort_order>
                 <send_lines>1</send_lines>
                 <require_invoice>1</require_invoice>
+                <buyer_onboarding_enabled>0</buyer_onboarding_enabled>
+                <buyer_onboarding_type>hosted_onboarding</buyer_onboarding_type>
             </mondu>
             <mondusepa>
                 <sort_order>2</sort_order>

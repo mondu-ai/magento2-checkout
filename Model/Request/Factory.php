@@ -28,6 +28,9 @@ class Factory
     public const ORDER_INVOICES = 'GET_ORDER_INVOICES';
     public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
+    public const HOSTED_ONBOARDING = 'CREATE_HOSTED_ONBOARDING';
+    public const TRADE_ACCOUNT = 'CREATE_TRADE_ACCOUNT';
+    public const PURCHASING_LIMIT = 'GET_PURCHASING_LIMIT';
 
     /**
      * @var array
@@ -46,6 +49,9 @@ class Factory
         self::ORDER_INVOICES => OrderInvoices::class,
         self::ERROR_EVENTS => ErrorEvents::class,
         self::CONFIRM_ORDER => ConfirmOrder::class,
+        self::HOSTED_ONBOARDING => HostedOnboarding::class,
+        self::TRADE_ACCOUNT => TradeAccount::class,
+        self::PURCHASING_LIMIT => PurchasingLimit::class,
     ];
 
     /**

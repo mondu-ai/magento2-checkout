@@ -6,7 +6,19 @@
             <argument name="configProviders" xsi:type="array">
                 <item name="custom_payment_gateway_config_provider"
                       xsi:type="object">Mondu\Mondu\Model\Ui\ConfigProvider</item>
+                <item name="mondu_buyer_config_provider"
+                      xsi:type="object">Mondu\Mondu\Model\Ui\BuyerConfigProvider</item>
             </argument>
+        </arguments>
+    </type>
+    <type name="Mondu\Mondu\Model\Ui\BuyerConfigProvider">
+        <arguments>
+            <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Mondu\Mondu\Block\Customer\BuyerAccount">
+        <arguments>
+            <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
         </arguments>
     </type>
     <type name="Mondu\Mondu\Block\Info">
