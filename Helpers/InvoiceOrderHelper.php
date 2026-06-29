@@ -466,6 +466,11 @@ class InvoiceOrderHelper
                     continue;
                 }
 
+                $orderItem = $i->getOrderItem();
+                if ($orderItem && $orderItem->getIsVirtual()) {
+                    continue;
+                }
+
                 if (!isset($invoiceSkuQtyArray[$i->getSku()])) {
                     $invoiceSkuQtyArray[$i->getSku()] = 0;
                 }
