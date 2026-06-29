@@ -95,11 +95,11 @@ class Memo extends Template
     public function getInvoiceMappings(): array
     {
         $monduId = $this->getOrderMonduId();
-        $logData = $this->monduLogHelper->getTransactionByOrderUid($monduId)->getData();
+        $logData = $this->monduLogHelper->getTransactionByOrderUid($monduId);
         if (empty($logData)) {
             return [];
         }
 
-        return $logData['addons'] ? ($this->serializer->unserialize($logData['addons']) ?? []) : [];
+        return ($logData['addons'] ?? null) ? ($this->serializer->unserialize($logData['addons']) ?? []) : [];
     }
 }
