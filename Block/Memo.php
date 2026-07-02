@@ -100,6 +100,6 @@ class Memo extends Template
             return [];
         }
 
-        return ($logData['addons'] ?? null) ? ($this->serializer->unserialize($logData['addons']) ?? []) : [];
+        return !empty($logData['addons']) ? ($this->serializer->unserialize($logData['addons']) ?? []) : [];
     }
 }
