@@ -288,38 +288,42 @@ class InvoiceOrderHelper
         ?OrderInterface $order,
         ?ShipmentInterface $shipment
     ): void {
+        $shippingInfo = [];
+
         if ($order !== null) {
             $shippingMethod = $order->getShippingMethod();
             if ($shippingMethod !== null && $shippingMethod !== '') {
-                $body['shipping_method'] = (string) $shippingMethod;
+                $shippingInfo['shipping_method'] = (string) $shippingMethod;
             }
         }
 
-        if ($shipment === null) {
-            return;
+        if ($shipment !== null) {
+            $shippingCompany = null;
+            $trackingNumber = null;
+
+            foreach ($shipment->getAllTracks() as $track) {
+                if ($shippingCompany === null) {
+                    $shippingCompany = $track->getTitle() ?: $track->getCarrierCode();
+                }
+                if ($trackingNumber === null && $track->getTrackNumber()) {
+                    $trackingNumber = $track->getTrackNumber();
+                }
+                if ($shippingCompany !== null && $trackingNumber !== null) {
+                    break;
+                }
+            }
+
+            if ($shippingCompany !== null) {
+                $shippingInfo['shipping_company'] = (string) $shippingCompany;
+            }
+
+            if ($trackingNumber !== null) {
+                $shippingInfo['tracking_number'] = (string) $trackingNumber;
+            }
         }
 
-        $shippingCompany = null;
-        $trackingNumber = null;
-
-        foreach ($shipment->getAllTracks() as $track) {
-            if ($shippingCompany === null) {
-                $shippingCompany = $track->getTitle() ?: $track->getCarrierCode();
-            }
-            if ($trackingNumber === null && $track->getTrackNumber()) {
-                $trackingNumber = $track->getTrackNumber();
-            }
-            if ($shippingCompany !== null && $trackingNumber !== null) {
-                break;
-            }
-        }
-
-        if ($shippingCompany !== null) {
-            $body['shipping_company'] = (string) $shippingCompany;
-        }
-
-        if ($trackingNumber !== null) {
-            $body['tracking_number'] = (string) $trackingNumber;
+        if ($shippingInfo !== []) {
+            $body['shipping_info'] = $shippingInfo;
         }
     }
 
