@@ -26,13 +26,14 @@
             </argument>
         </arguments>
     </type>
-    <virtualType name="Mondu\Mondu\Model\ResourceModel\Log\Grid\Collection"
-                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+    <type name="Mondu\Mondu\Model\ResourceModel\Log\Grid\Collection">
         <arguments>
             <argument name="mainTable" xsi:type="string">mondu_transactions</argument>
+            <argument name="eventPrefix" xsi:type="string">mondu_mondu_log_grid_collection</argument>
+            <argument name="eventObject" xsi:type="string">log_grid_collection</argument>
             <argument name="resourceModel" xsi:type="string">Mondu\Mondu\Model\ResourceModel\Log</argument>
         </arguments>
-    </virtualType>
+    </type>
     <type name="Magento\Framework\App\Request\CsrfValidator">
         <plugin name="mondu_csrf_validator_skip" type="Mondu\Mondu\Plugin\Magento\Framework\App\Request\CsrfValidator"/>
     </type>
