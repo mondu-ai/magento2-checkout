@@ -470,6 +470,22 @@ class InvoiceOrderHelper
                     continue;
                 }
 
+                $orderItem = $i->getOrderItem();
+                if ($orderItem && $orderItem->getIsVirtual()) {
+                    // Virtual/deposit products are never part of a shipment (Magento excludes them
+                    // by design), so they must not participate in the ship-vs-invoice quantity
+                    // reconciliation - otherwise a full invoice + physical-only shipment falsely
+                    // throws "Invalid shipment amount" and rolls back the shipment (PT-4290).
+                    $this->monduFileLogger->info(
+                        'InvoiceOrderHelper: validateQuantities - skipping virtual item',
+                        [
+                            'orderNumber' => $order->getIncrementId(),
+                            'sku' => $i->getSku(),
+                        ]
+                    );
+                    continue;
+                }
+
                 if (!isset($invoiceSkuQtyArray[$i->getSku()])) {
                     $invoiceSkuQtyArray[$i->getSku()] = 0;
                 }
@@ -478,14 +494,41 @@ class InvoiceOrderHelper
             }
         }
 
+        $this->monduFileLogger->info(
+            'InvoiceOrderHelper: validateQuantities',
+            [
+                'orderNumber' => $order->getIncrementId(),
+                'shipment_quantities' => $shipSkuQtyArray,
+                'invoice_quantities' => $invoiceSkuQtyArray,
+            ]
+        );
+
         foreach ($shipSkuQtyArray as $key => $shipSkuQty) {
             if (!isset($invoiceSkuQtyArray[$key]) || $invoiceSkuQtyArray[$key] != $shipSkuQty) {
+                $this->monduFileLogger->info(
+                    'InvoiceOrderHelper: validateQuantities - shipment SKU not matched in invoice',
+                    [
+                        'orderNumber' => $order->getIncrementId(),
+                        'sku' => $key,
+                        'ship_qty' => $shipSkuQty,
+                        'invoice_qty' => $invoiceSkuQtyArray[$key] ?? null,
+                    ]
+                );
                 throw new LocalizedException(__('Mondu: Invalid shipment amount'));
             }
         }
 
         foreach ($invoiceSkuQtyArray as $key => $invoiceSkuQty) {
             if (!isset($shipSkuQtyArray[$key]) || $shipSkuQtyArray[$key] != $invoiceSkuQty) {
+                $this->monduFileLogger->info(
+                    'InvoiceOrderHelper: validateQuantities - invoice SKU not matched in shipment',
+                    [
+                        'orderNumber' => $order->getIncrementId(),
+                        'sku' => $key,
+                        'invoice_qty' => $invoiceSkuQty,
+                        'ship_qty' => $shipSkuQtyArray[$key] ?? null,
+                    ]
+                );
                 throw new LocalizedException(__('Mondu: Invalid shipment amount'));
             }
         }
