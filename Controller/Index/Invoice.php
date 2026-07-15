@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Controller\Index;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Area;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\RawFactory;
@@ -14,6 +15,7 @@ use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Pdf\Invoice as PdfInvoiceModel;
+use Magento\Store\Model\App\Emulation as AppEmulation;
 use Zend_Pdf_Exception;
 
 class Invoice implements ActionInterface
@@ -24,6 +26,7 @@ class Invoice implements ActionInterface
      * @param RawFactory $resultRawFactory
      * @param RequestInterface $request
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param AppEmulation $appEmulation
      */
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
@@ -31,6 +34,7 @@ class Invoice implements ActionInterface
         private readonly RawFactory $resultRawFactory,
         private readonly RequestInterface $request,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly AppEmulation $appEmulation,
     ) {
     }
 
@@ -65,12 +69,41 @@ class Invoice implements ActionInterface
             throw new NotFoundException(__('Not found'));
         }
 
-        $pdfContent = $this->pdfInvoiceModel->getPdf([$invoice])->render();
+        $pdfContent = $this->renderInvoicePdf($order, $invoice);
 
         return $this->resultRawFactory->create()
             ->setHeader('Content-type', 'application/pdf')
             ->setHeader('Content-Disposition', 'attachment; filename=invoice.pdf')
             ->setContents($pdfContent);
+    }
+
+    /**
+     * Renders the invoice PDF under the order's store front-end environment.
+     *
+     * Emulating the order's store view loads that store's configuration and
+     * design/theme, so merchant-specific invoice template customizations
+     * (e.g. Swissup PDF Templates) are applied instead of Magento's default
+     * layout. Mondu fetches this URL server-side without a session, so without
+     * emulation the default store scope is used and custom templates are skipped.
+     *
+     * @param OrderInterface $order
+     * @param InvoiceInterface $invoice
+     * @throws Zend_Pdf_Exception
+     * @return string
+     */
+    private function renderInvoicePdf(OrderInterface $order, InvoiceInterface $invoice): string
+    {
+        $this->appEmulation->startEnvironmentEmulation(
+            (int) $order->getStoreId(),
+            Area::AREA_FRONTEND,
+            true
+        );
+
+        try {
+            return $this->pdfInvoiceModel->getPdf([$invoice])->render();
+        } finally {
+            $this->appEmulation->stopEnvironmentEmulation();
+        }
     }
 
     /**
