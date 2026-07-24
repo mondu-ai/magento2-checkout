@@ -259,8 +259,32 @@ class BulkActions
             }
 
             $storeId = (int) $order->getStoreId();
-            $shipOrderData = $this->requestFactory
-                ->create(RequestFactory::SHIP_ORDER, $storeId)->process($invoiceBody);
+
+            $this->monduFileLogger->info(
+                'Order ' . $order->getIncrementId() . ': Sending invoice to Mondu API',
+                ['invoice_id' => $invoiceItem->getIncrementId(), 'body' => $invoiceBody]
+            );
+
+            try {
+                $shipOrderData = $this->requestFactory
+                    ->create(RequestFactory::SHIP_ORDER, $storeId)->process($invoiceBody);
+            } catch (\Exception $e) {
+                $this->monduFileLogger->info(
+                    'Order ' . $order->getIncrementId() . ': Exception during Mondu API call',
+                    ['invoice_id' => $invoiceItem->getIncrementId(), 'error' => $e->getMessage()]
+                );
+                $errors[] = $order->getIncrementId();
+                continue;
+            }
+
+            if (empty($shipOrderData)) {
+                $this->monduFileLogger->info(
+                    'Order ' . $order->getIncrementId() . ': Mondu API returned empty response',
+                    ['invoice_id' => $invoiceItem->getIncrementId()]
+                );
+                $errors[] = $order->getIncrementId();
+                continue;
+            }
 
             if (isset($shipOrderData['errors'])) {
                 $errorName = $shipOrderData['errors'][0]['name'] ?? 'unknown';
@@ -302,6 +326,10 @@ class BulkActions
         }
 
         if (empty($success) && !empty($errors)) {
+            $this->monduFileLogger->info(
+                'Order ' . $order->getIncrementId() . ': All invoice API calls failed, returning null',
+                ['errors' => $errors]
+            );
             return null;
         }
 
