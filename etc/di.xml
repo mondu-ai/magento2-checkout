@@ -53,4 +53,14 @@
             <argument name="monduFileLogger" xsi:type="object">Mondu\Mondu\Helpers\Logger\Logger</argument>
         </arguments>
     </type>
+    <preference for="Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface"
+                type="Mondu\Mondu\Model\Pdf\CompositeInvoicePdfRenderer"/>
+    <type name="Mondu\Mondu\Model\Pdf\CompositeInvoicePdfRenderer">
+        <arguments>
+            <argument name="defaultRenderer" xsi:type="object">Mondu\Mondu\Model\Pdf\CoreInvoicePdfRenderer</argument>
+            <argument name="providers" xsi:type="array">
+                <item name="swissup" xsi:type="object">Mondu\Mondu\Model\Pdf\SwissupInvoicePdfRenderer</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
