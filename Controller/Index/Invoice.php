@@ -14,15 +14,15 @@ use Magento\Framework\Exception\NotFoundException;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order\Pdf\Invoice as PdfInvoiceModel;
 use Magento\Store\Model\App\Emulation as AppEmulation;
+use Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface;
 use Zend_Pdf_Exception;
 
 class Invoice implements ActionInterface
 {
     /**
      * @param OrderRepositoryInterface $orderRepository
-     * @param PdfInvoiceModel $pdfInvoiceModel
+     * @param InvoicePdfRendererInterface $pdfRenderer
      * @param RawFactory $resultRawFactory
      * @param RequestInterface $request
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -30,7 +30,7 @@ class Invoice implements ActionInterface
      */
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
-        private readonly PdfInvoiceModel $pdfInvoiceModel,
+        private readonly InvoicePdfRendererInterface $pdfRenderer,
         private readonly RawFactory $resultRawFactory,
         private readonly RequestInterface $request,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -81,10 +81,17 @@ class Invoice implements ActionInterface
      * Renders the invoice PDF under the order's store front-end environment.
      *
      * Emulating the order's store view loads that store's configuration and
-     * design/theme, so merchant-specific invoice template customizations
-     * (e.g. Swissup PDF Templates) are applied instead of Magento's default
-     * layout. Mondu fetches this URL server-side without a session, so without
-     * emulation the default store scope is used and custom templates are skipped.
+     * design/theme, so merchant-specific invoice template customizations are
+     * applied instead of Magento's default layout. Mondu fetches this URL
+     * server-side without a session, so without emulation the default store
+     * scope is used and custom templates are skipped.
+     *
+     * The actual rendering is delegated to the configured
+     * {@see InvoicePdfRendererInterface}: by default Magento's core PDF model,
+     * or a 3rd-party engine (e.g. Swissup PDF Invoice) when its provider reports
+     * itself available. This ensures the PDF sent to Mondu matches the invoice
+     * the merchant actually produces, even when the PDF module bypasses the core
+     * model and uses its own rendering engine.
      *
      * @param OrderInterface $order
      * @param InvoiceInterface $invoice
@@ -100,7 +107,7 @@ class Invoice implements ActionInterface
         );
 
         try {
-            return $this->pdfInvoiceModel->getPdf([$invoice])->render();
+            return $this->pdfRenderer->render($order, $invoice);
         } finally {
             $this->appEmulation->stopEnvironmentEmulation();
         }
