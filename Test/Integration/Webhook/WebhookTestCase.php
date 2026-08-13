@@ -18,6 +18,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Controller\Webhooks\Index as WebhookController;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
+use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -175,6 +176,9 @@ abstract class WebhookTestCase extends TestCase
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $payment = $this->om->create(\Magento\Sales\Model\Order\Payment::class);
         $payment->setMethod('mondu');
+        // Fields the admin order form collects; required by /orders/create_async for `mondu`.
+        $payment->setAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM, 'GmbH');
+        $payment->setAdditionalInformation(AsyncOrderFields::FIELD_NET_TERM, 30);
         $order->setPayment($payment);
 
         /** @var Address $billing */
