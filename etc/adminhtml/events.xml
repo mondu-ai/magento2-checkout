@@ -4,9 +4,6 @@
     <event name="sales_order_place_after">
         <observer name="sales_order_place_after_mondu_async" instance="Mondu\Mondu\Observer\CreateAsyncOrder"/>
     </event>
-    <event name="sales_order_shipment_save_after">
-        <observer name="mondu_shipment_after" instance="Mondu\Mondu\Observer\ShipOrder"/>
-    </event>
     <event name="sales_order_creditmemo_save_after">
         <observer name="mondu_sales_order_payment_refund" instance="Mondu\Mondu\Observer\UpdateOrder"/>
     </event>

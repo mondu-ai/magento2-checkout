@@ -153,17 +153,6 @@ class UrlBuilder
     }
 
     /**
-     * Returns the API URL for updating external info on an order.
-     *
-     * @param string $orderUid
-     * @return string
-     */
-    public function getUpdateExternalInfoUrl(string $orderUid): string
-    {
-        return $this->build("orders/{$orderUid}/update_external_info");
-    }
-
-    /**
      * Builds the full Mondu API URL based on the path and environment mode.
      *
      * @param string|null $path
