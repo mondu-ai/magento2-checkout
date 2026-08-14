@@ -8,8 +8,9 @@
                    template="Mondu_Mondu::order/create/payment/mondu_fields.phtml"
                    cacheable="false">
                 <arguments>
-                    <argument name="legal_form_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\LegalForm</argument>
+                    <argument name="legal_form_category_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\LegalFormCategory</argument>
                     <argument name="installments_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\Installments</argument>
+                    <argument name="net_term_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\NetTerm</argument>
                 </arguments>
             </block>
         </referenceBlock>

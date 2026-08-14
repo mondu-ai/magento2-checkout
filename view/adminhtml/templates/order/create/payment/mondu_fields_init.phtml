@@ -5,7 +5,13 @@ declare(strict_types=1);
 use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 
 $configJson = json_encode(
-    ['requiredByMethod' => AsyncOrderFields::REQUIRED_BY_METHOD],
+    [
+        'requiredByMethod' => AsyncOrderFields::REQUIRED_BY_METHOD,
+        'optionalByMethod' => AsyncOrderFields::OPTIONAL_BY_METHOD,
+        'ownerFields'      => AsyncOrderFields::OWNER_FIELDS,
+        'categoryField'    => AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY,
+        'soleTraderValue'  => AsyncOrderFields::LEGAL_FORM_CATEGORY_SOLE_TRADER,
+    ],
     JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
 );
 ?>

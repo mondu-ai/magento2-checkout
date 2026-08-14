@@ -25,6 +25,7 @@ class Factory
     public const ADJUST_ORDER = 'ADJUST_ORDER_2';
     public const EDIT_ORDER = 'ADJUST_ORDER';
     public const PAYMENT_METHODS = 'GET_PAYMENT_METHODS';
+    public const PAYMENT_TERMS = 'GET_PAYMENT_TERMS';
     public const ORDER_INVOICES = 'GET_ORDER_INVOICES';
     public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
@@ -45,6 +46,7 @@ class Factory
         self::ADJUST_ORDER => Adjust::class,
         self::EDIT_ORDER => Edit::class,
         self::PAYMENT_METHODS => PaymentMethods::class,
+        self::PAYMENT_TERMS => PaymentTerms::class,
         self::ORDER_INVOICES => OrderInvoices::class,
         self::ERROR_EVENTS => ErrorEvents::class,
         self::CONFIRM_ORDER => ConfirmOrder::class,

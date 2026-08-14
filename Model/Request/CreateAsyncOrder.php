@@ -163,20 +163,30 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         if ($name === 'payment_method' && str_contains($details, 'not supported')) {
             return (string) __('This payment method is not available for your merchant account.');
         }
+        if ($name === 'net_term' && str_contains($details, 'not available')) {
+            return (string) __(
+                'The selected net term is not available for this buyer. Please choose a different one.'
+            );
+        }
         if ($name === 'currency' && str_contains($details, 'not supported')) {
             return (string) __('The order currency is not supported by Mondu.');
         }
 
         $fieldLabels = [
-            'net_term'          => 'Net term (days)',
-            'iban'              => 'IBAN',
-            'account_holder'    => 'Account holder',
-            'company_name'      => 'Company name',
-            'email'             => 'Email',
-            'first_name'        => 'First name',
-            'last_name'         => 'Last name',
-            'legal_form'        => 'Legal form',
-            'phone'             => 'Phone',
+            'net_term'                 => 'Net term (days)',
+            'iban'                     => 'IBAN',
+            'account_holder'           => 'Account holder',
+            'company_name'             => 'Company name',
+            'email'                    => 'Email',
+            'first_name'               => 'First name',
+            'last_name'                => 'Last name',
+            'phone'                    => 'Phone',
+            'buyer.registration_id'    => 'Registration ID',
+            'buyer.legal_form_category' => 'Legal form category',
+            'owners'                   => 'Owner details',
+            'owners.0.first_name'      => 'Owner first name',
+            'owners.0.last_name'       => 'Owner last name',
+            'owners.0.birth_date'      => 'Owner date of birth',
         ];
         $label = $fieldLabels[$name] ?? $name;
 
@@ -213,8 +223,12 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
             'billing_address'       => $this->extractAddressParams($billing),
             'shipping_address'      => $this->extractAddressParams($order->getShippingAddress()),
             'lines'                 => $this->buildLines($order),
-            'owners'                => $this->buildOwners($billing),
         ];
+
+        $owners = $this->buildOwners($order);
+        if ($owners !== []) {
+            $payload['owners'] = $owners;
+        }
 
         $this->applyPaymentMethodFields($order, $payload);
 
@@ -236,7 +250,7 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         }
 
         $methodCode = (string) $payment->getMethod();
-        $required = AsyncOrderFields::requiredFor($methodCode);
+        $required = AsyncOrderFields::visibleFor($methodCode);
         if ($required === []) {
             return;
         }
@@ -315,21 +329,44 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Builds the `owners` array (required by /orders/create_async).
+     * Builds the `owners` array.
      *
-     * @param Address|null $billing
+     * Mondu requires it (including `birth_date`) only when the buyer's
+     * legal_form_category is `einzelunternehmen`; sending an owner without a
+     * birth date fails with "owners.0.birth_date is missing", so we omit the
+     * key entirely for every other category.
+     *
+     * @param OrderInterface $order
      * @return array
      */
-    private function buildOwners(?Address $billing): array
+    private function buildOwners(OrderInterface $order): array
     {
-        if (!$billing) {
+        $payment = $order->getPayment();
+        if (!$payment) {
+            return [];
+        }
+
+        $category = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY);
+        if ((string) $category !== AsyncOrderFields::LEGAL_FORM_CATEGORY_SOLE_TRADER) {
+            return [];
+        }
+
+        $billing   = $order->getBillingAddress();
+        $firstName = (string) ($payment->getAdditionalInformation(AsyncOrderFields::FIELD_OWNER_FIRST_NAME)
+            ?: ($billing ? $billing->getFirstname() : ''));
+        $lastName  = (string) ($payment->getAdditionalInformation(AsyncOrderFields::FIELD_OWNER_LAST_NAME)
+            ?: ($billing ? $billing->getLastname() : ''));
+        $birthDate = (string) $payment->getAdditionalInformation(AsyncOrderFields::FIELD_OWNER_BIRTH_DATE);
+
+        if ($firstName === '' || $lastName === '' || $birthDate === '') {
             return [];
         }
 
         return [
             [
-                'first_name' => $billing->getFirstname() ?? '',
-                'last_name'  => $billing->getLastname() ?? '',
+                'first_name' => $firstName,
+                'last_name'  => $lastName,
+                'birth_date' => $birthDate,
             ],
         ];
     }
@@ -372,7 +409,8 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
 
     /**
      * Injects buyer.* fields collected from the admin order form
-     * (legal_form, iban, account_holder) when required for the selected method.
+     * (registration_id, legal_form_category, iban, account_holder) when the
+     * selected method offers them.
      *
      * @param OrderInterface $order
      * @param array<string,mixed> $params
@@ -384,17 +422,26 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
             return;
         }
         $methodCode = (string) $payment->getMethod();
-        $required = AsyncOrderFields::requiredFor($methodCode);
+        $required = AsyncOrderFields::visibleFor($methodCode);
         if ($required === []) {
             return;
         }
 
-        $legalForm     = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM);
-        $iban          = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_IBAN);
-        $accountHolder = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_ACCOUNT_HOLDER);
+        $registrationId = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_REGISTRATION_ID);
+        $category       = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY);
+        $iban           = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_IBAN);
+        $accountHolder  = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_ACCOUNT_HOLDER);
 
-        if (in_array(AsyncOrderFields::FIELD_LEGAL_FORM, $required, true) && $legalForm) {
-            $params['legal_form'] = (string) $legalForm;
+        if (!$registrationId) {
+            $billing = $order->getBillingAddress();
+            $registrationId = $billing ? $billing->getData('registration_id') : null;
+        }
+
+        if (in_array(AsyncOrderFields::FIELD_REGISTRATION_ID, $required, true) && $registrationId) {
+            $params['registration_id'] = (string) $registrationId;
+        }
+        if (in_array(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY, $required, true) && $category) {
+            $params['legal_form_category'] = (string) $category;
         }
         if (in_array(AsyncOrderFields::FIELD_IBAN, $required, true) && $iban) {
             $params['iban'] = preg_replace('/\s+/', '', (string) $iban);

@@ -102,6 +102,16 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for retrieving the merchant's payment terms (net terms per country).
+     *
+     * @return string
+     */
+    public function getPaymentTermsUrl(): string
+    {
+        return $this->build('payment_terms');
+    }
+
+    /**
      * Returns the API URL for webhook registration.
      *
      * @return string

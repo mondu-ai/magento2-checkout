@@ -9,11 +9,23 @@ use Mondu\Mondu\Model\Payment\AsyncOrderFields;
  * @var \Magento\Framework\Escaper $escaper
  */
 
-$legalForm    = $block->getData('legal_form_source');
-$installments = $block->getData('installments_source');
+$legalFormCategory = $block->getData('legal_form_category_source');
+$installments      = $block->getData('installments_source');
+$netTerm           = $block->getData('net_term_source');
 
-$legalFormOptions    = $legalForm ? $legalForm->toOptionArray() : [];
-$installmentsOptions = $installments ? $installments->toOptionArray() : [];
+$legalFormCategoryOptions = $legalFormCategory ? $legalFormCategory->toOptionArray() : [];
+$installmentsOptions      = $installments ? $installments->toOptionArray() : [];
+$netTermOptions           = $netTerm ? $netTerm->toOptionArray() : [];
+
+$registrationId = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_REGISTRATION_ID);
+$category       = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY);
+$ownerFirstName = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_OWNER_FIRST_NAME);
+$ownerLastName  = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_OWNER_LAST_NAME);
+$ownerBirthDate = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_OWNER_BIRTH_DATE);
+$netTermField   = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NET_TERM);
+$installsField  = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS);
+$ibanField      = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_IBAN);
+$holderField    = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDER);
 ?>
 <fieldset class="admin__fieldset mondu-fields"
           id="mondu-order-create-fields"
@@ -23,46 +35,112 @@ $installmentsOptions = $installments ? $installments->toOptionArray() : [];
         <span><?= $escaper->escapeHtml(__('Mondu payment details')) ?></span>
     </legend>
 
-    <div class="admin__field _required" data-mondu-field="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_LEGAL_FORM) ?>">
-        <label class="admin__field-label" for="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_LEGAL_FORM) ?>">
-            <span><?= $escaper->escapeHtml(__('Legal form')) ?></span>
+    <div class="admin__field _required" data-mondu-field="<?= /* @noEscape */ $registrationId ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $registrationId ?>">
+            <span><?= $escaper->escapeHtml(__('Registration ID')) ?></span>
         </label>
         <div class="admin__field-control">
-            <select id="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_LEGAL_FORM) ?>"
-                    name="payment[additional_data][<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_LEGAL_FORM) ?>]"
+            <input type="text"
+                   id="<?= /* @noEscape */ $registrationId ?>"
+                   name="payment[additional_data][<?= /* @noEscape */ $registrationId ?>]"
+                   class="admin__control-text"
+                   autocomplete="off"/>
+            <div class="admin__field-note">
+                <?= $escaper->escapeHtml(__('Commercial register number of the buying company.')) ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $category ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $category ?>">
+            <span><?= $escaper->escapeHtml(__('Legal form category')) ?></span>
+        </label>
+        <div class="admin__field-control">
+            <select id="<?= /* @noEscape */ $category ?>"
+                    name="payment[additional_data][<?= /* @noEscape */ $category ?>]"
                     class="admin__control-select">
                 <option value=""><?= $escaper->escapeHtml(__('-- Please select --')) ?></option>
-                <?php foreach ($legalFormOptions as $opt): ?>
+                <?php foreach ($legalFormCategoryOptions as $opt): ?>
                     <option value="<?= $escaper->escapeHtmlAttr($opt['value']) ?>">
                         <?= $escaper->escapeHtml($opt['label']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
+            <div class="admin__field-note">
+                <?= $escaper->escapeHtml(__('Sole traders must also provide the owner details below.')) ?>
+            </div>
         </div>
     </div>
 
-    <div class="admin__field" data-mondu-field="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NET_TERM) ?>">
-        <label class="admin__field-label" for="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NET_TERM) ?>">
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $ownerFirstName ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $ownerFirstName ?>">
+            <span><?= $escaper->escapeHtml(__('Owner first name')) ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?= /* @noEscape */ $ownerFirstName ?>"
+                   name="payment[additional_data][<?= /* @noEscape */ $ownerFirstName ?>]"
+                   class="admin__control-text"
+                   autocomplete="off"/>
+        </div>
+    </div>
+
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $ownerLastName ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $ownerLastName ?>">
+            <span><?= $escaper->escapeHtml(__('Owner last name')) ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?= /* @noEscape */ $ownerLastName ?>"
+                   name="payment[additional_data][<?= /* @noEscape */ $ownerLastName ?>]"
+                   class="admin__control-text"
+                   autocomplete="off"/>
+        </div>
+    </div>
+
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $ownerBirthDate ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $ownerBirthDate ?>">
+            <span><?= $escaper->escapeHtml(__('Owner date of birth')) ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="date"
+                   id="<?= /* @noEscape */ $ownerBirthDate ?>"
+                   name="payment[additional_data][<?= /* @noEscape */ $ownerBirthDate ?>]"
+                   class="admin__control-text"
+                   placeholder="YYYY-MM-DD"
+                   autocomplete="off"/>
+        </div>
+    </div>
+
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $netTermField ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $netTermField ?>">
             <span><?= $escaper->escapeHtml(__('Net term (days)')) ?></span>
         </label>
         <div class="admin__field-control">
-            <input type="number"
-                   id="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NET_TERM) ?>"
-                   name="payment[additional_data][<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NET_TERM) ?>]"
-                   class="admin__control-text"
-                   min="0"
-                   step="1"
-                   value="30"/>
+            <select id="<?= /* @noEscape */ $netTermField ?>"
+                    name="payment[additional_data][<?= /* @noEscape */ $netTermField ?>]"
+                    class="admin__control-select">
+                <option value=""><?= $escaper->escapeHtml(__('-- Please select --')) ?></option>
+                <?php foreach ($netTermOptions as $opt): ?>
+                    <option value="<?= $escaper->escapeHtmlAttr($opt['value']) ?>"
+                        <?= (int) $opt['value'] === 30 ? 'selected="selected"' : '' ?>>
+                        <?= $escaper->escapeHtml($opt['label']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <div class="admin__field-note">
+                <?= $escaper->escapeHtml(__('Terms offered by Mondu for your account.')) ?>
+            </div>
         </div>
     </div>
 
-    <div class="admin__field" data-mondu-field="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS) ?>">
-        <label class="admin__field-label" for="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS) ?>">
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $installsField ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $installsField ?>">
             <span><?= $escaper->escapeHtml(__('Number of installments')) ?></span>
         </label>
         <div class="admin__field-control">
-            <select id="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS) ?>"
-                    name="payment[additional_data][<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS) ?>]"
+            <select id="<?= /* @noEscape */ $installsField ?>"
+                    name="payment[additional_data][<?= /* @noEscape */ $installsField ?>]"
                     class="admin__control-select">
                 <option value=""><?= $escaper->escapeHtml(__('-- Please select --')) ?></option>
                 <?php foreach ($installmentsOptions as $opt): ?>
@@ -74,27 +152,27 @@ $installmentsOptions = $installments ? $installments->toOptionArray() : [];
         </div>
     </div>
 
-    <div class="admin__field" data-mondu-field="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_IBAN) ?>">
-        <label class="admin__field-label" for="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_IBAN) ?>">
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $ibanField ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $ibanField ?>">
             <span><?= $escaper->escapeHtml(__('IBAN')) ?></span>
         </label>
         <div class="admin__field-control">
             <input type="text"
-                   id="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_IBAN) ?>"
-                   name="payment[additional_data][<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_IBAN) ?>]"
+                   id="<?= /* @noEscape */ $ibanField ?>"
+                   name="payment[additional_data][<?= /* @noEscape */ $ibanField ?>]"
                    class="admin__control-text"
                    autocomplete="off"/>
         </div>
     </div>
 
-    <div class="admin__field" data-mondu-field="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDER) ?>">
-        <label class="admin__field-label" for="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDER) ?>">
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $holderField ?>">
+        <label class="admin__field-label" for="<?= /* @noEscape */ $holderField ?>">
             <span><?= $escaper->escapeHtml(__('Account holder')) ?></span>
         </label>
         <div class="admin__field-control">
             <input type="text"
-                   id="<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDER) ?>"
-                   name="payment[additional_data][<?= $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDER) ?>]"
+                   id="<?= /* @noEscape */ $holderField ?>"
+                   name="payment[additional_data][<?= /* @noEscape */ $holderField ?>]"
                    class="admin__control-text"
                    autocomplete="off"/>
         </div>

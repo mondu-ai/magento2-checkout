@@ -177,7 +177,7 @@ abstract class WebhookTestCase extends TestCase
         $payment = $this->om->create(\Magento\Sales\Model\Order\Payment::class);
         $payment->setMethod('mondu');
         // Fields the admin order form collects; required by /orders/create_async for `mondu`.
-        $payment->setAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM, 'GmbH');
+        $payment->setAdditionalInformation(AsyncOrderFields::FIELD_REGISTRATION_ID, '86653938');
         $payment->setAdditionalInformation(AsyncOrderFields::FIELD_NET_TERM, 30);
         $order->setPayment($payment);
 
