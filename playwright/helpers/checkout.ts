@@ -33,29 +33,26 @@ export async function addProductToCart(page: Page): Promise<void> {
   await page.goto(PRODUCT_URL)
   await page.waitForLoadState('networkidle')
 
-  // Get current cart count before adding
-  const counterBefore = await page
-    .locator('.counter-number, .minicart-wrapper .counter.qty')
-    .textContent()
-    .catch(() => '0')
-
   // Ensure button is ready before clicking
   const addButton = page.locator('#product-addtocart-button')
   await addButton.waitFor({ state: 'visible', timeout: 15_000 })
-  await addButton.click()
 
-  // Wait for cart update — success message or counter change confirms cart was updated
-  await Promise.race([
-    page.waitForSelector('.message-success', { timeout: 20_000 }),
-    page.waitForFunction(
-      (before) => {
-        const el = document.querySelector('.counter-number, .counter.qty .counter-number')
-        return el && el.textContent !== before
-      },
-      counterBefore,
-      { timeout: 20_000 }
-    ),
-  ]).catch(() => {})
+  // Luma binds the add-to-cart form through RequireJS after the page renders, so a click
+  // fired too early is silently swallowed. Retry until Magento confirms the item was added.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await addButton.click()
+
+    const added = await page
+      .waitForSelector('.message-success', { timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false)
+
+    if (added) {
+      return
+    }
+  }
+
+  throw new Error(`Add to cart was not confirmed after 3 attempts. PRODUCT_URL: ${PRODUCT_URL}`)
 }
 
 export async function proceedToCheckout(page: Page): Promise<void> {
@@ -255,4 +252,19 @@ export async function placeMonduOrder(
   await selectPaymentMethod(page, methodCode)
   await placeOrder(page)
   return handleMonduCheckout(page)
+}
+
+/**
+ * Reads the Magento order number from the storefront success page.
+ *
+ * Admin specs need it to open exactly the order they just placed instead of trusting
+ * whatever happens to sit on top of the order grid.
+ */
+export async function getOrderIncrementId(page: Page): Promise<string> {
+  const text = await page.locator('.checkout-success, .order-number, main').first().innerText()
+  const match = text.match(/\b\d{8,}\b/)
+  if (!match) {
+    throw new Error(`Could not read the order number from the success page: ${text.slice(0, 200)}`)
+  }
+  return match[0]
 }

@@ -1,7 +1,7 @@
 import { test, expect, request as playwrightRequest } from '@playwright/test'
-import { placeMonduOrder } from '../helpers/checkout'
+import { placeMonduOrder, getOrderIncrementId } from '../helpers/checkout'
 import { checkMonduOrderState } from '../helpers/api'
-import { loginToAdmin, openFirstOrder, createShipment } from '../helpers/admin'
+import { loginToAdmin, openOrderByMagentoId, createInvoice, createShipment } from '../helpers/admin'
 
 test('Admin creates shipment → invoice sent to Mondu, order state becomes shipped', async ({
   page,
@@ -12,10 +12,14 @@ test('Admin creates shipment → invoice sent to Mondu, order state becomes ship
   const orderUuid = await placeMonduOrder(page, 'mondu')
   await expect(page).toHaveURL(/checkout\/onepage\/success/)
   expect(orderUuid).toBeTruthy()
+  // Open exactly this order in admin later — the grid's first row is not a reliable anchor
+  const incrementId = await getOrderIncrementId(page)
 
   // Go to admin and create shipment
   await loginToAdmin(page)
-  await openFirstOrder(page)
+  await openOrderByMagentoId(page, incrementId)
+  // require_invoice defaults to 1, so the order must be invoiced before it can ship
+  await createInvoice(page)
   await createShipment(page)
 
   // Verify admin success message
@@ -25,7 +29,7 @@ test('Admin creates shipment → invoice sent to Mondu, order state becomes ship
   await checkMonduOrderState(apiContext, orderUuid!, 'shipped', 8, 3000)
 
   // Verify order comment mentions shipment
-  const comments = page.locator('.order-history-block, .order-comments-history')
+  const comments = page.locator('.order-history-block, .order-comments-history').first()
   await expect(comments).toBeVisible()
 
   await apiContext.dispose()
