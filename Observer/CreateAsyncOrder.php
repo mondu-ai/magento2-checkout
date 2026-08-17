@@ -11,6 +11,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\BackendOrders;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -27,6 +28,7 @@ class CreateAsyncOrder extends MonduObserver
 
     /**
      * @param AppState $appState
+     * @param BackendOrders $backendOrders
      * @param ContextHelper $contextHelper
      * @param CustomerRepositoryInterface $customerRepository
      * @param MonduFileLogger $monduFileLogger
@@ -37,6 +39,7 @@ class CreateAsyncOrder extends MonduObserver
      */
     public function __construct(
         private readonly AppState $appState,
+        private readonly BackendOrders $backendOrders,
         ContextHelper $contextHelper,
         private readonly CustomerRepositoryInterface $customerRepository,
         MonduFileLogger $monduFileLogger,
@@ -67,9 +70,16 @@ class CreateAsyncOrder extends MonduObserver
             return;
         }
 
-        try {
-            $storeId = (int) $order->getStoreId();
+        $storeId = (int) $order->getStoreId();
 
+        if (!$this->backendOrders->isActive($storeId)) {
+            $this->monduFileLogger->info('CreateAsyncOrder: backend orders are disabled, skipping', [
+                'orderNumber' => $order->getIncrementId(),
+            ]);
+            return;
+        }
+
+        try {
             $result = $this->requestFactory
                 ->create(RequestFactory::CREATE_ASYNC_ORDER, $storeId)
                 ->process(['order' => $order]);

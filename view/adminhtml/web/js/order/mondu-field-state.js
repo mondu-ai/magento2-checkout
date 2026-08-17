@@ -57,9 +57,26 @@ define([
 
     function restoreFromCache($fs) {
         $fs.find('input, select').each(function () {
-            if (this.id && Object.prototype.hasOwnProperty.call(cache, this.id)) {
-                $(this).val(cache[this.id]);
+            var cached;
+
+            if (!this.id || !Object.prototype.hasOwnProperty.call(cache, this.id)) {
+                return;
             }
+
+            // A cached value can outlive its option: the net term list is rebuilt
+            // per billing country, so a term picked for the previous country may
+            // be gone. Drop it and keep the freshly rendered default.
+            if (this.tagName === 'SELECT') {
+                cached = String(cache[this.id]);
+                if (!Array.prototype.some.call(this.options, function (option) {
+                    return option.value === cached;
+                })) {
+                    delete cache[this.id];
+                    return;
+                }
+            }
+
+            $(this).val(cache[this.id]);
         });
     }
 
@@ -69,6 +86,42 @@ define([
                 cache[this.id] = $(this).val();
             }
         });
+    }
+
+    /**
+     * Billing country currently selected on the order-create form.
+     */
+    function currentBillingCountry() {
+        var id = config().billingCountryFieldId,
+            $select = id ? $('#' + id) : $();
+
+        return $select.length ? String($select.val() || '').toUpperCase() : '';
+    }
+
+    /**
+     * Mondu requires a registration_id for every buyer except German ones, and
+     * the rule is the same for all payment methods.
+     */
+    function isRegistrationIdRequired() {
+        var country = currentBillingCountry(),
+            optional = config().registrationIdOptionalCountries || [];
+
+        return country !== '' && optional.indexOf(country) === -1;
+    }
+
+    /**
+     * Points the admin at the register the number comes from (HRB, KVK, KBO, …).
+     */
+    function updateRegistrationIdHint($fs) {
+        var cfg = config(),
+            hints = cfg.registrationIdHints || {},
+            $note = $fs.find('[data-mondu-registration-hint]');
+
+        if (!$note.length) {
+            return;
+        }
+
+        $note.text(hints[currentBillingCountry()] || cfg.registrationIdFallbackHint || '');
     }
 
     /**
@@ -97,6 +150,14 @@ define([
 
         required = (requiredByMethod[code] || []).slice();
         visible = required.concat(optionalByMethod[code] || []);
+
+        if (cfg.registrationIdField
+            && visible.indexOf(cfg.registrationIdField) !== -1
+            && isRegistrationIdRequired()
+        ) {
+            required = required.concat([cfg.registrationIdField]);
+        }
+        updateRegistrationIdHint($fs);
 
         // The owner object is mandatory only for sole traders (einzelunternehmen),
         // and only for methods that offer the legal form category at all.
@@ -171,6 +232,21 @@ define([
     }
 
     /**
+     * The registration_id rule and its hint follow the billing country, which
+     * lives outside the fieldset and survives the AJAX reloads.
+     */
+    function bindBillingCountryChangeOnce(namespace) {
+        var id = config().billingCountryFieldId;
+
+        if (!id) {
+            return;
+        }
+
+        $(document).off('change.' + namespace, '#' + id)
+            .on('change.' + namespace, '#' + id, apply);
+    }
+
+    /**
      * Magento admin uses Prototype's Ajax.Request, not jQuery.ajax, so the
      * fieldset is replaced without any jQuery event firing.
      */
@@ -201,6 +277,7 @@ define([
         snapshot: snapshot,
         wrapLoadAreaOnce: wrapLoadAreaOnce,
         bindMethodChangeOnce: bindMethodChangeOnce,
+        bindBillingCountryChangeOnce: bindBillingCountryChangeOnce,
         bindAjaxObserverOnce: bindAjaxObserverOnce
     };
 });

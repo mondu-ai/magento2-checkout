@@ -63,8 +63,8 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>Payment reference:</strong> %1, <strong>Referința plății:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termen de plată:</strong> %1 zile
 
-"Invoice (30 days)","Factură (30 zile)"
-"SEPA direct debit (30 days)","Debit direct SEPA (30 zile)"
+"Invoice","Factură"
+"SEPA direct debit","Debit direct SEPA"
 "Installments (3, 6, 12 months)","Rate (3, 6, 12 luni)"
 "Installments (3, 6, 12 months) via Bank Transfer","Rate (3, 6, 12 luni) prin transfer bancar"
 "Instant Pay","Plată instantanee"

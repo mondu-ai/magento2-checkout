@@ -28,6 +28,13 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/require_invoice</config_path>
                     </field>
+                    <field id="mondu_backend_orders" translate="label comment" type="select" sortOrder="33"
+                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Enable orders created in the admin</label>
+                        <comment>Lets you pick a Mondu payment method when creating an order in the admin panel. Requires the async order source to be enabled for your Mondu account; if it is not, the methods stay hidden in the admin regardless of this setting.</comment>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/mondu/backend_orders</config_path>
+                    </field>
                     <field id="sandbox" translate="label" type="select" sortOrder="85" showInDefault="1"
                            showInWebsite="1" showInStore="1" canRestore="1">
                         <label>Sandbox mode</label>

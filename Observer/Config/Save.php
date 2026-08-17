@@ -12,6 +12,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Helpers\BackendOrders;
 use Mondu\Mondu\Helpers\PaymentTerms;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -23,6 +24,7 @@ class Save implements ObserverInterface
     /**
      * @param ConfigProvider $monduConfig
      * @param PaymentMethod $paymentMethod
+     * @param BackendOrders $backendOrders
      * @param PaymentTerms $paymentTerms
      * @param RequestFactory $requestFactory
      * @param MonduFileLogger $monduFileLogger
@@ -32,6 +34,7 @@ class Save implements ObserverInterface
     public function __construct(
         private readonly ConfigProvider $monduConfig,
         private readonly PaymentMethod $paymentMethod,
+        private readonly BackendOrders $backendOrders,
         private readonly PaymentTerms $paymentTerms,
         private readonly RequestFactory $requestFactory,
         private readonly MonduFileLogger $monduFileLogger,
@@ -183,6 +186,7 @@ class Save implements ObserverInterface
             $this->monduConfig->updateNewOrderStatus();
             $this->paymentMethod->resetAllowedCache();
             $this->paymentTerms->resetCache($storeId);
+            $this->backendOrders->resetCache($storeId);
 
             $webhookKeysRequest = $this->requestFactory->create(
                 RequestFactory::WEBHOOKS_KEYS_REQUEST_METHOD,

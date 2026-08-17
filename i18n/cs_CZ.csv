@@ -63,8 +63,8 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>Payment reference:</strong> %1, <strong>Odkaz na platbu:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Doba splatnosti:</strong> %1 dnů
 
-"Invoice (30 days)","Nákup na fakturu (30 dní)"
-"SEPA direct debit (30 days)","Přímé inkaso SEPA (30 dní)"
+"Invoice","Nákup na fakturu"
+"SEPA direct debit","Přímé inkaso SEPA"
 "Installments (3, 6, 12 months)","Platba na splátky (3, 6, 12 měsíců)"
 "Installments (3, 6, 12 months) via Bank Transfer","Platba na splátky (3, 6, 12 měsíců) přes bankovní převod"
 "Instant Pay","Okamžitá platba"

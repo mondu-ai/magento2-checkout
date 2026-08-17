@@ -63,8 +63,8 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>Payment reference:</strong> %1, <strong>Αναφορά πληρωμής:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Προθεσμία πληρωμής:</strong> %1 ημέρες
 
-"Invoice (30 days)","Νομισματικό έμβασμα (30 ημέρες)"
-"SEPA direct debit (30 days)","Άμεση χρέωση SEPA (30 ημέρες)"
+"Invoice","Νομισματικό έμβασμα"
+"SEPA direct debit","Άμεση χρέωση SEPA"
 "Installments (3, 6, 12 months)","Χρεωστικές δόσεις (3, 6, 12 μήνες)"
 "Installments (3, 6, 12 months) via Bank Transfer","Χρεωστικές δόσεις (3, 6, 12 μήνες) μέσω Νομισματικού έμβασματος"
 "Instant Pay","Ταχεία πληρωμή"

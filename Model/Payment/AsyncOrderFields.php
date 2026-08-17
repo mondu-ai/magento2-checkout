@@ -28,6 +28,30 @@ final class AsyncOrderFields
     public const LEGAL_FORM_CATEGORY_SOLE_TRADER = 'einzelunternehmen';
 
     /**
+     * Countries where Mondu accepts a buyer without a registration_id.
+     *
+     * Everywhere else the field is mandatory, no matter which payment method is
+     * selected — the rule is about the buyer's register, not about the method.
+     */
+    public const REGISTRATION_ID_OPTIONAL_COUNTRIES = ['DE'];
+
+    /**
+     * Country-specific register the registration_id comes from.
+     *
+     * @see https://docs.mondu.ai/reference/registration-id-examples
+     */
+    public const REGISTRATION_ID_HINTS = [
+        'DE' => 'HRB (Handelsregister), e.g. HRB 232626 B',
+        'NL' => 'KVK (Kamer van Koophandel), e.g. 86653938',
+        'BE' => 'KBO/BCE (Belgian Enterprise Register), e.g. 0465515965',
+        'GB' => 'CRN (Companies House), e.g. 14681433',
+        'LU' => 'RCS (Luxembourg Business Registers), e.g. B91982',
+        'CH' => 'Commercial register (Handelsregister), e.g. CHE-245.518.760',
+        'FR' => 'SIRET, e.g. 883846123',
+        'GR' => 'ΑΦΜ / TIN (Greek tax identification number), e.g. 800863970',
+    ];
+
+    /**
      * Owner attributes required by the API when the buyer is a sole trader.
      */
     public const OWNER_FIELDS = [
@@ -43,7 +67,6 @@ final class AsyncOrderFields
      */
     public const REQUIRED_BY_METHOD = [
         'mondu' => [
-            self::FIELD_REGISTRATION_ID,
             self::FIELD_NET_TERM,
         ],
         'mondusepa' => [
@@ -63,13 +86,16 @@ final class AsyncOrderFields
     ];
 
     /**
-     * Map: payment method code → fields that are shown but never enforced.
+     * Map: payment method code → fields that are shown but not always enforced.
      *
-     * The API accepts these for every method; only `mondu` (invoice) rejects a
-     * missing registration_id, and legal_form_category is optional everywhere.
+     * The API accepts these for every method. legal_form_category is optional
+     * everywhere; registration_id is listed here because its requirement depends
+     * on the billing country rather than on the method — see
+     * isRegistrationIdRequired().
      */
     public const OPTIONAL_BY_METHOD = [
         'mondu' => [
+            self::FIELD_REGISTRATION_ID,
             self::FIELD_LEGAL_FORM_CATEGORY,
         ],
         'mondusepa' => [
@@ -130,6 +156,39 @@ final class AsyncOrderFields
     public static function visibleFor(string $methodCode): array
     {
         return array_merge(self::requiredFor($methodCode), self::optionalFor($methodCode));
+    }
+
+    /**
+     * Whether registration_id has to be filled for a buyer in the given country.
+     *
+     * An unknown country is treated as "not required": guessing wrong here would
+     * block an order the API would have accepted.
+     *
+     * @param string|null $countryCode ISO-2 billing country code
+     * @return bool
+     */
+    public static function isRegistrationIdRequired(?string $countryCode): bool
+    {
+        if ($countryCode === null || $countryCode === '') {
+            return false;
+        }
+
+        return !in_array(strtoupper($countryCode), self::REGISTRATION_ID_OPTIONAL_COUNTRIES, true);
+    }
+
+    /**
+     * Register the registration_id is taken from in the given country, if we know it.
+     *
+     * @param string|null $countryCode ISO-2 billing country code
+     * @return string|null
+     */
+    public static function registrationIdHint(?string $countryCode): ?string
+    {
+        if ($countryCode === null || $countryCode === '') {
+            return null;
+        }
+
+        return self::REGISTRATION_ID_HINTS[strtoupper($countryCode)] ?? null;
     }
 
     /**

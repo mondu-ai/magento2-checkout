@@ -31,6 +31,7 @@ class Factory
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
     public const CREATE_ASYNC_ORDER = 'CREATE_ASYNC_ORDER';
     public const UPDATE_EXTERNAL_INFO = 'UPDATE_EXTERNAL_INFO';
+    public const ASYNC_ORDER_SUPPORT = 'CHECK_ASYNC_ORDER_SUPPORT';
 
     /**
      * @var array
@@ -52,6 +53,7 @@ class Factory
         self::CONFIRM_ORDER => ConfirmOrder::class,
         self::CREATE_ASYNC_ORDER => CreateAsyncOrder::class,
         self::UPDATE_EXTERNAL_INFO => UpdateExternalInfo::class,
+        self::ASYNC_ORDER_SUPPORT => AsyncOrderSupport::class,
     ];
 
     /**

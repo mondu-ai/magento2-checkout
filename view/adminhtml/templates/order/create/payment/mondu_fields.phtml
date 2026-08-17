@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 
 /**
- * @var \Magento\Backend\Block\Template $block
+ * @var \Mondu\Mondu\Block\Adminhtml\Order\Create\MonduFields $block
  * @var \Magento\Framework\Escaper $escaper
  */
 
@@ -16,6 +16,11 @@ $netTerm           = $block->getData('net_term_source');
 $legalFormCategoryOptions = $legalFormCategory ? $legalFormCategory->toOptionArray() : [];
 $installmentsOptions      = $installments ? $installments->toOptionArray() : [];
 $netTermOptions           = $netTerm ? $netTerm->toOptionArray() : [];
+$netTermDefault           = $netTerm ? $netTerm->getDefaultNetTerm() : null;
+
+$billingCountry     = $block->getBillingCountryId();
+$registrationIdHint = AsyncOrderFields::registrationIdHint($billingCountry)
+    ?: 'Commercial register number of the buying company.';
 
 $registrationId = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_REGISTRATION_ID);
 $category       = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY);
@@ -35,7 +40,7 @@ $holderField    = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDE
         <span><?= $escaper->escapeHtml(__('Mondu payment details')) ?></span>
     </legend>
 
-    <div class="admin__field _required" data-mondu-field="<?= /* @noEscape */ $registrationId ?>">
+    <div class="admin__field" data-mondu-field="<?= /* @noEscape */ $registrationId ?>">
         <label class="admin__field-label" for="<?= /* @noEscape */ $registrationId ?>">
             <span><?= $escaper->escapeHtml(__('Registration ID')) ?></span>
         </label>
@@ -45,8 +50,8 @@ $holderField    = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDE
                    name="payment[additional_data][<?= /* @noEscape */ $registrationId ?>]"
                    class="admin__control-text"
                    autocomplete="off"/>
-            <div class="admin__field-note">
-                <?= $escaper->escapeHtml(__('Commercial register number of the buying company.')) ?>
+            <div class="admin__field-note" data-mondu-registration-hint>
+                <?= $escaper->escapeHtml(__($registrationIdHint)) ?>
             </div>
         </div>
     </div>
@@ -123,13 +128,13 @@ $holderField    = $escaper->escapeHtmlAttr(AsyncOrderFields::FIELD_ACCOUNT_HOLDE
                 <option value=""><?= $escaper->escapeHtml(__('-- Please select --')) ?></option>
                 <?php foreach ($netTermOptions as $opt): ?>
                     <option value="<?= $escaper->escapeHtmlAttr($opt['value']) ?>"
-                        <?= (int) $opt['value'] === 30 ? 'selected="selected"' : '' ?>>
+                        <?= (int) $opt['value'] === $netTermDefault ? 'selected="selected"' : '' ?>>
                         <?= $escaper->escapeHtml($opt['label']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
             <div class="admin__field-note">
-                <?= $escaper->escapeHtml(__('Terms offered by Mondu for your account.')) ?>
+                <?= $escaper->escapeHtml(__('Terms offered by Mondu for your account in the billing country.')) ?>
             </div>
         </div>
     </div>

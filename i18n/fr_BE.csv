@@ -62,8 +62,8 @@ Actions,Actions
 <strong>Payment reference:</strong> %1,<strong>Objet:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Date limite de paiement:</strong> %1 jours
 
-"Invoice (30 days)","Facture (30 jours)"
-"SEPA direct debit (30 days)","Prélèvement automatique SEPA (30 jours)"
+"Invoice","Facture"
+"SEPA direct debit","Prélèvement automatique SEPA"
 "Installments (3, 6, 12 months)","Paiement échelonnés (3, 6, 12 mois)"
 "Installments (3, 6, 12 months) via Bank Transfer","Paiement échelonnés (3, 6, 12 mois) par virement bancaire"
 "Instant Pay","Virement instantané"

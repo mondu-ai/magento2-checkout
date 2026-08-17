@@ -63,8 +63,8 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>Payment reference:</strong> %1, <strong>Numer referencyjny płatności:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termin płatności:</strong> %1 dni
 
-"Invoice (30 days)","Faktura (30 dni)"
-"SEPA direct debit (30 days)","Polecenie zapłaty SEPA (30 dni)"
+"Invoice","Faktura"
+"SEPA direct debit","Polecenie zapłaty SEPA"
 "Installments (3, 6, 12 months)","Raty (3, 6, 12 miesięcy)"
 "Installments (3, 6, 12 months) via Bank Transfer","Raty (3, 6, 12 miesięcy) przelewem bankowym"
 "Instant Pay","Natychmiastowa płatność"

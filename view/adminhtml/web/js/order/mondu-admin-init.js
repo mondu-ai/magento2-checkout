@@ -15,6 +15,7 @@ define([
         fieldState.apply();
         fieldState.wrapLoadAreaOnce();
         fieldState.bindMethodChangeOnce('monduFieldsInit');
+        fieldState.bindBillingCountryChangeOnce('monduFieldsInit');
         fieldState.bindAjaxObserverOnce();
     };
 });

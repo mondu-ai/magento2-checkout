@@ -62,8 +62,8 @@ Actions,Acties
 <strong>Payment reference:</strong> %1,<strong>Referentie:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Betalingstermijn:</strong> %1 dagen
 
-"Invoice (30 days)","Factuur (30 dagen)"
-"SEPA direct debit (30 days)","SEPA automatische incasso (30 dagen)"
+"Invoice","Factuur"
+"SEPA direct debit","SEPA automatische incasso"
 "Installments (3, 6, 12 months)","Betaling in termijnen (3, 6, 12 maanden)"
 "Installments (3, 6, 12 months) via Bank Transfer","Betaling in termijnen (3, 6, 12 maanden) per bankoverschrijving"
 "Instant Pay","Instant Pay"

@@ -3,7 +3,7 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="billing_method">
-            <block class="Magento\Backend\Block\Template"
+            <block class="Mondu\Mondu\Block\Adminhtml\Order\Create\MonduFields"
                    name="mondu.order.create.fields.ajax"
                    template="Mondu_Mondu::order/create/payment/mondu_fields.phtml"
                    cacheable="false">

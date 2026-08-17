@@ -53,6 +53,17 @@
             <argument name="monduFileLogger" xsi:type="object">Mondu\Mondu\Helpers\Logger\Logger</argument>
         </arguments>
     </type>
+    <!-- Proxied: the admin session must not be built in the frontend or on the CLI. -->
+    <type name="Mondu\Mondu\Model\Payment\Source\NetTerm">
+        <arguments>
+            <argument name="quoteSession" xsi:type="object">Magento\Backend\Model\Session\Quote\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Mondu\Mondu\Plugin\Magento\Payment\Helper\Data">
+        <arguments>
+            <argument name="quoteSession" xsi:type="object">Magento\Backend\Model\Session\Quote\Proxy</argument>
+        </arguments>
+    </type>
     <preference for="Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface"
                 type="Mondu\Mondu\Model\Pdf\CompositeInvoicePdfRenderer"/>
     <type name="Mondu\Mondu\Model\Pdf\CompositeInvoicePdfRenderer">
