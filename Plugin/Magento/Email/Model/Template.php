@@ -76,7 +76,7 @@ class Template
             $vars['monduDetails'] = $this->getInvoiceDetails([
                 'countryId' => $externalData['buyer_country_code'] ?: $billingAddress->getCountryId(),
                 'merchant_company_name' => $externalData['merchant_company_name'],
-                'bank_account' => $externalData['bank_account'],
+                'bank_account' => $externalData['bank_account'] ?? [],
                 'invoiceId' => isset($vars['invoice']) && $vars['invoice']->getIncrementId()
                     ? $vars['invoice']->getIncrementId()
                     : '',
@@ -133,33 +133,33 @@ class Template
 
         switch ($invoiceData['countryId']) {
             case self::UK_COUNTRY_CODE:
-                $invoiceDetails .= __('<strong>Account holder:</strong> %1', $invoiceData['bank_account']['account_holder'] ?: self::MONDU_EN_ACCOUNT_HOLDER) . '<br/>';
-                $invoiceDetails .= __('<strong>Bank:</strong> %1', $invoiceData['bank_account']['bank'] ?: self::MONDU_EN_BANK_NAME) . '<br/>';
-                $invoiceDetails .= __('<strong>Sort Code:</strong> %1', $invoiceData['bank_account']['sort_code'] ?: self::MONDU_UK_SORT_CODE) . '<br/>';
-                $invoiceDetails .= __('<strong>Account Number:</strong> %1', $invoiceData['bank_account']['account_number']) . '<br/>';
+                $invoiceDetails .= __('<strong>Account holder:</strong> %1', ($invoiceData['bank_account']['account_holder'] ?? null) ?: self::MONDU_EN_ACCOUNT_HOLDER) . '<br/>';
+                $invoiceDetails .= __('<strong>Bank:</strong> %1', ($invoiceData['bank_account']['bank'] ?? null) ?: self::MONDU_EN_BANK_NAME) . '<br/>';
+                $invoiceDetails .= __('<strong>Sort Code:</strong> %1', ($invoiceData['bank_account']['sort_code'] ?? null) ?: self::MONDU_UK_SORT_CODE) . '<br/>';
+                $invoiceDetails .= __('<strong>Account Number:</strong> %1', $invoiceData['bank_account']['account_number'] ?? '') . '<br/>';
                 $invoiceDetails .= __('<strong>IBAN:</strong> %1', $invoiceData['iban']) . '<br/>';
-                $invoiceDetails .= __('<strong>BIC:</strong> %1', $invoiceData['bank_account']['bic'] ?: self::MONDU_EN_BIC) . '<br/>';
+                $invoiceDetails .= __('<strong>BIC:</strong> %1', ($invoiceData['bank_account']['bic'] ?? null) ?: self::MONDU_EN_BIC) . '<br/>';
                 break;
             case self::DE_COUNTRY_CODE:
                 $invoiceDetails .= __('<strong>Account holder:</strong> %1', self::MONDU_FR_DE_ACCOUNT_HOLDER) . '<br/>';
                 $invoiceDetails .= __('<strong>IBAN:</strong> %1', $invoiceData['iban']) . '<br/>';
-                $invoiceDetails .= __('<strong>BIC:</strong> %1', $invoiceData['bank_account']['bic'] ?: self::MONDU_DE_NL_BIC) . '<br/>';
+                $invoiceDetails .= __('<strong>BIC:</strong> %1', ($invoiceData['bank_account']['bic'] ?? null) ?: self::MONDU_DE_NL_BIC) . '<br/>';
                 break;
             case self::FR_COUNTRY_CODE:
                 $invoiceDetails .= __('<strong>Account holder:</strong> %1', self::MONDU_FR_DE_ACCOUNT_HOLDER) . '<br/>';
                 $invoiceDetails .= __('<strong>IBAN:</strong> %1', $invoiceData['iban']) . '<br/>';
-                $invoiceDetails .= __('<strong>BIC:</strong> %1', $invoiceData['bank_account']['bic'] ?: self::MONDU_FR_BIC) . '<br/>';
+                $invoiceDetails .= __('<strong>BIC:</strong> %1', ($invoiceData['bank_account']['bic'] ?? null) ?: self::MONDU_FR_BIC) . '<br/>';
                 break;
             case self::NL_COUNTRY_CODE:
                 $invoiceDetails .= __('<strong>Account holder:</strong> %1', self::MONDU_NL_ACCOUNT_HOLDER) . '<br/>';
                 $invoiceDetails .= __('<strong>IBAN:</strong> %1', $invoiceData['iban']) . '<br/>';
-                $invoiceDetails .= __('<strong>BIC:</strong> %1', $invoiceData['bank_account']['bic'] ?: self::MONDU_DE_NL_BIC) . '<br/>';
+                $invoiceDetails .= __('<strong>BIC:</strong> %1', ($invoiceData['bank_account']['bic'] ?? null) ?: self::MONDU_DE_NL_BIC) . '<br/>';
                 break;
             default:
-                $invoiceDetails .= __('<strong>Account holder:</strong> %1', $invoiceData['bank_account']['account_holder'] ?: self::MONDU_EN_ACCOUNT_HOLDER) . '<br/>';
-                $invoiceDetails .= __('<strong>Bank:</strong> %1', $invoiceData['bank_account']['bank'] ?: self::MONDU_EN_BANK_NAME) . '<br/>';
+                $invoiceDetails .= __('<strong>Account holder:</strong> %1', ($invoiceData['bank_account']['account_holder'] ?? null) ?: self::MONDU_EN_ACCOUNT_HOLDER) . '<br/>';
+                $invoiceDetails .= __('<strong>Bank:</strong> %1', ($invoiceData['bank_account']['bank'] ?? null) ?: self::MONDU_EN_BANK_NAME) . '<br/>';
                 $invoiceDetails .= __('<strong>IBAN:</strong> %1', $invoiceData['iban']) . '<br/>';
-                $invoiceDetails .= __('<strong>BIC:</strong> %1', $invoiceData['bank_account']['bic'] ?: self::MONDU_EN_BIC) . '<br/>';
+                $invoiceDetails .= __('<strong>BIC:</strong> %1', ($invoiceData['bank_account']['bic'] ?? null) ?: self::MONDU_EN_BIC) . '<br/>';
                 break;
         }
 

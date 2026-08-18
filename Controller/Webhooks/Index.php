@@ -121,6 +121,35 @@ class Index implements ActionInterface
     }
 
     /**
+     * Cancels an order Mondu will not pay for.
+     *
+     * Goes through registerCancellation() rather than cancel(). It does the same
+     * work — cancels every item so the stock goes back, writes the canceled
+     * totals and moves the order into state canceled with its default status —
+     * but it does not dispatch order_cancel_after. That event asks Mondu to
+     * cancel the order, which is pointless for an order Mondu itself declined
+     * and would fail the webhook into a retry loop. cancel() would be a no-op
+     * here anyway: canCancel() is false while the order sits in payment_review,
+     * which is exactly where an async order waits for the buyer.
+     *
+     * @param OrderInterface $order
+     * @return void
+     */
+    private function cancelOrder(OrderInterface $order): void
+    {
+        if (!$order instanceof Order) {
+            $order->setStatus(Order::STATE_CANCELED);
+            return;
+        }
+
+        if ($order->isCanceled()) {
+            return;
+        }
+
+        $order->registerCancellation('', true);
+    }
+
+    /**
      * Processes the 'order/pending' topic and moves order to payment review state.
      *
      * @param array|null $params
@@ -333,20 +362,21 @@ class Index implements ActionInterface
         $statusChangeReason = null;
         
         if ($orderState === OrderHelper::CANCELED) {
-            $newStatus = Order::STATE_CANCELED;
+            $this->cancelOrder($order);
+            $newStatus = $order->getStatus();
             $statusChangeReason = 'Webhook topic: order/declined - Order state is CANCELED';
-            $order->setStatus($newStatus);
             $this->orderRepository->save($order);
         } elseif ($orderState === OrderHelper::DECLINED) {
             if (isset($params['reason']) && $params['reason'] === 'buyer_fraud') {
                 $newStatus = Order::STATUS_FRAUD;
                 $statusChangeReason = 'Webhook topic: order/declined - Order declined due to buyer_fraud';
+                $order->setStatus($newStatus);
             } else {
-                $newStatus = Order::STATE_CANCELED;
+                $this->cancelOrder($order);
+                $newStatus = $order->getStatus();
                 $statusChangeReason = 'Webhook topic: order/declined - Order declined'
                     . ' (reason: ' . ($declineReason ?? 'unknown') . ')';
             }
-            $order->setStatus($newStatus);
             $this->orderRepository->save($order);
         } else {
             $this->monduFileLogger->logOrderStatus(

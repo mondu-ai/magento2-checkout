@@ -24,6 +24,11 @@ class Log
     public const MONDU_STATE_COMPLETE = 'complete';
 
     /**
+     * State an async order sits in until Mondu decides — never a final answer.
+     */
+    public const MONDU_STATE_PROCESSING = 'processing';
+
+    /**
      * @param ConfigProvider $configProvider
      * @param Factory $requestFactory
      * @param LogFactory $monduLogger
@@ -297,6 +302,46 @@ class Log
     }
 
     /**
+     * True while Mondu has not decided about the order yet.
+     *
+     * @param string|null $monduState
+     * @return bool
+     */
+    public function isTransientState(?string $monduState): bool
+    {
+        return $monduState === self::MONDU_STATE_PROCESSING;
+    }
+
+    /**
+     * Pulls the current state for orders Mondu has not decided on yet.
+     *
+     * The webhook is the normal path; this is the safety net for the case where
+     * it never arrived, so the admin is not left looking at a stale state.
+     *
+     * @param string[] $orderUids
+     * @return array<string, string> orderUid => refreshed state
+     */
+    public function syncTransientOrders(array $orderUids): array
+    {
+        $refreshed = [];
+
+        foreach ($orderUids as $orderUid) {
+            try {
+                $this->syncOrder((string) $orderUid);
+                $log = $this->getTransactionByOrderUid((string) $orderUid);
+                if (isset($log['mondu_state'])) {
+                    $refreshed[(string) $orderUid] = (string) $log['mondu_state'];
+                }
+            } catch (Exception $e) {
+                // A state we could not refresh is not worth breaking the page over.
+                continue;
+            }
+        }
+
+        return $refreshed;
+    }
+
+    /**
      * Syncs order state with Mondu API and updates the log.
      *
      * @param string $orderUid
@@ -309,6 +354,14 @@ class Log
         $data = $this->requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD, $storeId)
             ->setValidate(false)
             ->process(['orderUid' => $orderUid]);
+
+        // The API answers with an error body when the order belongs to another
+        // account or no longer exists; keeping the stored state beats overwriting
+        // it with nothing.
+        if (!isset($data['order']['state'])) {
+            return;
+        }
+
         $this->updateLogMonduData($orderUid, $data['order']['state'], $data['order']['merchant']['viban'] ?? null);
     }
 

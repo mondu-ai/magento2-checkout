@@ -32,6 +32,7 @@
             <argument name="eventPrefix" xsi:type="string">mondu_mondu_log_grid_collection</argument>
             <argument name="eventObject" xsi:type="string">log_grid_collection</argument>
             <argument name="resourceModel" xsi:type="string">Mondu\Mondu\Model\ResourceModel\Log</argument>
+            <argument name="monduLogHelper" xsi:type="object">Mondu\Mondu\Helpers\Log\Proxy</argument>
         </arguments>
     </type>
     <type name="Magento\Framework\App\Request\CsrfValidator">

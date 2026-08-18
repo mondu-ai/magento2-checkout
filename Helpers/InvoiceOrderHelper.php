@@ -230,9 +230,7 @@ class InvoiceOrderHelper
             ['monduId' => $monduId, 'body' => $invoiceBody]
         );
 
-        if (!$this->handleInvoiceOrderErrors($monduId, $shipOrderData)) {
-            return;
-        }
+        $this->handleInvoiceOrderErrors($monduId, $shipOrderData);
 
         $this->updateInvoiceMapping($monduId, $invoiceMapping, $invoiceItem, $shipOrderData['invoice']);
 
@@ -366,9 +364,9 @@ class InvoiceOrderHelper
      * @param string $monduId
      * @param array $data
      * @throws LocalizedException
-     * @return bool
+     * @return void
      */
-    private function handleInvoiceOrderErrors(string $monduId, array $data): bool
+    private function handleInvoiceOrderErrors(string $monduId, array $data): void
     {
         if (!$data) {
             $this->monduLogHelper->updateLogSkipObserver($monduId, true);
@@ -394,10 +392,15 @@ class InvoiceOrderHelper
                     'InvoiceOrderHelper: Invoice already exists in Mondu (duplicate external_reference_id)',
                     ['monduId' => $monduId]
                 );
-                $this->messageManager->addWarningMessage(
-                    __('Mondu: Invoice with this ID was already registered. Skipping duplicate.')
+                // Letting Magento keep an invoice Mondu refused would leave the two
+                // sides disagreeing about what was invoiced, so fail the whole
+                // operation and let Magento roll the invoice back.
+                throw new LocalizedException(
+                    __(
+                        'Mondu: an invoice with this number is already registered at Mondu, '
+                        . 'so the invoice was not created. Please check the invoice number and try again.'
+                    )
                 );
-                return false;
             }
 
             $this->messageManager->addErrorMessage(
@@ -407,8 +410,6 @@ class InvoiceOrderHelper
                 __('Mondu: %1 - %2', $errorName, $errorDetails)
             );
         }
-
-        return true;
     }
 
     /**

@@ -19,7 +19,19 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Save implements ObserverInterface
 {
-    private const SUBSCRIPTIONS = ['order/confirmed', 'order/declined', 'order/pending'];
+    /**
+     * Webhook topics the module subscribes to on config save.
+     *
+     * order/authorized belongs here because of async (admin) orders: Mondu
+     * approves them before the buyer confirms by email, and without this topic
+     * the order never leaves the transient `processing` state on our side.
+     */
+    private const SUBSCRIPTIONS = [
+        'order/confirmed',
+        'order/authorized',
+        'order/declined',
+        'order/pending',
+    ];
 
     /**
      * @param ConfigProvider $monduConfig
