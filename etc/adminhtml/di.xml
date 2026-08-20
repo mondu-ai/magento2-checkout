@@ -6,4 +6,20 @@
                 type="Mondu\Mondu\Plugin\Quote\Payment\StripAdditionalDataPlugin"
                 sortOrder="10"/>
     </type>
+    <!-- Admin only: the storefront title stays translatable and already shows the logo. -->
+    <type name="Mondu\Mondu\Model\Payment\Mondu">
+        <plugin name="mondu_brand_payment_title" type="Mondu\Mondu\Plugin\Magento\Payment\Method\Title"/>
+    </type>
+    <type name="Mondu\Mondu\Model\Payment\MonduSepa">
+        <plugin name="mondu_brand_payment_title" type="Mondu\Mondu\Plugin\Magento\Payment\Method\Title"/>
+    </type>
+    <type name="Mondu\Mondu\Model\Payment\MonduInstallment">
+        <plugin name="mondu_brand_payment_title" type="Mondu\Mondu\Plugin\Magento\Payment\Method\Title"/>
+    </type>
+    <type name="Mondu\Mondu\Model\Payment\MonduInstallmentByInvoice">
+        <plugin name="mondu_brand_payment_title" type="Mondu\Mondu\Plugin\Magento\Payment\Method\Title"/>
+    </type>
+    <type name="Mondu\Mondu\Model\Payment\MonduPayNow">
+        <plugin name="mondu_brand_payment_title" type="Mondu\Mondu\Plugin\Magento\Payment\Method\Title"/>
+    </type>
 </config>

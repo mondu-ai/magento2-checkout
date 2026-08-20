@@ -8,8 +8,10 @@ use Exception;
 use Magento\Email\Model\Template as MageEmailTemplate;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Store\Model\ScopeInterface;
 use Mondu\Mondu\Helpers\Log as MonduLogger;
+use Mondu\Mondu\Model\Payment\Mondu as MonduPayment;
+use Mondu\Mondu\Model\Payment\MonduPayNow;
+use Mondu\Mondu\Model\Payment\MonduSepa;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 
 class Template
@@ -81,7 +83,7 @@ class Template
                     ? $vars['invoice']->getIncrementId()
                     : '',
                 'iban' => $monduLogData['invoice_iban'],
-                'paymentMethod' => $order->getPayment()->getMethodInstance()->getTitle(),
+                'paymentCode' => (string) $order->getPayment()->getMethod(),
                 'netTerms' => $monduLogData['authorized_net_term'] ?? '',
             ]);
         } catch (Exception $e) {
@@ -99,16 +101,19 @@ class Template
      */
     protected function getInvoiceDetails(array $invoiceData): string
     {
-        switch ($invoiceData['paymentMethod']) {
-            case $this->scopeConfig->getValue('payment/mondu/title', ScopeInterface::SCOPE_STORE):
+        // Keyed on the method code, not on the configured title: the title is free
+        // text a merchant can change, is branded differently in the admin, and two
+        // methods can end up sharing one string.
+        switch ($invoiceData['paymentCode']) {
+            case MonduPayment::PAYMENT_METHOD_MONDU_CODE:
                 $invoiceDetails = $this->getPayLaterViaBankTransferDetails($invoiceData);
                 break;
-            case $this->scopeConfig->getValue('payment/mondusepa/title', ScopeInterface::SCOPE_STORE):
+            case MonduSepa::PAYMENT_METHOD_MONDU_CODE:
                 $invoiceDetails = __('This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.', $invoiceData['merchant_company_name']) . '<br/>';
                 $invoiceDetails .= __('Since you have chosen the payment method to purchase on account with payment via SEPA direct debit through Mondu, the invoice amount will be debited from your bank account on the due date.') . '<br/>';
                 $invoiceDetails .= __('Before the amount is debited from your account, you will receive notice of the direct debit. Kindly make sure you have sufficient funds in your account.') . '<br/>';
                 break;
-            case $this->scopeConfig->getValue('payment/mondupaynow/title', ScopeInterface::SCOPE_STORE):
+            case MonduPayNow::PAYMENT_METHOD_MONDU_CODE:
                 $invoiceDetails = __('This invoice was created in accordance with the general terms and conditions of <strong>%1</strong> and <strong>Mondu GmbH</strong> for the purchase on account payment model.', $invoiceData['merchant_company_name']) . '<br/>';
                 break;
             default:

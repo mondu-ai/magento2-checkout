@@ -309,7 +309,13 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
                 'net_price_per_item_cents' => (int) round($price * 100),
                 'variation_id'             => $variationId,
                 'item_type'                => $item->getIsVirtual() ? 'VIRTUAL' : 'PHYSICAL',
-                'external_reference_id'    => $variationId . '-' . $item->getItemId(),
+                // Must be built from the quote item id, the same way
+                // InvoiceOrderHelper::getExternalReferenceIdMapping() rebuilds it at
+                // invoice time. The order item id would not do: it is still empty on
+                // sales_order_place_after, and the invoice would then be rejected with
+                // "line_items.0.external_reference_id must match order line item
+                // external reference id".
+                'external_reference_id'    => $variationId . '-' . $item->getQuoteItemId(),
                 'quantity'                 => (int) $item->getQtyOrdered(),
                 'product_sku'              => $item->getSku(),
                 'product_id'               => $item->getProductId(),
