@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\LogFactory;
 use Mondu\Mondu\Model\Request\Factory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -29,9 +30,15 @@ class Log
     public const MONDU_STATE_PROCESSING = 'processing';
 
     /**
+     * Invoice state Mondu reports for an invoice that is no longer live.
+     */
+    public const MONDU_INVOICE_STATE_CANCELED = 'canceled';
+
+    /**
      * @param ConfigProvider $configProvider
      * @param Factory $requestFactory
      * @param LogFactory $monduLogger
+     * @param MonduFileLogger $monduFileLogger
      * @param MonduTransactionItem $monduTransactionItem
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -41,6 +48,7 @@ class Log
         private readonly ConfigProvider $configProvider,
         private readonly Factory $requestFactory,
         private readonly LogFactory $monduLogger,
+        private readonly MonduFileLogger $monduFileLogger,
         private readonly MonduTransactionItem $monduTransactionItem,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -302,6 +310,56 @@ class Log
     }
 
     /**
+     * True when the module recorded at least one live Mondu invoice for the order.
+     *
+     * The cached order state can lag behind Mondu — it is refreshed by a single
+     * API call right after the invoice is created, with no retry — so the
+     * invoices the module wrote down itself are the more reliable signal that a
+     * refund has to become a credit note rather than a cancellation.
+     *
+     * @param string $orderUid
+     * @throws LocalizedException
+     * @return bool
+     */
+    public function hasMonduInvoices(string $orderUid): bool
+    {
+        $log = $this->getTransactionByOrderUid($orderUid);
+
+        if (empty($log['addons'])) {
+            return false;
+        }
+
+        try {
+            $addons = $this->serializer->unserialize($log['addons']);
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('hasMonduInvoices: could not read the stored invoice mapping', [
+                'order_uid' => $orderUid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+
+        if (!is_array($addons)) {
+            return false;
+        }
+
+        foreach ($addons as $invoice) {
+            if (!is_array($invoice) || empty($invoice['uuid'])) {
+                continue;
+            }
+
+            if (($invoice['state'] ?? null) === self::MONDU_INVOICE_STATE_CANCELED) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * True while Mondu has not decided about the order yet.
      *
      * @param string|null $monduState
@@ -357,8 +415,14 @@ class Log
 
         // The API answers with an error body when the order belongs to another
         // account or no longer exists; keeping the stored state beats overwriting
-        // it with nothing.
+        // it with nothing. It must not pass unnoticed though — every caller that
+        // later reads mondu_state is working with a value that is now stale.
         if (!isset($data['order']['state'])) {
+            $this->monduFileLogger->error('syncOrder: Mondu did not return an order state, keeping the stored one', [
+                'order_uid' => $orderUid,
+                'response' => $data,
+            ]);
+
             return;
         }
 
