@@ -51,12 +51,16 @@ class AsyncOrderFieldValidationTest extends TestCase
         $this->assertSame('30', $payment->getAdditionalInformation(F::FIELD_NET_TERM));
     }
 
-    public function testInvoiceRejectsMissingRegistrationId(): void
+    /**
+     * Registration ID is country-aware: the admin form decides whether to ask
+     * for it, the observer does not enforce it for every invoice order.
+     */
+    public function testInvoiceDoesNotEnforceRegistrationId(): void
     {
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/Registration ID/');
+        $payment = $this->assign('mondu', [F::FIELD_NET_TERM => '30']);
 
-        $this->assign('mondu', [F::FIELD_NET_TERM => '30']);
+        $this->assertSame('30', $payment->getAdditionalInformation(F::FIELD_NET_TERM));
+        $this->assertNull($payment->getAdditionalInformation(F::FIELD_REGISTRATION_ID));
     }
 
     public function testSoleTraderRequiresOwnerFields(): void
