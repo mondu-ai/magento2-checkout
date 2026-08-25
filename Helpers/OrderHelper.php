@@ -253,6 +253,30 @@ class OrderHelper
     }
 
     /**
+     * Adds the VAT and shipping amounts to an invoice payload.
+     *
+     * The Mondu invoice endpoint treats tax_cents and shipping_price_cents as optional and does
+     * not copy them over from the order (an invoice may cover only part of a shipment), so an
+     * invoice sent without them is stored with tax_cents = null and the merchant portal renders
+     * its VAT as 0,00. Amounts are taken from the document itself, so a partial invoice reports
+     * its own share rather than the whole order's.
+     *
+     * @param InvoiceInterface|OrderInterface $document
+     * @param array $invoice
+     * @return array
+     */
+    public function addAmountsToInvoice(InvoiceInterface|OrderInterface $document, array $invoice): array
+    {
+        $taxAmount = (float) $document->getBaseTaxAmount()
+            + (float) $document->getBaseDiscountTaxCompensationAmount();
+
+        $invoice['tax_cents'] = (int) round($taxAmount * 100);
+        $invoice['shipping_price_cents'] = (int) round((float) $document->getBaseShippingAmount() * 100);
+
+        return $invoice;
+    }
+
+    /**
      * Adds line item data to invoice payload if line sending is enabled.
      *
      * @param InvoiceInterface $invoiceItem

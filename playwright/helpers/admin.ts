@@ -40,31 +40,24 @@ export async function openFirstOrder(page: Page): Promise<void> {
   await page.waitForSelector('th:has-text("Order Status")', { timeout: 20_000 }).catch(() => {})
 }
 
+// Both the invoice and the shipment creation pages submit through this button.
+const SUBMIT_ORDER_DOCUMENT = '[data-ui-id="order-items-submit-button"]'
+
 export async function createInvoice(page: Page): Promise<void> {
-  // Click the Invoice button in the order view header
-  await page
-    .locator('button[data-ui-id="order-view-invoice-button"], a[data-ui-id="order-view-invoice-button"]')
-    .first()
-    .click()
-  // Wait for invoice items form
+  // Magento prefixes data-ui-id with the button-list name, which varies per page layout,
+  // so anchor on the stable element id the order view block assigns.
+  await page.locator('#order_invoice').first().click()
   await page.waitForSelector('#invoice_item_container, .order-invoice-items', { timeout: 20_000 })
-  // Submit the invoice
-  await page
-    .locator('button[data-ui-id="order-invoice-view-save-button"]')
-    .click()
+  await page.locator(SUBMIT_ORDER_DOCUMENT).click()
   await page.waitForSelector('.message-success', { timeout: 30_000 })
 }
 
 export async function createShipment(page: Page): Promise<void> {
-  // Use the specific Ship button via data-ui-id to avoid matching nav links
-  await page
-    .locator('button[data-ui-id="order-view-ship-button"], a[data-ui-id="order-view-ship-button"]')
-    .first()
-    .click()
+  await page.locator('#order_ship').first().click()
   await page.waitForSelector('#shipping-tracking-table, .order-shipping-address', {
     timeout: 20_000,
   })
-  await page.locator('button[data-ui-id="order-shipment-view-save-button"]').click()
+  await page.locator(SUBMIT_ORDER_DOCUMENT).click()
   await page.waitForSelector('.message-success', { timeout: 30_000 })
 }
 

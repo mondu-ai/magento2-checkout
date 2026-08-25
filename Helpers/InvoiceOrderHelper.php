@@ -99,8 +99,10 @@ class InvoiceOrderHelper
             'order_uid' => $monduId,
             'invoice_url' => 'https://not.available',
             'external_reference_id' => $order->getIncrementId(),
-            'gross_amount_cents' => round($order->getBaseGrandTotal(), 2) * 100,
+            'gross_amount_cents' => round((float) $order->getBaseGrandTotal(), 2) * 100,
         ];
+
+        $body = $this->orderHelper->addAmountsToInvoice($order, $body);
 
         $this->addShipmentDetailsToBody($body, $order, $shipment);
 
@@ -266,6 +268,8 @@ class InvoiceOrderHelper
             'gross_amount_cents' => $grossAmountCents,
             'invoice_url' => $invoiceUrl,
         ];
+
+        $invoiceBody = $this->orderHelper->addAmountsToInvoice($invoiceItem, $invoiceBody);
 
         $order = $invoiceItem->getOrder();
         $this->addShipmentDetailsToBody($invoiceBody, $order, $shipment);
