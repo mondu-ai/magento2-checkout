@@ -6,7 +6,8 @@ define([
     'Magento_Ui/js/model/messages',
     'Magento_Checkout/js/model/payment/additional-validators',
     'Magento_Checkout/js/action/set-payment-information',
-    'Magento_Customer/js/customer-data'
+    'Magento_Customer/js/customer-data',
+    'mage/translate'
 ], function (
     $,
     quote,
@@ -15,7 +16,8 @@ define([
     Messages,
     additionalValidators,
     SetPaymentInformationAction,
-    customerData
+    customerData,
+    $t
 ) {
     'use strict';
 
@@ -110,13 +112,19 @@ define([
                         payment_method: payment_method
                     },
                 }).always(function (res) {
-                    if (res && res.token && !res.error) {
-                        self.handlePayment(res.source, res);
+                    // On a non-2xx jQuery hands this callback the jqXHR, not the parsed body,
+                    // so the reason we put in the response would otherwise never be shown.
+                    var body = (res && res.responseJSON) ? res.responseJSON : res;
+
+                    if (body && body.token && !body.error) {
+                        self.handlePayment(body.source, body);
                         return;
                     } else {
                         self.isPlaceOrderActionAllowed(true);
                         self.messageContainer.addErrorMessage({
-                            message: res.message,
+                            message: (body && body.message)
+                                ? body.message
+                                : $t('Error placing an order. Please try again later.'),
                         });
                     }
 
@@ -137,7 +145,10 @@ define([
         handlePayment: function (source, res) {
             var self = this;
             if (source === 'hosted') {
-                customerData.invalidate(['cart', 'checkout-data']);
+                // Only the cart section: dropping checkout-data leaves the cart page's shipping
+                // estimator with no address, and it then saves the store default country and an
+                // empty postcode onto the quote when the buyer comes back from Mondu.
+                customerData.invalidate(['cart']);
                 $.mage.redirect(res.hosted_checkout_url);
                 return;
             }
