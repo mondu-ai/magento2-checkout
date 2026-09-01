@@ -40,6 +40,10 @@
     <type name="Magento\Payment\Helper\Data">
         <plugin name="mondu_filter_payment_methods" type="Mondu\Mondu\Plugin\Magento\Payment\Helper\Data"/>
     </type>
+    <type name="Magento\Backend\Block\Widget\Button\Toolbar">
+        <plugin name="mondu_order_credit_note_button"
+                type="Mondu\Mondu\Plugin\Magento\Backend\Block\Widget\Button\Toolbar"/>
+    </type>
     <type name="Magento\Email\Model\Template">
         <plugin name="addTemplateVariable" type="Mondu\Mondu\Plugin\Magento\Email\Model\Template"/>                                                                                             
     </type>
