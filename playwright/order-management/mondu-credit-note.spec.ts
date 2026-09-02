@@ -1,6 +1,7 @@
-import { test, expect, request as playwrightRequest, Page } from '@playwright/test'
+import { test, expect, request as playwrightRequest } from '@playwright/test'
 import { placeMonduOrder } from '../helpers/checkout'
-import { loginToAdmin, openOrderByMagentoId } from '../helpers/admin'
+import { getMonduInvoices } from '../helpers/api'
+import { loginToAdmin, openOrderByMagentoId, createInvoice, createShipment } from '../helpers/admin'
 
 /**
  * Magento's Credit Memo button is driven by Order::canCreditmemo(), which comes down to whether
@@ -9,37 +10,7 @@ import { loginToAdmin, openOrderByMagentoId } from '../helpers/admin'
  * invoice and will accept a credit note against it. Forcing Magento's screen open would leave
  * its books with more refunded than paid, so the module offers the Mondu side of the operation
  * on its own.
- *
- * The steps below drive the admin through element ids rather than the shared helpers: Magento
- * 2.4.9 prefixes data-ui-id with the button-list name, which the helpers on this branch do not
- * account for yet.
  */
-const SUBMIT_ORDER_DOCUMENT = '[data-ui-id="order-items-submit-button"]'
-
-// Read straight from the API rather than through helpers/api.ts: the order response does not
-// carry invoices, and keeping the call here leaves the shared helper file untouched.
-async function monduCreditNotes(
-  apiContext: import('@playwright/test').APIRequestContext,
-  orderUuid: string
-) {
-  const response = await apiContext.get(
-    `${process.env.API_URL || 'https://api.demo.mondu.ai/api/v1'}/orders/${orderUuid}/invoices`,
-    { headers: { 'Api-Token': process.env.API_TOKEN || '', 'Content-Type': 'application/json' } }
-  )
-  if (!response.ok()) {
-    throw new Error(`Failed to list invoices for order ${orderUuid}: ${response.status()}`)
-  }
-  const invoices = (await response.json()).invoices ?? []
-
-  return invoices[0]?.credit_notes ?? []
-}
-
-async function submitDocument(page: Page, openButtonId: string): Promise<void> {
-  await page.locator(openButtonId).first().click()
-  await page.waitForSelector(SUBMIT_ORDER_DOCUMENT, { timeout: 30_000 })
-  await page.locator(SUBMIT_ORDER_DOCUMENT).click()
-  await page.waitForSelector('.message-success', { timeout: 40_000 })
-}
 
 test('Admin sends a credit note to Mondu from the order page', async ({ page }) => {
   const apiContext = await playwrightRequest.newContext()
@@ -58,8 +29,8 @@ test('Admin sends a credit note to Mondu from the order page', async ({ page }) 
 
   // "Require invoice for shipment" defaults to on, so the invoice has to exist before shipping,
   // and Mondu only holds an invoice to credit once the order has shipped.
-  await submitDocument(page, '#order_invoice')
-  await submitDocument(page, '#order_ship')
+  await createInvoice(page)
+  await createShipment(page)
 
   // The local Mondu state catches up either through the webhook or the sync that follows
   // shipping, and the button waits for it.
@@ -75,7 +46,8 @@ test('Admin sends a credit note to Mondu from the order page', async ({ page }) 
   await page.click('#mondu_send_credit_note')
   await expect(page.locator('.message-success')).toContainText('credit note was sent')
 
-  const creditNotes = await monduCreditNotes(apiContext, orderUuid!)
+  const invoices = await getMonduInvoices(apiContext, orderUuid!)
+  const creditNotes = invoices[0]?.credit_notes ?? []
   expect(creditNotes).toHaveLength(1)
   expect(creditNotes[0].gross_amount_cents).toBe(100)
 
