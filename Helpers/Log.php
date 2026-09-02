@@ -285,6 +285,29 @@ class Log
     }
 
     /**
+     * Returns the invoices Mondu holds for an order, as [magento invoice number => ['uuid', 'state', …]].
+     *
+     * Written the moment an invoice is accepted by Mondu, so unlike mondu_state it cannot be
+     * stale: the order state only advances once Mondu processes the invoice, and nothing pulls
+     * that in until the next sync.
+     *
+     * @param string $orderUid
+     * @return array
+     */
+    public function getMonduInvoiceMappings(string $orderUid): array
+    {
+        $log = $this->getTransactionByOrderUid($orderUid);
+
+        if (empty($log['addons']) || $log['addons'] === 'null') {
+            return [];
+        }
+
+        $invoices = $this->serializer->unserialize($log['addons']);
+
+        return is_array($invoices) ? $invoices : [];
+    }
+
+    /**
      * Check if a credit memo can be created based on Mondu state.
      *
      * @param string $orderUid
