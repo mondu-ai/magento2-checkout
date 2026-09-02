@@ -10,6 +10,7 @@ use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\CreditNote as CreditNoteHelper;
 
 /**
  * Form for sending a credit note to Mondu on its own, without a Magento credit memo.
@@ -32,11 +33,13 @@ class Index extends Action implements HttpGetActionInterface
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param OrderRepositoryInterface $orderRepository
+     * @param CreditNoteHelper $creditNoteHelper
      */
     public function __construct(
         Context $context,
         private readonly PageFactory $resultPageFactory,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly CreditNoteHelper $creditNoteHelper,
     ) {
         parent::__construct($context);
     }
@@ -58,8 +61,12 @@ class Index extends Action implements HttpGetActionInterface
             return $this->resultRedirectFactory->create()->setPath('sales/order/index');
         }
 
-        if (!$order->getMonduReferenceId()) {
-            $this->messageManager->addErrorMessage(__('Mondu: this order was not placed with Mondu.'));
+        // Reachable by URL as well as by button, so the same rule is applied here: where Magento
+        // can create a credit memo, that is the process to use.
+        if (!$this->creditNoteHelper->isAvailableFor($order)) {
+            $this->messageManager->addErrorMessage(
+                __('Mondu: use the standard credit memo for this order.')
+            );
 
             return $this->resultRedirectFactory->create()
                 ->setPath('sales/order/view', ['order_id' => $orderId]);

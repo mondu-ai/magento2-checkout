@@ -10,6 +10,7 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\CreditNote as CreditNoteHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -36,6 +37,7 @@ class Save extends Action implements HttpPostActionInterface
      * @param RequestFactory $requestFactory
      * @param MonduLogHelper $monduLogHelper
      * @param MonduFileLogger $monduFileLogger
+     * @param CreditNoteHelper $creditNoteHelper
      */
     public function __construct(
         Context $context,
@@ -43,6 +45,7 @@ class Save extends Action implements HttpPostActionInterface
         private readonly RequestFactory $requestFactory,
         private readonly MonduLogHelper $monduLogHelper,
         private readonly MonduFileLogger $monduFileLogger,
+        private readonly CreditNoteHelper $creditNoteHelper,
     ) {
         parent::__construct($context);
     }
@@ -161,8 +164,10 @@ class Save extends Action implements HttpPostActionInterface
      */
     private function validate(OrderInterface $order, string $invoiceUid, float $amount)
     {
-        if (!$order->getMonduReferenceId()) {
-            return __('Mondu: this order was not placed with Mondu.');
+        // Checked again on the way in, not just when the button was drawn: nothing may reach
+        // Mondu for an order Magento could have credited through the standard process.
+        if (!$this->creditNoteHelper->isAvailableFor($order)) {
+            return __('Mondu: use the standard credit memo for this order.');
         }
 
         if ($invoiceUid === '') {
