@@ -29,30 +29,48 @@ function defaultCustomer(company: string, overrides: Partial<CustomerData> = {})
   }
 }
 
+async function cartItemCount(page: Page): Promise<number> {
+  const base = (process.env.MAGENTO_URL || '').replace(/\/$/, '')
+  const body = await page.evaluate(async (url) => {
+    const res = await fetch(`${url}/customer/section/load/?sections=cart`, {
+      credentials: 'include',
+    })
+    return res.ok ? await res.json() : null
+  }, base)
+
+  return Number(body?.cart?.summary_count ?? 0)
+}
+
 export async function addProductToCart(page: Page): Promise<void> {
-  await page.goto(PRODUCT_URL)
-  await page.waitForLoadState('networkidle')
+  // The click can land before Magento has bound the add-to-cart handler, which used to be
+  // swallowed and only surfaced later as a confusing "cart is empty" at the checkout step.
+  // Confirm against the cart section instead, and give the page a second chance.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    await page.goto(PRODUCT_URL)
+    await page.waitForLoadState('domcontentloaded')
 
-  // Ensure button is ready before clicking
-  const addButton = page.locator('#product-addtocart-button')
-  await addButton.waitFor({ state: 'visible', timeout: 15_000 })
-
-  // Luma binds the add-to-cart form through RequireJS after the page renders, so a click
-  // fired too early is silently swallowed. Retry until Magento confirms the item was added.
-  for (let attempt = 1; attempt <= 3; attempt++) {
+    const addButton = page.locator('#product-addtocart-button')
+    await addButton.waitFor({ state: 'visible', timeout: 20_000 })
     await addButton.click()
 
-    const added = await page
-      .waitForSelector('.message-success', { timeout: 15_000 })
-      .then(() => true)
-      .catch(() => false)
+    await Promise.race([
+      page.waitForSelector('.message-success', { timeout: 20_000 }),
+      page.waitForFunction(
+        () => {
+          const el = document.querySelector('.counter-number, .counter.qty .counter-number')
+          return el && el.textContent && el.textContent.trim() !== ''
+        },
+        undefined,
+        { timeout: 20_000 }
+      ),
+    ]).catch(() => {})
 
-    if (added) {
+    if (await cartItemCount(page) > 0) {
       return
     }
   }
 
-  throw new Error(`Add to cart was not confirmed after 3 attempts. PRODUCT_URL: ${PRODUCT_URL}`)
+  throw new Error(`Product was not added to the cart. PRODUCT_URL: ${PRODUCT_URL}`)
 }
 
 export async function proceedToCheckout(page: Page): Promise<void> {
@@ -98,27 +116,45 @@ export async function fillShippingAddress(page: Page, customer: CustomerData): P
     await phoneField.fill(customer.phone || '')
   }
 
-  // Click Next on shipping address form
-  await page.locator('[data-role="opc-continue"]').click()
+  await continueToPayment(page)
+}
 
-  // Wait for payment step to appear — Magento may skip shipping selection if only 1 method
-  try {
-    await page.waitForSelector('.payment-method', { timeout: 20_000 })
-  } catch {
-    // Shipping methods need manual selection + another Next click
-    await page.waitForSelector('.table-checkout-shipping-method', { timeout: 10_000 })
-
-    const radio = page.locator('.table-checkout-shipping-method input[type="radio"]').first()
-    const checked = await radio.isChecked().catch(() => false)
-    if (!checked) {
-      await radio.check({ force: true })
+/**
+ * Advances the shipping step to the payment step without touching the address form, the way a
+ * buyer returning to checkout does. Magento blocks here if the quote address is incomplete.
+ */
+export async function continueToPayment(page: Page): Promise<void> {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    if (await page.locator('.payment-method').first().isVisible({ timeout: 2_000 }).catch(() => false)) {
+      return
     }
 
-    // Wait for loader, then click Next
+    // Magento skips this step when there is only one method; when it does show it, the section
+    // reloads on its own and a click fired mid-reload is dropped, hence the retries.
+    const methodRadio = page.locator('.table-checkout-shipping-method input[type="radio"]').first()
+    if (await methodRadio.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      if (!(await methodRadio.isChecked().catch(() => false))) {
+        // The row can detach while the section re-renders; the next pass picks it up again.
+        await methodRadio.check({ force: true }).catch(() => {})
+      }
+    }
+
     await page.waitForSelector('[data-role="loader"]', { state: 'hidden', timeout: 15_000 }).catch(() => {})
-    await page.locator('[data-role="opc-continue"]').click()
-    await page.waitForSelector('.payment-method', { timeout: 30_000 })
+
+    const next = page.locator('[data-role="opc-continue"]').first()
+    if (await next.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await next.click()
+    }
+
+    try {
+      await page.waitForSelector('.payment-method', { timeout: 20_000 })
+      return
+    } catch {
+      // fall through and try again
+    }
   }
+
+  throw new Error(`Checkout never reached the payment step. Current URL: ${page.url()}`)
 }
 
 export async function selectPaymentMethod(page: Page, methodCode: string): Promise<void> {
