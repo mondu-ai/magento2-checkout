@@ -14,6 +14,14 @@ use Mondu\Mondu\Model\Request\Factory as RequestFactory;
  *
  * Used to populate the net term selector instead of letting the admin type an
  * arbitrary number that the API would then reject with "net term not available".
+ *
+ * Always reads with source=async: this class is only ever used for the admin async
+ * order-create screen (see Model\Payment\Source\NetTerm), and the API merges every
+ * order source's terms by default — without this filter the selector could offer a
+ * net term the merchant only has for e.g. the storefront/widget flow, which
+ * create_async would then reject. Not filtered by payment_method: the net term
+ * selector is shared by the whole admin order-create form, built before the admin
+ * has picked which Mondu payment method to use.
  */
 class PaymentTerms
 {
@@ -59,7 +67,8 @@ class PaymentTerms
         }
 
         try {
-            $terms = $this->requestFactory->create(RequestFactory::PAYMENT_TERMS, $storeId)->process();
+            $terms = $this->requestFactory->create(RequestFactory::PAYMENT_TERMS, $storeId)
+                ->process(['source' => 'async']);
             $terms = is_array($terms) ? $terms : [];
         } catch (Exception $e) {
             $terms = [];

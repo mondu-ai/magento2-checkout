@@ -102,13 +102,17 @@ class UrlBuilder
     }
 
     /**
-     * Returns the API URL for retrieving the merchant's payment terms (net terms per country).
+     * Returns the API URL for retrieving the merchant's payment terms (net terms per country),
+     * optionally narrowed to one order source and/or one payment method.
      *
+     * @param array $filters e.g. ['source' => 'async', 'payment_method' => 'invoice']
      * @return string
      */
-    public function getPaymentTermsUrl(): string
+    public function getPaymentTermsUrl(array $filters = []): string
     {
-        return $this->build('payment_terms');
+        $url = $this->build('payment_terms');
+
+        return $filters ? $url . '?' . http_build_query($filters) : $url;
     }
 
     /**

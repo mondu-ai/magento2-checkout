@@ -25,17 +25,19 @@ class PaymentTerms extends CommonRequest implements RequestInterface
     }
 
     /**
-     * Fetches the payment terms (net terms per country) available for the merchant.
+     * Fetches the payment terms (net terms per country) available for the merchant, optionally
+     * narrowed to one order source and/or one payment method (see
+     * UrlBuilder::getPaymentTermsUrl()).
      *
      * Response shape: {"payment_terms":[{"net_term":30,"country_code":"DE"}, …]}
      *
-     * @param array|null $params
+     * @param array|null $params e.g. ['source' => 'async']
      * @throws LocalizedException
      * @return array|null
      */
     public function request($params = null)
     {
-        $resultJson = $this->sendRequestWithParams('get', $this->urlBuilder->getPaymentTermsUrl());
+        $resultJson = $this->sendRequestWithParams('get', $this->urlBuilder->getPaymentTermsUrl((array) $params));
 
         if (!$resultJson) {
             throw new LocalizedException(__('something went wrong'));
