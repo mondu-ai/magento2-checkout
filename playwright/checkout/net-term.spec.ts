@@ -98,3 +98,45 @@ test('The picked net term is the one Mondu authorizes', async ({ page }) => {
 
   await apiContext.dispose()
 })
+
+test('The field is laid out as its own row and reads in the shop language', async ({ page }) => {
+  await reachPaymentStep(page)
+
+  const field = page.locator('.payment-method._active .mondu-net-term')
+  const label = field.locator('> .label')
+  const select = field.locator('select')
+  await select.waitFor({ state: 'visible', timeout: 15_000 })
+
+  // The rule that draws the method logos matches every label whose "for" starts
+  // with mondu, and used to indent this one by the 71px logo padding. Measured on
+  // the inner span, not the label: padding sits inside the label's own box, so its
+  // bounding box does not move and only the text does.
+  const textBox = await label.locator('span').boundingBox()
+  const selectBox = await select.boundingBox()
+  expect(
+    Math.abs(textBox!.x - selectBox!.x),
+    'the label text sits above the select, not indented by the logo padding'
+  ).toBeLessThan(2)
+
+  // Sized to its content rather than stretched across the method block.
+  const blockBox = await page.locator('.payment-method._active .payment-method-content').boundingBox()
+  expect(selectBox!.width).toBeLessThan(blockBox!.width / 2)
+
+  // The label and the options come from the module dictionary, so a German shop
+  // must not show the English source strings.
+  const lang = await page.evaluate(() => document.documentElement.lang)
+  if (lang.startsWith('de')) {
+    await expect(label).toHaveText('Zahlungsziel')
+    expect(await select.locator('option').first().innerText()).toMatch(/Tage$/)
+  }
+
+  // And the logos still render, since that rule was narrowed to fix the indent.
+  const logo = await page
+    .locator('.payment-method._active .payment-method-title label[for="mondu"]')
+    .evaluate((el) => getComputedStyle(el).backgroundImage)
+    .catch(() => 'none')
+  const activeLogo = await page
+    .locator('.payment-method._active .payment-method-title label')
+    .evaluate((el) => getComputedStyle(el).backgroundImage)
+  expect(activeLogo === 'none' ? logo : activeLogo).not.toBe('none')
+})

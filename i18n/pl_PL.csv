@@ -108,3 +108,5 @@ Wybierz proszę inną metodę płatności, aby sfinalizować zakup."
 <strong>Bank:</strong> %1,<strong>Bank:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Kod oddziału:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Numer konta:</strong> %1
+"Payment term","Termin płatności"
+"%1 days","%1 dni"

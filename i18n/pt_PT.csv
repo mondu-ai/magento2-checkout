@@ -108,3 +108,5 @@ Por favor, selecione outro método de pagamento para concluir a sua encomenda."
 <strong>Bank:</strong> %1,<strong>Banco:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Código da agência:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Número da conta:</strong> %1
+"Payment term","Prazo de pagamento"
+"%1 days","%1 dias"

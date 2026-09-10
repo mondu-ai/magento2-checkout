@@ -107,3 +107,5 @@ Veuillez choisir un autre moyen de paiement pour finaliser votre achat."
 <strong>Bank:</strong> %1,<strong>Banque:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Code guichet:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Numéro de compte:</strong> %1
+"Payment term","Date limite de paiement"
+"%1 days","%1 jours"

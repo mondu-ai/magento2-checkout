@@ -109,3 +109,5 @@ Por favor, seleccione otro método de pago para completar su compra."
 <strong>Sort Code:</strong> %1,<strong>Código de sucursal:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Número de cuenta:</strong> %1
 
+"Payment term","Plazo de pago"
+"%1 days","%1 días"

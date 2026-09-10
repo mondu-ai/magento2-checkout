@@ -108,3 +108,5 @@ Please select another payment option to complete your purchase.","Mondu: Δυσ�
 <strong>Bank:</strong> %1,<strong>Τράπεζα:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Κωδικός υποκαταστήματος:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Αριθμός λογαριασμού:</strong> %1
+"Payment term","Προθεσμία πληρωμής"
+"%1 days","%1 ημέρες"
