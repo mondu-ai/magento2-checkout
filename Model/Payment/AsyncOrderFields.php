@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Model\Payment;
 
 /**
- * Per-payment-method field registry for admin order create.
+ * Per-payment-method field registry for Mondu order create.
  *
  * Fields flow: admin form → DataAssignObserver → payment.additional_information
  * → CreateAsyncOrder payload.
+ *
+ * FIELD_NET_TERM is shared with the storefront checkout, which writes the term the
+ * buyer picked through the same observer, so an order keeps its net term in one
+ * place no matter which flow created it. The rest of the fields are admin only.
  */
 final class AsyncOrderFields
 {
@@ -212,5 +216,22 @@ final class AsyncOrderFields
     public static function isMonduMethod(string $methodCode): bool
     {
         return array_key_exists($methodCode, self::REQUIRED_BY_METHOD);
+    }
+
+    /**
+     * Whether a net term means anything for this payment method.
+     *
+     * Only invoice and direct debit are settled on a term. Sending one with an
+     * instalment or pay now order is refused with 422 "proposed net terms is not
+     * available for merchant", because the merchant holds no terms for those
+     * methods at all, so neither the checkout selector nor the payload may offer
+     * a term there.
+     *
+     * @param string $methodCode Magento payment method code, e.g. "mondu"
+     * @return bool
+     */
+    public static function takesNetTerm(string $methodCode): bool
+    {
+        return in_array(self::FIELD_NET_TERM, self::REQUIRED_BY_METHOD[$methodCode] ?? [], true);
     }
 }

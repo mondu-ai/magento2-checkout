@@ -1,5 +1,6 @@
 define([
     'jquery',
+    'knockout',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/view/payment/default',
     'Magento_Checkout/js/action/redirect-on-success',
@@ -10,6 +11,7 @@ define([
     'mage/translate'
 ], function (
     $,
+    ko,
     quote,
     Component,
     redirectOnSuccessAction,
@@ -30,6 +32,35 @@ define([
         initObservable: function () {
             var self = this;
 
+            // Terms the merchant enabled, narrowed to this payment method and to the
+            // country the buyer is ordering for, the two dimensions order creation
+            // validates. Recomputed rather than read once, because the buyer can
+            // change the address without reloading the checkout.
+            self.availableNetTerms = ko.computed(function () {
+                var config = self.getNetTermConfig();
+
+                if (!config.available.length) {
+                    return [];
+                }
+
+                var allowedForCountry = self.getNetTermsForCountry(config);
+
+                return config.available.filter(function (netTerm) {
+                    return allowedForCountry.indexOf(netTerm) !== -1;
+                });
+            });
+
+            self.selectedNetTerm = ko.observable(null);
+
+            // Keep the selection answerable to the list: an address change can drop
+            // the term the buyer picked, and sending it anyway earns a 422.
+            self.availableNetTerms.subscribe(function (netTerms) {
+                if (netTerms.indexOf(self.selectedNetTerm()) === -1) {
+                    self.selectedNetTerm(self.getPreferredNetTerm(netTerms));
+                }
+            });
+            self.selectedNetTerm(self.getPreferredNetTerm(self.availableNetTerms()));
+
             if (!window.monduLoading) {
                 window.monduLoading = true;
                 var monduSkd = document.createElement("script");
@@ -46,9 +77,78 @@ define([
         },
 
         getData: function () {
-            return {
+            var data = {
                 method: this.item.method,
             };
+
+            // Same field the admin order-create form uses, so the term reaches
+            // payment.additional_information through the one observer and is on
+            // the order for the invoice PDF.
+            if (this.selectedNetTerm && this.selectedNetTerm()) {
+                data.additional_data = {
+                    mondu_net_term: this.selectedNetTerm(),
+                };
+            }
+
+            return data;
+        },
+
+        getNetTermConfig: function () {
+            var config = window.checkoutConfig.monduNetTerms || {};
+            var byMethod = config.byMethod || {};
+
+            return {
+                available: config.available || [],
+                // Absent for instalments and pay now, which are not settled on a
+                // term: offering one there is refused at order creation.
+                byCountry: byMethod[this.getCode()] || {},
+            };
+        },
+
+        /**
+         * Terms allowed for the country the buyer is ordering for.
+         *
+         * The wildcard key holds terms the API returned without a country, which
+         * count everywhere. An unknown country yields nothing, which hides the
+         * selector and sends no term at all.
+         */
+        getNetTermsForCountry: function (config) {
+            var address = quote.billingAddress() || quote.shippingAddress();
+            var countryId = (address && address.countryId) ? address.countryId : null;
+
+            if (countryId && config.byCountry[countryId]) {
+                return config.byCountry[countryId];
+            }
+
+            return config.byCountry['*'] || [];
+        },
+
+        /**
+         * 30 days when the merchant offers it, otherwise the closest term to it,
+         * preferring the shorter one on a tie. Mirrors the admin form.
+         */
+        getPreferredNetTerm: function (netTerms) {
+            if (!netTerms.length) {
+                return null;
+            }
+            if (netTerms.indexOf(30) !== -1) {
+                return 30;
+            }
+
+            return netTerms.reduce(function (closest, netTerm) {
+                return Math.abs(netTerm - 30) < Math.abs(closest - 30) ? netTerm : closest;
+            });
+        },
+
+        /**
+         * A single available term needs no question: it is applied silently.
+         */
+        isNetTermSelectorVisible: function () {
+            return this.availableNetTerms().length > 1;
+        },
+
+        getNetTermLabel: function (netTerm) {
+            return $t('%1 days').replace('%1', netTerm);
         },
 
         getMonduCheckoutTokenUrl: function () {

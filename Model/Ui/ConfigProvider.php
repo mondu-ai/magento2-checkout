@@ -249,6 +249,41 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Net terms the merchant lets buyers choose from in the storefront checkout.
+     *
+     * Empty means the feature is off and the plugin sends no net term at all, so
+     * the Mondu account keeps applying whatever it applies today.
+     *
+     * @param int|null $storeId
+     * @return int[]
+     */
+    public function getAvailableNetTerms(?int $storeId = null): array
+    {
+        $configured = $this->scopeConfig->getValue(
+            'payment/mondu/available_net_terms',
+            ScopeInterface::SCOPE_STORE,
+            $storeId ?? $this->contextCode
+        );
+
+        if ($configured === null || $configured === '') {
+            return [];
+        }
+
+        $netTerms = [];
+        foreach (explode(',', (string) $configured) as $value) {
+            $value = trim($value);
+            if ($value !== '' && ctype_digit($value)) {
+                $netTerms[] = (int) $value;
+            }
+        }
+
+        $netTerms = array_values(array_unique($netTerms));
+        sort($netTerms);
+
+        return $netTerms;
+    }
+
+    /**
      * Returns the PDF invoice download URL.
      *
      * @param string $orderUid

@@ -7,6 +7,8 @@
                 <debug>1</debug>
                 <active>0</active>
                 <model>Mondu\Mondu\Model\Payment\Mondu</model>
+                <info_block>Mondu\Mondu\Block\Info</info_block>
+                <paymentInfoKeys>mondu_net_term</paymentInfoKeys>
                 <mondu_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <order_status>pending</order_status>
                 <title>Invoice</title>
@@ -25,6 +27,8 @@
                 <active>0</active>
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduSepa</model>
+                <info_block>Mondu\Mondu\Block\Info</info_block>
+                <paymentInfoKeys>mondu_net_term</paymentInfoKeys>
                 <order_status>pending</order_status>
                 <description></description>
                 <title>SEPA direct debit</title>
@@ -34,6 +38,8 @@
                 <active>0</active>
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduInstallment</model>
+                <info_block>Mondu\Mondu\Block\Info</info_block>
+                <paymentInfoKeys>mondu_net_term</paymentInfoKeys>
                 <order_status>pending</order_status>
                 <description></description>
                 <title>Installments (3, 6, 12 months)</title>
@@ -43,6 +49,8 @@
                 <active>0</active>
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduInstallmentByInvoice</model>
+                <info_block>Mondu\Mondu\Block\Info</info_block>
+                <paymentInfoKeys>mondu_net_term</paymentInfoKeys>
                 <order_status>pending</order_status>
                 <description></description>
                 <title>Installments (3, 6, 12 months) via Bank Transfer</title>
@@ -52,6 +60,8 @@
                 <active>0</active>
                 <debug>1</debug>
                 <model>Mondu\Mondu\Model\Payment\MonduPayNow</model>
+                <info_block>Mondu\Mondu\Block\Info</info_block>
+                <paymentInfoKeys>mondu_net_term</paymentInfoKeys>
                 <order_status>pending</order_status>
                 <description></description>
                 <title>Instant Pay</title>

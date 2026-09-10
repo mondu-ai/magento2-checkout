@@ -18,6 +18,7 @@ use Mondu\Mondu\Helpers\BuyerParams\BuyerParamsInterface;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
@@ -78,6 +79,14 @@ class Transactions extends CommonRequest implements RequestInterface
 
             if (in_array($params['payment_method'], $monduMethods, true)) {
                 $requestParams['payment_method'] = $params['payment_method'];
+            } elseif (isset($requestParams['net_term']) && !empty($params['payment_method'])) {
+                // Invoice is otherwise left out on purpose, so the buyer can still
+                // settle the method in the hosted checkout. A net term has to be
+                // named together with its method though: the API validates the term
+                // against the merchant's terms for that very method, and would
+                // reject a term we correctly offered for invoice if it validated it
+                // against something else.
+                $requestParams['payment_method'] = $params['payment_method'];
             }
 
             $requestParams = json_encode($requestParams);
@@ -118,6 +127,42 @@ class Transactions extends CommonRequest implements RequestInterface
     }
 
     /**
+     * The net term the buyer picked in the checkout, if any.
+     *
+     * Written to the quote payment by the shared DataAssignObserver, the same way
+     * the admin order-create form does it, so both flows keep the term in one place
+     * and it is on the order afterwards for the invoice PDF.
+     *
+     * Nothing is sent when the merchant enabled no terms, which leaves the Mondu
+     * account applying the term it applied before this was configurable.
+     *
+     * @param CartInterface $quote
+     * @return int|null
+     */
+    private function getSelectedNetTerm(CartInterface $quote): ?int
+    {
+        $payment = $quote->getPayment();
+        if (!$payment) {
+            return null;
+        }
+
+        // The buyer may have picked a term and then switched to a method that is
+        // not settled on one, leaving the term behind on the quote payment. Sending
+        // it then is refused with "proposed net terms is not available for
+        // merchant", which is how the order silently failed to reach Mondu.
+        if (!AsyncOrderFields::takesNetTerm((string) $payment->getMethod())) {
+            return null;
+        }
+
+        $netTerm = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_NET_TERM);
+        if ($netTerm === null || $netTerm === '' || !ctype_digit((string) $netTerm)) {
+            return null;
+        }
+
+        return (int) $netTerm;
+    }
+
+    /**
      * Returns request payload from Magento quote and Mondu requirements.
      *
      * @throws LocalizedException
@@ -155,6 +200,11 @@ class Transactions extends CommonRequest implements RequestInterface
             'billing_address' => $this->getBillingAddressParams($quote),
             'shipping_address' => $this->getShippingAddressParams($quote),
         ];
+
+        $netTerm = $this->getSelectedNetTerm($quote);
+        if ($netTerm !== null) {
+            $order['net_term'] = $netTerm;
+        }
 
         return $this->orderHelper->addLinesOrGrossAmountToOrder($quote, $quoteTotals->getBaseGrandTotal(), $order);
     }

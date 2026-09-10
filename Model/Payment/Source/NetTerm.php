@@ -32,7 +32,13 @@ class NetTerm implements OptionSourceInterface, ArgumentInterface
     public function toOptionArray(): array
     {
         $out = [];
-        foreach ($this->paymentTerms->getNetTerms($this->getBillingCountryId(), $this->getStoreId()) as $netTerm) {
+        $netTerms = $this->paymentTerms->getNetTerms(
+            PaymentTerms::SOURCE_ASYNC,
+            $this->getBillingCountryId(),
+            $this->getStoreId()
+        );
+
+        foreach ($netTerms as $netTerm) {
             $out[] = ['value' => $netTerm, 'label' => (string) __('%1 days', $netTerm)];
         }
         return $out;
@@ -45,7 +51,11 @@ class NetTerm implements OptionSourceInterface, ArgumentInterface
      */
     public function getDefaultNetTerm(): ?int
     {
-        return $this->paymentTerms->getDefaultNetTerm($this->getBillingCountryId(), $this->getStoreId());
+        return $this->paymentTerms->getDefaultNetTerm(
+            PaymentTerms::SOURCE_ASYNC,
+            $this->getBillingCountryId(),
+            $this->getStoreId()
+        );
     }
 
     /**

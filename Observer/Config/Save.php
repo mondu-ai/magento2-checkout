@@ -197,7 +197,7 @@ class Save implements ObserverInterface
         try {
             $this->monduConfig->updateNewOrderStatus();
             $this->paymentMethod->resetAllowedCache();
-            $this->paymentTerms->resetCache($storeId);
+            $this->paymentTerms->resetCache();
             $this->backendOrders->resetCache($storeId);
 
             $webhookKeysRequest = $this->requestFactory->create(

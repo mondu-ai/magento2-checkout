@@ -35,6 +35,13 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/backend_orders</config_path>
                     </field>
+                    <field id="mondu_available_net_terms" translate="label comment" type="multiselect"
+                           sortOrder="34" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Net terms offered to buyers</label>
+                        <comment>Payment terms buyers may choose from in the checkout. The list holds the terms your Mondu account has for the storefront flow. Select more than one to let the buyer choose; select one and every order uses it; select none to keep the term your Mondu account applies by default.</comment>
+                        <source_model>Mondu\Mondu\Model\Config\Source\AvailableNetTerm</source_model>
+                        <config_path>payment/mondu/available_net_terms</config_path>
+                    </field>
                     <field id="sandbox" translate="label" type="select" sortOrder="85" showInDefault="1"
                            showInWebsite="1" showInStore="1" canRestore="1">
                         <label>Sandbox mode</label>
