@@ -21,7 +21,7 @@ import { getMonduOrder } from '../helpers/api'
 
 const NET_TERM_SELECT = '.payment-method._active .mondu-net-term select'
 
-async function reachPaymentStep(page: Page): Promise<void> {
+async function reachPaymentStep(page: Page, methodCode: string = 'mondu'): Promise<void> {
   await addProductToCart(page)
   await proceedToCheckout(page)
   await fillShippingAddress(page, {
@@ -35,7 +35,7 @@ async function reachPaymentStep(page: Page): Promise<void> {
     country: 'DE',
     phone: '+493031196513',
   })
-  await selectPaymentMethod(page, 'mondu')
+  await selectPaymentMethod(page, methodCode)
 }
 
 test('Checkout offers the enabled net terms and preselects 30 days', async ({ page }) => {
@@ -55,12 +55,10 @@ test('Checkout offers the enabled net terms and preselects 30 days', async ({ pa
 
   // What the checkout offers has to be what the account holds for this payment
   // method and this country, the two dimensions order creation validates, or it
-  // answers 422 "proposed net terms is not available for merchant".
+  // answers 422 "proposed net terms is not available for merchant". The provider
+  // has already narrowed both, so the select must match its entry exactly.
   const config = await page.evaluate(() => (window as any).checkoutConfig.monduNetTerms)
-  const allowed = config.byMethod.mondu.DE
-  expect(offered.map(Number).sort((a, b) => a - b)).toEqual(
-    config.available.filter((term: number) => allowed.includes(term))
-  )
+  expect(offered.map(Number).sort((a, b) => a - b)).toEqual(config.byMethod.mondu.DE)
 
   // 30 days is the house default whenever the merchant offers it.
   if (offered.includes('30')) {
@@ -139,4 +137,48 @@ test('The field is laid out as its own row and reads in the shop language', asyn
     .locator('.payment-method._active .payment-method-title label')
     .evaluate((el) => getComputedStyle(el).backgroundImage)
   expect(activeLogo === 'none' ? logo : activeLogo).not.toBe('none')
+})
+
+test('Each payment method offers only its own terms, and a single one is shown too', async ({ page }) => {
+  await reachPaymentStep(page, 'mondu')
+
+  const config = await page.evaluate(() => (window as any).checkoutConfig.monduNetTerms)
+
+  // Instalments cannot carry a term at all, so they are absent rather than empty.
+  expect(config.byMethod.monduinstallment).toBeUndefined()
+  expect(config.byMethod.monduinstallmentbyinvoice).toBeUndefined()
+
+  const field = (code: string) => page.locator(`.payment-method._active .mondu-net-term`)
+
+  for (const code of Object.keys(config.byMethod)) {
+    await selectPaymentMethod(page, code)
+    const offered: number[] = config.byMethod[code].DE || []
+    if (!offered.length) {
+      continue
+    }
+
+    const root = field(code)
+    await expect(root, `${code} must show its term`).toBeVisible()
+
+    const select = root.locator('select')
+    const single = root.locator('.mondu-net-term-single')
+
+    if (offered.length > 1) {
+      // A choice is a choice.
+      await expect(select).toBeVisible()
+      const values = await select.locator('option').evaluateAll((o) =>
+        o.map((x) => Number((x as HTMLOptionElement).value))
+      )
+      expect(values).toEqual(offered)
+    } else {
+      // One term is not a question, but the buyer is still told when it falls due.
+      await expect(single, `${code} must state its only term`).toBeVisible()
+      await expect(select).toBeHidden()
+      expect(await single.innerText()).toContain(String(offered[0]))
+    }
+  }
+
+  // The account holds 3 days for pay now only, and an invoice order on 3 days is
+  // refused, so the short term must not reach invoice through the merged list.
+  expect(config.byMethod.mondu?.DE ?? []).not.toContain(3)
 })

@@ -36,6 +36,25 @@ class StorefrontNetTermTest extends TestCase
         $this->om = ObjectManager::getInstance();
     }
 
+    public function testTermsOfOneMethodNeverLeakIntoAnother(): void
+    {
+        // The account holds 3 days for pay now only, and invoice orders on 3 days
+        // are refused. Because the terms endpoint answers a list merged across
+        // methods wherever its filter is not live yet, what the merchant enabled
+        // per method is what keeps them apart.
+        $forInvoice = $this->mapTermsByCountry(
+            [
+                ['net_term' => 3, 'country_code' => 'DE'],
+                ['net_term' => 30, 'country_code' => 'DE'],
+                ['net_term' => 60, 'country_code' => 'DE'],
+            ],
+            [30, 60]
+        );
+
+        $this->assertSame([30, 60], $forInvoice['DE']);
+        $this->assertNotContains(3, $forInvoice['DE'], '3 days belongs to pay now, invoice is refused on it');
+    }
+
     public function testOnlyEnabledTermsReachTheCheckout(): void
     {
         $byCountry = $this->mapTermsByCountry(
@@ -132,13 +151,16 @@ class StorefrontNetTermTest extends TestCase
         $this->assertSame(60, $this->getSelectedNetTerm($quote));
     }
 
-    public function testOnlyInvoiceAndDirectDebitAreSettledOnATerm(): void
+    public function testOnlyTheMethodsTheApiAcceptsATermOnCarryOne(): void
     {
+        // Verified by creating sandbox orders: pay now takes the short term the
+        // account holds for it, while instalments are refused for every term.
+        // Pay now requires no fields, so this cannot come from REQUIRED_BY_METHOD.
         $this->assertTrue(F::takesNetTerm('mondu'));
         $this->assertTrue(F::takesNetTerm('mondusepa'));
+        $this->assertTrue(F::takesNetTerm('mondupaynow'));
         $this->assertFalse(F::takesNetTerm('monduinstallment'));
         $this->assertFalse(F::takesNetTerm('monduinstallmentbyinvoice'));
-        $this->assertFalse(F::takesNetTerm('mondupaynow'));
         $this->assertFalse(F::takesNetTerm(''), 'an unset method must not carry a term either');
     }
 

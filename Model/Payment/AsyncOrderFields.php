@@ -219,19 +219,35 @@ final class AsyncOrderFields
     }
 
     /**
-     * Whether a net term means anything for this payment method.
+     * Payment methods an order may carry a net term on.
      *
-     * Only invoice and direct debit are settled on a term. Sending one with an
-     * instalment or pay now order is refused with 422 "proposed net terms is not
-     * available for merchant", because the merchant holds no terms for those
-     * methods at all, so neither the checkout selector nor the payload may offer
-     * a term there.
+     * Deliberately not derived from REQUIRED_BY_METHOD: that registry lists the
+     * fields the async API demands, and a method can accept a term without
+     * requiring one. Pay now is exactly that case, which is why it belongs here
+     * even though it asks for no fields.
+     *
+     * Verified against the sandbox by creating orders: instalments and
+     * instalments by invoice are refused with 422 "proposed net terms is not
+     * available for merchant" for every term, the merchant holds none for them
+     * at all, while pay now takes the short term the account has for it.
+     *
+     * Which terms each of these may use is merchant data, not a constant, and
+     * comes from GET /api/v1/payment_terms narrowed to the method.
+     */
+    public const NET_TERM_METHODS = [
+        'mondu',
+        'mondusepa',
+        'mondupaynow',
+    ];
+
+    /**
+     * Whether an order on this payment method may carry a net term at all.
      *
      * @param string $methodCode Magento payment method code, e.g. "mondu"
      * @return bool
      */
     public static function takesNetTerm(string $methodCode): bool
     {
-        return in_array(self::FIELD_NET_TERM, self::REQUIRED_BY_METHOD[$methodCode] ?? [], true);
+        return in_array($methodCode, self::NET_TERM_METHODS, true);
     }
 }

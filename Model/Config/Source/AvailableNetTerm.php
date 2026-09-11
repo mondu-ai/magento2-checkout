@@ -11,16 +11,21 @@ use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\PaymentTerms;
 
 /**
- * Net terms the merchant may offer in the storefront checkout.
+ * Net terms the merchant may offer for one payment method in the storefront.
  *
- * Populates the multiselect that decides which terms buyers get to choose from, so
- * the list is what the merchant actually holds for the storefront flow rather than
- * a free text number. Read with the widget source: the terms of the admin async
- * flow are a different set and offering one of those to a buyer only earns a 422
- * at order creation.
+ * Populates the multiselect that decides which terms buyers get to choose from.
+ * There is one instance per payment method (see the virtual types in etc/di.xml)
+ * because a merchant's terms differ per method: the account behind this plugin
+ * holds 30, 60 and 90 days for invoice but only 3 days for pay now, and order
+ * creation refuses the wrong pairing with 422 "proposed net terms is not
+ * available for merchant". A single shared list would offer the merchant terms
+ * that only ever produce that error.
  *
- * The list is the union across the merchant's countries. Narrowing to the buyer's
- * country happens at checkout, where the country is known.
+ * Read with the widget source, since these terms are offered to buyers in the
+ * storefront; the admin order-create screen has its own, async scoped list.
+ *
+ * The list is the union across the merchant's countries. Narrowing to the
+ * buyer's country happens at checkout, where the country is known.
  */
 class AvailableNetTerm implements OptionSourceInterface
 {
@@ -28,11 +33,13 @@ class AvailableNetTerm implements OptionSourceInterface
      * @param PaymentTerms $paymentTerms
      * @param RequestInterface $request
      * @param StoreManagerInterface $storeManager
+     * @param string $monduMethod Mondu payment method identifier, e.g. "invoice"
      */
     public function __construct(
         private readonly PaymentTerms $paymentTerms,
         private readonly RequestInterface $request,
         private readonly StoreManagerInterface $storeManager,
+        private readonly string $monduMethod = '',
     ) {
     }
 
@@ -41,8 +48,15 @@ class AvailableNetTerm implements OptionSourceInterface
      */
     public function toOptionArray(): array
     {
+        $netTerms = $this->paymentTerms->getNetTerms(
+            PaymentTerms::SOURCE_WIDGET,
+            null,
+            $this->getStoreId(),
+            $this->monduMethod !== '' ? $this->monduMethod : null
+        );
+
         $out = [];
-        foreach ($this->paymentTerms->getNetTerms(PaymentTerms::SOURCE_WIDGET, null, $this->getStoreId()) as $term) {
+        foreach ($netTerms as $term) {
             $out[] = ['value' => $term, 'label' => (string) __('%1 days', $term)];
         }
 

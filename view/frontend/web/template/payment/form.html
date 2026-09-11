@@ -14,17 +14,21 @@
         <!-- ko foreach: getRegion('messages') -->
         <!-- ko template: getTemplate() --><!-- /ko -->
         <!--/ko-->
-        <div class="mondu-net-term field" data-bind="visible: isNetTermSelectorVisible()">
+        <div class="mondu-net-term field" data-bind="visible: isNetTermVisible()">
             <label class="label" data-bind="attr: {'for': getCode() + '-net-term'}">
                 <span data-bind="i18n: 'Payment term'"></span>
             </label>
             <div class="control">
                 <select class="select"
                         name="payment[mondu_net_term]"
-                        data-bind="attr: {'id': getCode() + '-net-term'},
+                        data-bind="visible: isNetTermSelectorVisible(),
+                                   attr: {'id': getCode() + '-net-term'},
                                    options: availableNetTerms,
                                    optionsText: getNetTermLabel,
                                    value: selectedNetTerm"></select>
+                <span class="mondu-net-term-single"
+                      data-bind="visible: isNetTermTextVisible(),
+                                 text: getSingleNetTermLabel()"></span>
             </div>
         </div>
         <div class="payment-method-billing-address">

@@ -37,17 +37,7 @@ define([
             // validates. Recomputed rather than read once, because the buyer can
             // change the address without reloading the checkout.
             self.availableNetTerms = ko.computed(function () {
-                var config = self.getNetTermConfig();
-
-                if (!config.available.length) {
-                    return [];
-                }
-
-                var allowedForCountry = self.getNetTermsForCountry(config);
-
-                return config.available.filter(function (netTerm) {
-                    return allowedForCountry.indexOf(netTerm) !== -1;
-                });
+                return self.getNetTermsForCountry(self.getNetTermConfig());
             });
 
             self.selectedNetTerm = ko.observable(null);
@@ -93,16 +83,15 @@ define([
             return data;
         },
 
+        /**
+         * Terms per country for this payment method, already narrowed to what the
+         * merchant enabled for it. Absent for a method the merchant left empty and
+         * for instalments, which cannot carry a term at all.
+         */
         getNetTermConfig: function () {
             var config = window.checkoutConfig.monduNetTerms || {};
-            var byMethod = config.byMethod || {};
 
-            return {
-                available: config.available || [],
-                // Absent for instalments and pay now, which are not settled on a
-                // term: offering one there is refused at order creation.
-                byCountry: byMethod[this.getCode()] || {},
-            };
+            return (config.byMethod || {})[this.getCode()] || {};
         },
 
         /**
@@ -110,17 +99,17 @@ define([
          *
          * The wildcard key holds terms the API returned without a country, which
          * count everywhere. An unknown country yields nothing, which hides the
-         * selector and sends no term at all.
+         * field and sends no term at all.
          */
-        getNetTermsForCountry: function (config) {
+        getNetTermsForCountry: function (byCountry) {
             var address = quote.billingAddress() || quote.shippingAddress();
             var countryId = (address && address.countryId) ? address.countryId : null;
 
-            if (countryId && config.byCountry[countryId]) {
-                return config.byCountry[countryId];
+            if (countryId && byCountry[countryId]) {
+                return byCountry[countryId];
             }
 
-            return config.byCountry['*'] || [];
+            return byCountry['*'] || [];
         },
 
         /**
@@ -141,14 +130,32 @@ define([
         },
 
         /**
-         * A single available term needs no question: it is applied silently.
+         * The buyer only gets a choice when there is one to make.
          */
         isNetTermSelectorVisible: function () {
             return this.availableNetTerms().length > 1;
         },
 
+        /**
+         * A single term is still shown, just not as a question: the buyer is told
+         * when the invoice falls due either way.
+         */
+        isNetTermTextVisible: function () {
+            return this.availableNetTerms().length === 1;
+        },
+
+        isNetTermVisible: function () {
+            return this.availableNetTerms().length > 0;
+        },
+
         getNetTermLabel: function (netTerm) {
             return $t('%1 days').replace('%1', netTerm);
+        },
+
+        getSingleNetTermLabel: function () {
+            var netTerms = this.availableNetTerms();
+
+            return netTerms.length ? this.getNetTermLabel(netTerms[0]) : '';
         },
 
         getMonduCheckoutTokenUrl: function () {

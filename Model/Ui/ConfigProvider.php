@@ -249,18 +249,21 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Net terms the merchant lets buyers choose from in the storefront checkout.
+     * Net terms the merchant lets buyers choose from for one payment method.
      *
-     * Empty means the feature is off and the plugin sends no net term at all, so
-     * the Mondu account keeps applying whatever it applies today.
+     * Configured per method because a merchant's terms differ per method, and
+     * order creation refuses the wrong pairing. Empty means the feature is off
+     * for that method and the plugin sends no net term at all, so the Mondu
+     * account keeps applying whatever it applies today.
      *
+     * @param string $methodCode Magento payment method code, e.g. "mondu"
      * @param int|null $storeId
      * @return int[]
      */
-    public function getAvailableNetTerms(?int $storeId = null): array
+    public function getAvailableNetTerms(string $methodCode, ?int $storeId = null): array
     {
         $configured = $this->scopeConfig->getValue(
-            'payment/mondu/available_net_terms',
+            'payment/' . $methodCode . '/available_net_terms',
             ScopeInterface::SCOPE_STORE,
             $storeId ?? $this->contextCode
         );

@@ -13,21 +13,30 @@ use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 /**
  * Feeds the storefront checkout the net terms a buyer may choose from.
  *
- * The offered terms are narrowed the same way order creation validates them, by
- * payment method and by country, otherwise the checkout offers a term the API then
- * refuses with 422 "proposed net terms is not available for merchant".
+ * The terms are narrowed the same way order creation validates them, by payment
+ * method and by country, or the checkout offers something the API then refuses
+ * with 422 "proposed net terms is not available for merchant". Both dimensions
+ * matter on a real account: the one behind this plugin holds 30, 60 and 90 days
+ * for invoice but only 3 days for pay now, and only 30 days for France.
+ *
+ * Two sources are intersected rather than trusting either alone. The merchant's
+ * per method configuration is authoritative about what to offer, and it is what
+ * keeps an over broad reply from the terms endpoint out of the checkout while
+ * its source and payment method filters are not yet everywhere. The endpoint is
+ * authoritative about which country may use a term.
  *
  * The country is not settled when the checkout config is generated and can change
- * without a page reload, so a map goes out rather than one ready made list and the
- * payment method renderer reads its own entry whenever the address changes. Methods
- * that are not settled on a term at all, instalments and pay now, are absent from
- * the map, so their checkout offers nothing and sends nothing.
- *
- * Everything stays empty unless the merchant enabled terms in the configuration,
- * which keeps the checkout sending no net term at all, as it did before.
+ * without a page reload, so a country map goes out rather than one ready made
+ * list and the payment method renderer reads its own entry when the address
+ * changes. Methods that cannot carry a term at all are absent from the map.
  */
 class NetTermConfigProvider implements ConfigProviderInterface
 {
+    /**
+     * Terms of a country the API lists without one, reachable for any buyer.
+     */
+    public const ANY_COUNTRY = '*';
+
     /**
      * @param CheckoutSession $checkoutSession
      * @param ConfigProvider $configProvider
@@ -46,73 +55,44 @@ class NetTermConfigProvider implements ConfigProviderInterface
     public function getConfig(): array
     {
         $storeId = $this->getStoreId();
-        $available = $this->configProvider->getAvailableNetTerms($storeId);
-
-        if ($available === []) {
-            return ['monduNetTerms' => ['available' => [], 'byMethod' => []]];
-        }
-
-        return [
-            'monduNetTerms' => [
-                'available' => $available,
-                'byMethod' => $this->getTermsByMethod($available, $storeId),
-            ],
-        ];
-    }
-
-    /**
-     * Country maps of the enabled terms, per Magento payment method code.
-     *
-     * Only the methods settled on a term get an entry, and each is read with its own
-     * Mondu identifier so the API can narrow the answer to that method as well.
-     *
-     * @param int[] $available
-     * @param int|null $storeId
-     * @return array<string, array<string, int[]>>
-     */
-    private function getTermsByMethod(array $available, ?int $storeId): array
-    {
         $byMethod = [];
 
-        foreach (PaymentMethod::MAPPING as $monduMethod => $methodCode) {
-            if (!AsyncOrderFields::takesNetTerm($methodCode)) {
+        foreach (AsyncOrderFields::NET_TERM_METHODS as $methodCode) {
+            $configured = $this->configProvider->getAvailableNetTerms($methodCode, $storeId);
+            if ($configured === []) {
                 continue;
             }
 
-            $byMethod[$methodCode] = $this->getTermsByCountry($available, $storeId, (string) $monduMethod);
+            $monduMethod = array_search($methodCode, PaymentMethod::MAPPING, true);
+            $byCountry = $this->mapTermsByCountry(
+                $this->paymentTerms->getPaymentTerms(
+                    PaymentTerms::SOURCE_WIDGET,
+                    $storeId,
+                    $monduMethod === false ? null : (string) $monduMethod
+                ),
+                $configured
+            );
+
+            if ($byCountry !== []) {
+                $byMethod[$methodCode] = $byCountry;
+            }
         }
 
-        return $byMethod;
+        return ['monduNetTerms' => ['byMethod' => $byMethod]];
     }
 
     /**
-     * Which of the enabled terms each country allows.
+     * Groups the terms by country, keeping only the ones the merchant enabled.
      *
      * Rows the API returns without a country count for every country, so they are
      * added to each country the merchant has, and kept under a wildcard key for a
      * buyer whose country appears nowhere else.
      *
-     * @param int[] $available
-     * @param int|null $storeId
-     * @param string $monduMethod Mondu payment method identifier, e.g. "invoice"
-     * @return array<string, int[]>
-     */
-    private function getTermsByCountry(array $available, ?int $storeId, string $monduMethod): array
-    {
-        return $this->mapTermsByCountry(
-            $this->paymentTerms->getPaymentTerms(PaymentTerms::SOURCE_WIDGET, $storeId, $monduMethod),
-            $available
-        );
-    }
-
-    /**
-     * Groups the API rows by country, dropping every term the merchant did not enable.
-     *
      * @param array<int, array{net_term?: int, country_code?: string}> $rows
-     * @param int[] $available
+     * @param int[] $configured
      * @return array<string, int[]>
      */
-    private function mapTermsByCountry(array $rows, array $available): array
+    private function mapTermsByCountry(array $rows, array $configured): array
     {
         $byCountry = [];
         $anyCountry = [];
@@ -122,7 +102,7 @@ class NetTermConfigProvider implements ConfigProviderInterface
                 continue;
             }
             $netTerm = (int) $row['net_term'];
-            if (!in_array($netTerm, $available, true)) {
+            if (!in_array($netTerm, $configured, true)) {
                 continue;
             }
 
@@ -140,7 +120,7 @@ class NetTermConfigProvider implements ConfigProviderInterface
         }
 
         if ($anyCountry !== []) {
-            $byCountry['*'] = $this->normalise($anyCountry);
+            $byCountry[self::ANY_COUNTRY] = $this->normalise($anyCountry);
         }
 
         return $byCountry;
