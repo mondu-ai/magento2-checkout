@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\LogFactory;
 use Mondu\Mondu\Model\Request\Factory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
@@ -24,9 +25,20 @@ class Log
     public const MONDU_STATE_COMPLETE = 'complete';
 
     /**
+     * State an async order sits in until Mondu decides — never a final answer.
+     */
+    public const MONDU_STATE_PROCESSING = 'processing';
+
+    /**
+     * Invoice state Mondu reports for an invoice that is no longer live.
+     */
+    public const MONDU_INVOICE_STATE_CANCELED = 'canceled';
+
+    /**
      * @param ConfigProvider $configProvider
      * @param Factory $requestFactory
      * @param LogFactory $monduLogger
+     * @param MonduFileLogger $monduFileLogger
      * @param MonduTransactionItem $monduTransactionItem
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -36,6 +48,7 @@ class Log
         private readonly ConfigProvider $configProvider,
         private readonly Factory $requestFactory,
         private readonly LogFactory $monduLogger,
+        private readonly MonduFileLogger $monduFileLogger,
         private readonly MonduTransactionItem $monduTransactionItem,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -68,6 +81,7 @@ class Log
      * @param array $response
      * @param array|null $addons
      * @param string $paymentMethod
+     * @param string $orderFlow  'authorization' for standard checkout, 'async' for admin back-office orders
      * @throws Exception
      * @return void
      */
@@ -75,7 +89,8 @@ class Log
         OrderInterface $order,
         array $response,
         ?array $addons = null,
-        string $paymentMethod = 'mondu'
+        string $paymentMethod = 'mondu',
+        string $orderFlow = 'authorization'
     ): void {
         $monduLogger = $this->monduLogger->create();
         $logData = [
@@ -88,8 +103,9 @@ class Log
             'mode' => $this->configProvider->getMode(),
             'addons' => $this->serializer->serialize($addons),
             'payment_method' => $paymentMethod,
-            'authorized_net_term' => $response['authorized_net_term'],
-            'is_confirmed' => 1,
+            'authorized_net_term' => $response['authorized_net_term'] ?? null,
+            'is_confirmed' => $orderFlow === 'async' ? 0 : 1,
+            'order_flow' => $orderFlow,
             'invoice_iban' => $response['merchant']['viban'] ?? null,
             'external_data' => $this->serializer->serialize([
                 'merchant_company_name' => $response['merchant']['company_name'] ?? null,
@@ -269,6 +285,29 @@ class Log
     }
 
     /**
+     * Returns the invoices Mondu holds for an order, as [magento invoice number => ['uuid', 'state', …]].
+     *
+     * Written the moment an invoice is accepted by Mondu, so unlike mondu_state it cannot be
+     * stale: the order state only advances once Mondu processes the invoice, and nothing pulls
+     * that in until the next sync.
+     *
+     * @param string $orderUid
+     * @return array
+     */
+    public function getMonduInvoiceMappings(string $orderUid): array
+    {
+        $log = $this->getTransactionByOrderUid($orderUid);
+
+        if (empty($log['addons']) || $log['addons'] === 'null') {
+            return [];
+        }
+
+        $invoices = $this->serializer->unserialize($log['addons']);
+
+        return is_array($invoices) ? $invoices : [];
+    }
+
+    /**
      * Check if a credit memo can be created based on Mondu state.
      *
      * @param string $orderUid
@@ -294,6 +333,96 @@ class Log
     }
 
     /**
+     * True when the module recorded at least one live Mondu invoice for the order.
+     *
+     * The cached order state can lag behind Mondu — it is refreshed by a single
+     * API call right after the invoice is created, with no retry — so the
+     * invoices the module wrote down itself are the more reliable signal that a
+     * refund has to become a credit note rather than a cancellation.
+     *
+     * @param string $orderUid
+     * @throws LocalizedException
+     * @return bool
+     */
+    public function hasMonduInvoices(string $orderUid): bool
+    {
+        $log = $this->getTransactionByOrderUid($orderUid);
+
+        if (empty($log['addons'])) {
+            return false;
+        }
+
+        try {
+            $addons = $this->serializer->unserialize($log['addons']);
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('hasMonduInvoices: could not read the stored invoice mapping', [
+                'order_uid' => $orderUid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+
+        if (!is_array($addons)) {
+            return false;
+        }
+
+        foreach ($addons as $invoice) {
+            if (!is_array($invoice) || empty($invoice['uuid'])) {
+                continue;
+            }
+
+            if (($invoice['state'] ?? null) === self::MONDU_INVOICE_STATE_CANCELED) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * True while Mondu has not decided about the order yet.
+     *
+     * @param string|null $monduState
+     * @return bool
+     */
+    public function isTransientState(?string $monduState): bool
+    {
+        return $monduState === self::MONDU_STATE_PROCESSING;
+    }
+
+    /**
+     * Pulls the current state for orders Mondu has not decided on yet.
+     *
+     * The webhook is the normal path; this is the safety net for the case where
+     * it never arrived, so the admin is not left looking at a stale state.
+     *
+     * @param string[] $orderUids
+     * @return array<string, string> orderUid => refreshed state
+     */
+    public function syncTransientOrders(array $orderUids): array
+    {
+        $refreshed = [];
+
+        foreach ($orderUids as $orderUid) {
+            try {
+                $this->syncOrder((string) $orderUid);
+                $log = $this->getTransactionByOrderUid((string) $orderUid);
+                if (isset($log['mondu_state'])) {
+                    $refreshed[(string) $orderUid] = (string) $log['mondu_state'];
+                }
+            } catch (Exception $e) {
+                // A state we could not refresh is not worth breaking the page over.
+                continue;
+            }
+        }
+
+        return $refreshed;
+    }
+
+    /**
      * Syncs order state with Mondu API and updates the log.
      *
      * @param string $orderUid
@@ -306,6 +435,20 @@ class Log
         $data = $this->requestFactory->create(Factory::TRANSACTION_CONFIRM_METHOD, $storeId)
             ->setValidate(false)
             ->process(['orderUid' => $orderUid]);
+
+        // The API answers with an error body when the order belongs to another
+        // account or no longer exists; keeping the stored state beats overwriting
+        // it with nothing. It must not pass unnoticed though — every caller that
+        // later reads mondu_state is working with a value that is now stale.
+        if (!isset($data['order']['state'])) {
+            $this->monduFileLogger->error('syncOrder: Mondu did not return an order state, keeping the stored one', [
+                'order_uid' => $orderUid,
+                'response' => $data,
+            ]);
+
+            return;
+        }
+
         $this->updateLogMonduData($orderUid, $data['order']['state'], $data['order']['merchant']['viban'] ?? null);
     }
 

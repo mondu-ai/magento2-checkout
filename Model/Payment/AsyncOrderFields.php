@@ -1,0 +1,253 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mondu\Mondu\Model\Payment;
+
+/**
+ * Per-payment-method field registry for Mondu order create.
+ *
+ * Fields flow: admin form → DataAssignObserver → payment.additional_information
+ * → CreateAsyncOrder payload.
+ *
+ * FIELD_NET_TERM is shared with the storefront checkout, which writes the term the
+ * buyer picked through the same observer, so an order keeps its net term in one
+ * place no matter which flow created it. The rest of the fields are admin only.
+ */
+final class AsyncOrderFields
+{
+    public const FIELD_REGISTRATION_ID         = 'mondu_registration_id';
+    public const FIELD_LEGAL_FORM_CATEGORY     = 'mondu_legal_form_category';
+    public const FIELD_NET_TERM                = 'mondu_net_term';
+    public const FIELD_NUMBER_OF_INSTALLMENTS  = 'mondu_number_of_installments';
+    public const FIELD_IBAN                    = 'mondu_iban';
+    public const FIELD_ACCOUNT_HOLDER          = 'mondu_account_holder';
+    public const FIELD_OWNER_FIRST_NAME        = 'mondu_owner_first_name';
+    public const FIELD_OWNER_LAST_NAME         = 'mondu_owner_last_name';
+    public const FIELD_OWNER_BIRTH_DATE        = 'mondu_owner_birth_date';
+
+    /**
+     * legal_form_category value that makes the `owners` object mandatory.
+     */
+    public const LEGAL_FORM_CATEGORY_SOLE_TRADER = 'einzelunternehmen';
+
+    /**
+     * Countries where Mondu accepts a buyer without a registration_id.
+     *
+     * Everywhere else the field is mandatory, no matter which payment method is
+     * selected — the rule is about the buyer's register, not about the method.
+     */
+    public const REGISTRATION_ID_OPTIONAL_COUNTRIES = ['DE'];
+
+    /**
+     * Country-specific register the registration_id comes from.
+     *
+     * @see https://docs.mondu.ai/reference/registration-id-examples
+     */
+    public const REGISTRATION_ID_HINTS = [
+        'DE' => 'HRB (Handelsregister), e.g. HRB 232626 B',
+        'NL' => 'KVK (Kamer van Koophandel), e.g. 86653938',
+        'BE' => 'KBO/BCE (Belgian Enterprise Register), e.g. 0465515965',
+        'GB' => 'CRN (Companies House), e.g. 14681433',
+        'LU' => 'RCS (Luxembourg Business Registers), e.g. B91982',
+        'CH' => 'Commercial register (Handelsregister), e.g. CHE-245.518.760',
+        'FR' => 'SIRET, e.g. 883846123',
+        'GR' => 'ΑΦΜ / TIN (Greek tax identification number), e.g. 800863970',
+    ];
+
+    /**
+     * Owner attributes required by the API when the buyer is a sole trader.
+     */
+    public const OWNER_FIELDS = [
+        self::FIELD_OWNER_FIRST_NAME,
+        self::FIELD_OWNER_LAST_NAME,
+        self::FIELD_OWNER_BIRTH_DATE,
+    ];
+
+    /**
+     * Map: Magento payment method code → list of required fields for that method.
+     *
+     * Derived from Mondu API 422 errors on POST /orders/create_async.
+     */
+    public const REQUIRED_BY_METHOD = [
+        'mondu' => [
+            self::FIELD_NET_TERM,
+        ],
+        'mondusepa' => [
+            self::FIELD_NET_TERM,
+            self::FIELD_IBAN,
+            self::FIELD_ACCOUNT_HOLDER,
+        ],
+        'monduinstallment' => [
+            self::FIELD_NUMBER_OF_INSTALLMENTS,
+            self::FIELD_IBAN,
+            self::FIELD_ACCOUNT_HOLDER,
+        ],
+        'monduinstallmentbyinvoice' => [
+            self::FIELD_NUMBER_OF_INSTALLMENTS,
+        ],
+        'mondupaynow' => [],
+    ];
+
+    /**
+     * Map: payment method code → fields that are shown but not always enforced.
+     *
+     * The API accepts these for every method. legal_form_category is optional
+     * everywhere; registration_id is listed here because its requirement depends
+     * on the billing country rather than on the method — see
+     * isRegistrationIdRequired().
+     */
+    public const OPTIONAL_BY_METHOD = [
+        'mondu' => [
+            self::FIELD_REGISTRATION_ID,
+            self::FIELD_LEGAL_FORM_CATEGORY,
+        ],
+        'mondusepa' => [
+            self::FIELD_REGISTRATION_ID,
+            self::FIELD_LEGAL_FORM_CATEGORY,
+        ],
+        'monduinstallment' => [
+            self::FIELD_REGISTRATION_ID,
+            self::FIELD_LEGAL_FORM_CATEGORY,
+        ],
+        'monduinstallmentbyinvoice' => [
+            self::FIELD_REGISTRATION_ID,
+            self::FIELD_LEGAL_FORM_CATEGORY,
+        ],
+        'mondupaynow' => [
+            self::FIELD_REGISTRATION_ID,
+            self::FIELD_LEGAL_FORM_CATEGORY,
+        ],
+    ];
+
+    /**
+     * All fields we accept from the admin form (order may include ones not required for
+     * the selected method; we store them anyway so the observer stays code-agnostic).
+     */
+    public const ALL_FIELDS = [
+        self::FIELD_REGISTRATION_ID,
+        self::FIELD_LEGAL_FORM_CATEGORY,
+        self::FIELD_NET_TERM,
+        self::FIELD_NUMBER_OF_INSTALLMENTS,
+        self::FIELD_IBAN,
+        self::FIELD_ACCOUNT_HOLDER,
+        self::FIELD_OWNER_FIRST_NAME,
+        self::FIELD_OWNER_LAST_NAME,
+        self::FIELD_OWNER_BIRTH_DATE,
+    ];
+
+    /**
+     * @return string[]
+     */
+    public static function requiredFor(string $methodCode): array
+    {
+        return self::REQUIRED_BY_METHOD[$methodCode] ?? [];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function optionalFor(string $methodCode): array
+    {
+        return self::OPTIONAL_BY_METHOD[$methodCode] ?? [];
+    }
+
+    /**
+     * Every field the admin form should display for the given method.
+     *
+     * @return string[]
+     */
+    public static function visibleFor(string $methodCode): array
+    {
+        return array_merge(self::requiredFor($methodCode), self::optionalFor($methodCode));
+    }
+
+    /**
+     * Whether registration_id has to be filled for a buyer in the given country.
+     *
+     * An unknown country is treated as "not required": guessing wrong here would
+     * block an order the API would have accepted.
+     *
+     * @param string|null $countryCode ISO-2 billing country code
+     * @return bool
+     */
+    public static function isRegistrationIdRequired(?string $countryCode): bool
+    {
+        if ($countryCode === null || $countryCode === '') {
+            return false;
+        }
+
+        return !in_array(strtoupper($countryCode), self::REGISTRATION_ID_OPTIONAL_COUNTRIES, true);
+    }
+
+    /**
+     * Register the registration_id is taken from in the given country, if we know it.
+     *
+     * @param string|null $countryCode ISO-2 billing country code
+     * @return string|null
+     */
+    public static function registrationIdHint(?string $countryCode): ?string
+    {
+        if ($countryCode === null || $countryCode === '') {
+            return null;
+        }
+
+        return self::REGISTRATION_ID_HINTS[strtoupper($countryCode)] ?? null;
+    }
+
+    /**
+     * Fields that become mandatory because of the selected legal_form_category.
+     *
+     * @return string[]
+     */
+    public static function requiredForCategory(?string $category): array
+    {
+        return $category === self::LEGAL_FORM_CATEGORY_SOLE_TRADER ? self::OWNER_FIELDS : [];
+    }
+
+    /**
+     * True when the field is only sent along with the `owners` object.
+     */
+    public static function isOwnerField(string $field): bool
+    {
+        return in_array($field, self::OWNER_FIELDS, true);
+    }
+
+    public static function isMonduMethod(string $methodCode): bool
+    {
+        return array_key_exists($methodCode, self::REQUIRED_BY_METHOD);
+    }
+
+    /**
+     * Payment methods an order may carry a net term on.
+     *
+     * Deliberately not derived from REQUIRED_BY_METHOD: that registry lists the
+     * fields the async API demands, and a method can accept a term without
+     * requiring one. Pay now is exactly that case, which is why it belongs here
+     * even though it asks for no fields.
+     *
+     * Verified against the sandbox by creating orders: instalments and
+     * instalments by invoice are refused with 422 "proposed net terms is not
+     * available for merchant" for every term, the merchant holds none for them
+     * at all, while pay now takes the short term the account has for it.
+     *
+     * Which terms each of these may use is merchant data, not a constant, and
+     * comes from GET /api/v1/payment_terms narrowed to the method.
+     */
+    public const NET_TERM_METHODS = [
+        'mondu',
+        'mondusepa',
+        'mondupaynow',
+    ];
+
+    /**
+     * Whether an order on this payment method may carry a net term at all.
+     *
+     * @param string $methodCode Magento payment method code, e.g. "mondu"
+     * @return bool
+     */
+    public static function takesNetTerm(string $methodCode): bool
+    {
+        return in_array($methodCode, self::NET_TERM_METHODS, true);
+    }
+}

@@ -75,10 +75,19 @@ class UpdateOrder extends MonduObserver
         ]);
 
         try {
-            $canCreditMemo = $order->canCreditmemo()
+            // An order Mondu has already invoiced can only be refunded with a
+            // credit note. The stored Mondu state is not proof of that on its
+            // own: it is refreshed by one API call right after the invoice is
+            // created, and a call that comes back without a state leaves the
+            // order sitting at 'confirmed'. The recorded invoices are, so they
+            // decide first and the state is only a fallback for orders we have
+            // no invoice mapping for.
+            $hasMonduInvoices = $this->monduLogHelper->hasMonduInvoices($monduId);
+            $canCreditMemo = $hasMonduInvoices
+                || $order->canCreditmemo()
                 || $order->canInvoice()
                 || $this->monduLogHelper->canCreditMemo($monduId);
-            
+
             $this->monduFileLogger->logOrderStatus(
                 '[ORDER STATUS] UpdateOrder observer - Checking credit memo conditions',
                 [
@@ -87,6 +96,7 @@ class UpdateOrder extends MonduObserver
                     'can_creditmemo' => $order->canCreditmemo(),
                     'can_invoice' => $order->canInvoice(),
                     'mondu_can_creditmemo' => $this->monduLogHelper->canCreditMemo($monduId),
+                    'has_mondu_invoices' => $hasMonduInvoices,
                     'will_create_creditmemo' => $canCreditMemo
                 ]
             );
@@ -174,7 +184,8 @@ class UpdateOrder extends MonduObserver
                     $logData = $this->monduLogHelper->getTransactionByOrderUid($monduId);
                     $monduState = $logData['mondu_state'] ?? 'unknown';
                     $allowedStates = ['shipped', 'partially_shipped', 'partially_complete', 'complete'];
-                    
+                    $canPartiallyRefund = $hasMonduInvoices || in_array($monduState, $allowedStates, true);
+
                     $this->monduFileLogger->logOrderStatus(
                         '[ORDER STATUS] UpdateOrder observer - Checking Mondu state for partial refund',
                         [
@@ -182,11 +193,12 @@ class UpdateOrder extends MonduObserver
                             'order_increment_id' => $order->getIncrementId(),
                             'mondu_order_state' => $monduState,
                             'allowed_states' => $allowedStates,
-                            'can_partially_refund' => in_array($monduState, $allowedStates, true)
+                            'has_mondu_invoices' => $hasMonduInvoices,
+                            'can_partially_refund' => $canPartiallyRefund
                         ]
                     );
-                    
-                    if (!in_array($monduState, $allowedStates, true)) {
+
+                    if (!$canPartiallyRefund) {
                         $this->monduFileLogger->logOrderStatus(
                             '[ORDER STATUS] UpdateOrder observer - Partial refund NOT ALLOWED',
                             [

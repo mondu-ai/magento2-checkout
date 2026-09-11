@@ -46,7 +46,7 @@ test('Customer cancels on Mondu → redirected to cart with error message', asyn
   // Should land back on cart or checkout with error
   await page.waitForURL(/checkout\/cart|mondu\/payment_checkout\/cancel/, { timeout: 30_000 })
 
-  const errorMessage = page.locator('.message-error, .messages .message, .error-message')
+  const errorMessage = page.locator('.message-error, .error-message').first()
   await expect(errorMessage).toBeVisible({ timeout: 15_000 })
   await expect(errorMessage).toContainText(/canceled|cancelled/i)
 })

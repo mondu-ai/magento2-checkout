@@ -1,0 +1,98 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Mondu\Mondu\Block\Adminhtml\Order\CreditNote\Form $block
+ */
+$order = $block->getOrder();
+$invoices = $block->getMonduInvoices();
+?>
+<div class="mondu-credit-note">
+    <?php if (!$invoices): ?>
+        <div class="message message-notice">
+            <?= $escaper->escapeHtml(
+                __('Mondu holds no invoice for this order yet, so there is nothing to credit.')
+            ) ?>
+        </div>
+        <div class="page-actions">
+            <a class="action-default" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                <?= $escaper->escapeHtml(__('Back to the order')) ?>
+            </a>
+        </div>
+    <?php else: ?>
+        <form action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>" method="post">
+            <?= $block->getBlockHtml('formkey') ?>
+
+            <fieldset class="admin__fieldset">
+                <div class="admin__field _required">
+                    <label class="admin__field-label" for="mondu_invoice_uid">
+                        <span><?= $escaper->escapeHtml(__('Invoice at Mondu')) ?></span>
+                    </label>
+                    <div class="admin__field-control">
+                        <select class="admin__control-select" id="mondu_invoice_uid" name="invoice_uid" required>
+                            <?php foreach ($invoices as $invoiceNumber => $invoice): ?>
+                                <option value="<?= $escaper->escapeHtmlAttr($invoice['uuid'] ?? '') ?>">
+                                    <?= $escaper->escapeHtml(
+                                        __(
+                                            'Invoice %1 (state: %2)',
+                                            $invoiceNumber,
+                                            $invoice['state'] ?? __('unknown')
+                                        )
+                                    ) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin__field _required">
+                    <label class="admin__field-label" for="mondu_amount">
+                        <span><?= $escaper->escapeHtml(__('Amount')) ?></span>
+                    </label>
+                    <div class="admin__field-control">
+                        <input class="admin__control-text"
+                               id="mondu_amount"
+                               name="amount"
+                               type="text"
+                               required
+                               value=""/>
+                        <div class="admin__field-note">
+                            <?= $escaper->escapeHtml(
+                                __('Order total is %1. Mondu checks the amount against the invoice as well.', $block->getFormattedOrderTotal())
+                            ) ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin__field">
+                    <label class="admin__field-label" for="mondu_reference">
+                        <span><?= $escaper->escapeHtml(__('Reference')) ?></span>
+                    </label>
+                    <div class="admin__field-control">
+                        <input class="admin__control-text"
+                               id="mondu_reference"
+                               name="external_reference_id"
+                               type="text"
+                               value=""/>
+                        <div class="admin__field-note">
+                            <?= $escaper->escapeHtml(
+                                __('Leave empty to number it after the order. Mondu rejects a reference it has already seen.')
+                            ) ?>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="page-actions">
+                <a class="action-default" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Cancel')) ?>
+                </a>
+                <button class="action-default primary" type="submit" id="mondu_send_credit_note">
+                    <span><?= $escaper->escapeHtml(__('Send credit note')) ?></span>
+                </button>
+            </div>
+        </form>
+    <?php endif; ?>
+</div>

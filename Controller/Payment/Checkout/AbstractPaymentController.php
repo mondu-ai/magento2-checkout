@@ -89,4 +89,21 @@ abstract class AbstractPaymentController implements ActionInterface
         $this->messageManager->addErrorMessage(__($message));
         return $this->redirect('checkout/cart');
     }
+
+    /**
+     * Adds error message and redirects to checkout.
+     *
+     * Used when the buyer comes back from Mondu without an order: the cart page runs a shipping
+     * estimator that overwrites the quote address with the store default country and an empty
+     * postcode, which then fails Mondu's validation on the next attempt. Checkout keeps the
+     * address the buyer already entered and is where another payment method is picked anyway.
+     *
+     * @param string $message
+     * @return ResponseInterface
+     */
+    protected function redirectToCheckoutWithErrorMessage(string $message): ResponseInterface
+    {
+        $this->messageManager->addErrorMessage(__($message));
+        return $this->redirect('checkout');
+    }
 }

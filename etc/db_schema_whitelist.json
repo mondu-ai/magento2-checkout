@@ -15,7 +15,8 @@
             "is_confirmed": true,
             "payment_method": true,
             "authorized_net_term": true,
-            "external_data": true
+            "external_data": true,
+            "order_flow": true
         },
         "index": {
             "MONDU_TRANSACTIONS_CUSTOMER_ID": true
