@@ -26,12 +26,8 @@ test('Customer cancels on Mondu → redirected to cart with error message', asyn
   await selectPaymentMethod(page, 'mondu')
   await placeOrder(page)
 
-  // Wait for Mondu hosted checkout (pay.demo.mondu.ai) or widget
-  try {
-    await page.waitForURL('**mondu.ai/**', { timeout: 30_000 })
-  } catch {
-    // May be widget flow — look for cancel button in modal
-  }
+  // Wait for Mondu hosted checkout (pay.demo.mondu.ai)
+  await page.waitForURL('**mondu.ai/**', { timeout: 30_000 })
 
   // Click cancel on Mondu checkout
   const cancelBtn = page.locator('button:has-text("Cancel"), a:has-text("Cancel"), [data-action="cancel"]')
