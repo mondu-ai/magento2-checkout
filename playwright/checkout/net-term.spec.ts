@@ -2,12 +2,14 @@ import { test, expect, request as playwrightRequest, Page } from '@playwright/te
 import {
   addProductToCart,
   fillShippingAddress,
+  getOrderIncrementId,
   handleMonduCheckout,
   placeOrder,
   proceedToCheckout,
   selectPaymentMethod,
 } from '../helpers/checkout'
 import { getMonduOrder } from '../helpers/api'
+import { loginToAdmin } from '../helpers/admin'
 
 /**
  * Net term selection in the storefront checkout.
@@ -95,6 +97,50 @@ test('The picked net term is the one Mondu authorizes', async ({ page }) => {
   expect(monduOrder.authorized_net_term).toBe(Number(picked))
 
   await apiContext.dispose()
+})
+
+test('The merchant sees the authorized net term in the admin to invoice on', async ({ page }) => {
+  await reachPaymentStep(page)
+
+  const select = page.locator(NET_TERM_SELECT)
+  await select.waitFor({ state: 'visible', timeout: 15_000 })
+
+  // Not the preselected term, so a value that shows up in the admin can only
+  // have come from this order.
+  const offered = await select.locator('option').evaluateAll((options) =>
+    options.map((option) => (option as HTMLOptionElement).value)
+  )
+  const preselected = await select.inputValue()
+  const picked = offered.find((term) => term !== preselected)
+  expect(picked, 'need a second term to tell the pick apart from the default').toBeTruthy()
+  await select.selectOption(picked!)
+
+  await placeOrder(page)
+  const orderUuid = await handleMonduCheckout(page)
+  await expect(page).toHaveURL(/checkout\/onepage\/success/)
+  const incrementId = await getOrderIncrementId(page)
+
+  await loginToAdmin(page)
+
+  // Mondu log grid: the term as its own column. Reached through the menu, since
+  // the admin refuses a URL without its secret key.
+  await page.locator('#menu-mondu-mondu-log > a').click()
+  await page.waitForURL(/mondu\/log/, { timeout: 30_000 })
+  const row = page.locator('.data-grid tbody tr', { hasText: orderUuid! })
+  await row.waitFor({ state: 'visible', timeout: 60_000 })
+
+  const headers = await page.locator('.data-grid thead th').allInnerTexts()
+  const termColumn = headers.findIndex((header) => header.trim() === 'Payment term')
+  expect(termColumn, 'the grid has a Payment term column').toBeGreaterThanOrEqual(0)
+  await expect(row.locator('td').nth(termColumn)).toHaveText(picked!)
+
+  // Order view, opened from the log row: the payment block is what the merchant
+  // reads when invoicing, and the same block is rendered into the invoice PDF
+  // and the order emails.
+  await row.getByRole('link', { name: incrementId }).click()
+  await page.waitForSelector('.page-title', { timeout: 20_000 })
+  const paymentBlock = page.locator('.order-payment-method')
+  await expect(paymentBlock.locator('tr', { hasText: 'Payment term' })).toContainText(`${picked} days`)
 })
 
 test('The field is laid out as its own row and reads in the shop language', async ({ page }) => {

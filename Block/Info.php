@@ -4,48 +4,63 @@ declare(strict_types=1);
 
 namespace Mondu\Mondu\Block;
 
-use Magento\Framework\Phrase;
-use Magento\Payment\Block\ConfigurableInfo;
-use Mondu\Mondu\Model\Payment\AsyncOrderFields;
+use Magento\Framework\DataObject;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Payment\Block\Info as PaymentInfo;
+use Magento\Sales\Model\Order\Payment as OrderPayment;
+use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 
 /**
  * Payment information shown for a Mondu order.
  *
- * Wired as the info block of every Mondu method so the net term reaches the
- * invoice PDF, the order view and the order emails through one path: Magento
- * renders this block into all three. The fields it may show are listed per
- * method as paymentInfoKeys in etc/config.xml.
+ * The info block of every Mondu method settled on a net term, set as
+ * $_infoBlockType on the method model, so the term reaches the order view, the
+ * order emails and the invoice PDF through one path: Magento renders this block
+ * into all three.
  */
-class Info extends ConfigurableInfo
+class Info extends PaymentInfo
 {
     /**
-     * GetLabel.
-     *
-     * @param string $field
-     * @return Phrase
+     * @param Context $context
+     * @param MonduLogHelper $monduLogHelper
+     * @param array $data
      */
-    protected function getLabel($field)
-    {
-        if ($field === AsyncOrderFields::FIELD_NET_TERM) {
-            return __('Payment term');
-        }
-
-        return __($field);
+    public function __construct(
+        Context $context,
+        private readonly MonduLogHelper $monduLogHelper,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
     }
 
     /**
-     * Renders the stored net term as a period rather than a bare number.
+     * Adds the net term the order is settled on.
      *
-     * @param string $field
-     * @param string $value
-     * @return Phrase|string
+     * The term Mondu authorized is the one the invoice has to state. It is known
+     * only once Mondu has decided, so until then the term picked in the checkout
+     * or on the admin order form stands in for it.
+     *
+     * @param DataObject|array|null $transport
+     * @return DataObject
      */
-    protected function getValueView($field, $value)
+    protected function _prepareSpecificInformation($transport = null)
     {
-        if ($field === AsyncOrderFields::FIELD_NET_TERM) {
-            return __('%1 days', $value);
+        if ($this->_paymentSpecificInformation !== null) {
+            return $this->_paymentSpecificInformation;
         }
 
-        return parent::getValueView($field, $value);
+        $transport = parent::_prepareSpecificInformation($transport);
+
+        $info = $this->getInfo();
+        if (!$info instanceof OrderPayment || !$info->getOrder()) {
+            return $transport;
+        }
+
+        $netTerm = $this->monduLogHelper->getNetTermForOrder($info->getOrder());
+        if ($netTerm !== null) {
+            $transport->setData((string) __('Payment term'), (string) __('%1 days', $netTerm));
+        }
+
+        return $transport;
     }
 }

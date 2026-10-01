@@ -251,6 +251,7 @@ class Index implements ActionInterface
         );
         $this->orderRepository->save($order);
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'], $viban);
+        $this->monduLogHelper->fillMissingAuthorizedNetTerm($monduId);
 
         $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing confirmed webhook - AFTER status change', [
             'external_reference_id' => $externalReferenceId,
@@ -308,6 +309,7 @@ class Index implements ActionInterface
         );
         $this->orderRepository->save($order);
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
+        $this->monduLogHelper->fillMissingAuthorizedNetTerm($monduId);
 
         return [['message' => 'ok', 'error' => 0], 200];
     }

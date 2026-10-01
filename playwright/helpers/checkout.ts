@@ -1,4 +1,4 @@
-import { Page, Request } from '@playwright/test'
+import { expect, Page, Request } from '@playwright/test'
 
 const PRODUCT_URL = process.env.MAGENTO_PRODUCT_URL || ''
 
@@ -230,6 +230,19 @@ async function handleHostedCheckout(page: Page): Promise<string | null> {
   // Click "Zahlen mit mondu" / "Pay with mondu" confirm button
   const confirmButton = page.getByRole('button', { name: /zahlen mit|pay with|bestätigen|confirm|submit/i }).first()
   await confirmButton.waitFor({ state: 'visible', timeout: 20_000 })
+
+  // Some accounts first ask the buyer to confirm the payment terms in a modal
+  // ("Zahlungsbedingungen auswählen" → "Weiter"), and pay stays disabled until then.
+  const termsStep = page.getByRole('button', { name: /^(weiter|continue)$/i })
+  const hasTermsStep = await termsStep
+    .waitFor({ state: 'visible', timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false)
+  if (hasTermsStep) {
+    await termsStep.click()
+    await expect(confirmButton).toBeEnabled({ timeout: 10_000 })
+  }
+
   await confirmButton.click({ force: true })
 
   // After clicking, Mondu may redirect through multiple steps.

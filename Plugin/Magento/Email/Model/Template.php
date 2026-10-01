@@ -84,7 +84,7 @@ class Template
                     : '',
                 'iban' => $monduLogData['invoice_iban'],
                 'paymentCode' => (string) $order->getPayment()->getMethod(),
-                'netTerms' => $monduLogData['authorized_net_term'] ?? '',
+                'netTerms' => $this->monduLogger->getNetTermForOrder($order),
             ]);
         } catch (Exception $e) {
             $this->monduFileLogger->critical($e->getMessage());
@@ -169,7 +169,9 @@ class Template
         }
 
         $invoiceDetails .= __('<strong>Payment reference:</strong> %1', $invoiceData['invoiceId']) . '<br/>';
-        $invoiceDetails .= __('<strong>Payment term:</strong> %1 days', $invoiceData['netTerms']) . '<br/>';
+        if ($invoiceData['netTerms']) {
+            $invoiceDetails .= __('<strong>Payment term:</strong> %1 days', $invoiceData['netTerms']) . '<br/>';
+        }
 
         return $invoiceDetails;
     }

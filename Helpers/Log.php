@@ -13,6 +13,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\LogFactory;
+use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 use Mondu\Mondu\Model\Request\Factory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
@@ -212,6 +213,7 @@ class Log
      * @param array $addons
      * @param int|string $orderId
      * @param string $paymentMethod
+     * @param int|null $authorizedNetTerm
      * @throws LocalizedException
      * @return mixed
      */
@@ -221,7 +223,8 @@ class Log
         ?string $viban = null,
         $addons = null,
         $orderId = null,
-        $paymentMethod = null
+        $paymentMethod = null,
+        ?int $authorizedNetTerm = null
     ) {
         $log = $this->getLogCollection($orderUid);
 
@@ -252,6 +255,10 @@ class Log
 
         if ($paymentMethod) {
             $data['payment_method'] = $paymentMethod;
+        }
+
+        if ($authorizedNetTerm) {
+            $data['authorized_net_term'] = $authorizedNetTerm;
         }
 
         $log->addData($data);
@@ -449,7 +456,80 @@ class Log
             return;
         }
 
-        $this->updateLogMonduData($orderUid, $data['order']['state'], $data['order']['merchant']['viban'] ?? null);
+        $authorizedNetTerm = isset($data['order']['authorized_net_term'])
+            ? (int) $data['order']['authorized_net_term']
+            : null;
+
+        $this->updateLogMonduData(
+            $orderUid,
+            $data['order']['state'],
+            $data['order']['merchant']['viban'] ?? null,
+            null,
+            null,
+            null,
+            $authorizedNetTerm
+        );
+    }
+
+    /**
+     * Stores the net term Mondu authorized when the log row does not hold it yet.
+     *
+     * Async orders are logged from the create_async answer, which comes before
+     * Mondu has decided and so carries no authorized term. It is read from the
+     * API once a webhook says the order has been decided.
+     *
+     * @param string $orderUid
+     * @return void
+     */
+    public function fillMissingAuthorizedNetTerm(string $orderUid): void
+    {
+        try {
+            $log = $this->getLogCollection($orderUid);
+            if (!$log->getId() || $log->getData('authorized_net_term')) {
+                return;
+            }
+
+            $this->syncOrder($orderUid);
+        } catch (Exception $e) {
+            // The term is shown to the merchant only, never worth failing a webhook over.
+            $this->monduFileLogger->error('Could not read the authorized net term', [
+                'order_uid' => $orderUid,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Net term the order is settled on, in days.
+     *
+     * The term Mondu authorized wins. Until it is known, the term the buyer or
+     * the admin picked is the best answer. Methods that are not settled on a
+     * term at all have none, whatever was left on the payment.
+     *
+     * @param OrderInterface $order
+     * @return int|null
+     */
+    public function getNetTermForOrder(OrderInterface $order): ?int
+    {
+        $payment = $order->getPayment();
+        if (!$payment || !AsyncOrderFields::takesNetTerm((string) $payment->getMethod())) {
+            return null;
+        }
+
+        try {
+            $log = $order->getEntityId() ? $this->getTransactionByIncrementId((int) $order->getEntityId()) : [];
+        } catch (Exception $e) {
+            $log = [];
+        }
+
+        $authorized = (int) ($log['authorized_net_term'] ?? 0);
+        if ($authorized > 0) {
+            return $authorized;
+        }
+
+        $picked = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_NET_TERM);
+
+        return is_numeric($picked) && (int) $picked > 0 ? (int) $picked : null;
     }
 
     /**
