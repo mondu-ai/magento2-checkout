@@ -26,6 +26,7 @@ use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Log as MonduTransactions;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Service\CheckoutRecovery;
 
 abstract class AbstractSuccessController extends AbstractPaymentController
 {
@@ -46,6 +47,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      * @param CustomerSession $customerSession
      * @param OrderRepositoryInterface $orderRepository
      * @param OrderSender $orderSender
+     * @param CheckoutRecovery $checkoutRecovery
      */
     public function __construct(
         ABTesting $aBTesting,
@@ -64,6 +66,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
         protected CustomerSession $customerSession,
         protected OrderRepositoryInterface $orderRepository,
         protected OrderSender $orderSender,
+        protected CheckoutRecovery $checkoutRecovery,
     ) {
         parent::__construct(
             $aBTesting,

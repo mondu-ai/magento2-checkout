@@ -14,7 +14,7 @@ interface CustomerData {
   phone?: string
 }
 
-function defaultCustomer(company: string, overrides: Partial<CustomerData> = {}): CustomerData {
+export function defaultCustomer(company: string, overrides: Partial<CustomerData> = {}): CustomerData {
   return {
     firstName: process.env.BUYER_FIRST_NAME || 'Jane',
     lastName: process.env.BUYER_LAST_NAME || 'Doe',
@@ -180,6 +180,13 @@ export async function handleMonduCheckout(page: Page): Promise<string | null> {
   return await handleWidgetCheckout(page)
 }
 
+export async function payOnHostedCheckout(page: Page): Promise<void> {
+  // Click "Zahlen mit mondu" / "Pay with mondu" confirm button
+  const confirmButton = page.getByRole('button', { name: /zahlen mit|pay with|bestätigen|confirm|submit/i }).first()
+  await confirmButton.waitFor({ state: 'visible', timeout: 20_000 })
+  await confirmButton.click({ force: true })
+}
+
 async function handleHostedCheckout(page: Page): Promise<string | null> {
   const magentoHost = new URL(process.env.MAGENTO_URL || 'https://example.com').hostname
 
@@ -194,10 +201,7 @@ async function handleHostedCheckout(page: Page): Promise<string | null> {
   }
   page.on('request', requestHandler)
 
-  // Click "Zahlen mit mondu" / "Pay with mondu" confirm button
-  const confirmButton = page.getByRole('button', { name: /zahlen mit|pay with|bestätigen|confirm|submit/i }).first()
-  await confirmButton.waitFor({ state: 'visible', timeout: 20_000 })
-  await confirmButton.click({ force: true })
+  await payOnHostedCheckout(page)
 
   // After clicking, Mondu may redirect through multiple steps.
   // Wait for navigation back to the Magento domain (any path).
