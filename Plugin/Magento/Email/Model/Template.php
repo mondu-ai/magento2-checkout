@@ -84,7 +84,6 @@ class Template
                     : '',
                 'iban' => $monduLogData['invoice_iban'],
                 'paymentCode' => (string) $order->getPayment()->getMethod(),
-                'netTerms' => $this->monduLogger->getNetTermForOrder($order, $monduLogData),
             ]);
         } catch (Exception $e) {
             $this->monduFileLogger->critical($e->getMessage());
@@ -169,9 +168,8 @@ class Template
         }
 
         $invoiceDetails .= __('<strong>Payment reference:</strong> %1', $invoiceData['invoiceId']) . '<br/>';
-        if ($invoiceData['netTerms']) {
-            $invoiceDetails .= __('<strong>Payment term:</strong> %1 days', $invoiceData['netTerms']) . '<br/>';
-        }
+        // The payment term is not repeated here: the payment block of the same
+        // email ({{var payment_html}}) already states it, see Block\Info.
 
         return $invoiceDetails;
     }
