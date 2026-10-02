@@ -84,7 +84,7 @@ class Template
                     : '',
                 'iban' => $monduLogData['invoice_iban'],
                 'paymentCode' => (string) $order->getPayment()->getMethod(),
-                'netTerms' => $this->monduLogger->getNetTermForOrder($order),
+                'netTerms' => $this->monduLogger->getNetTermForOrder($order, $monduLogData),
             ]);
         } catch (Exception $e) {
             $this->monduFileLogger->critical($e->getMessage());

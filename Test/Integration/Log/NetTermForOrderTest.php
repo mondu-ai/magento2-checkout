@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
  *  - the term Mondu authorized wins over the one picked
  *  - the picked term stands in until Mondu has decided
  *  - methods not settled on a term have none, whatever is left on the payment
+ *  - a declined or canceled order is settled on no term
  */
 class NetTermForOrderTest extends TestCase
 {
@@ -74,16 +75,39 @@ class NetTermForOrderTest extends TestCase
         $this->assertNull($this->logHelper->getNetTermForOrder($order));
     }
 
+    public function testDeclinedOrderHasNoTerm(): void
+    {
+        $order = $this->buildOrder('mondu', 30, null, 'declined');
+
+        $this->assertNull($this->logHelper->getNetTermForOrder($order));
+    }
+
+    public function testRowHandedInIsUsedAsIs(): void
+    {
+        $order = $this->buildOrder('mondu', 30, null);
+
+        $this->assertSame(
+            90,
+            $this->logHelper->getNetTermForOrder($order, ['authorized_net_term' => 90, 'mondu_state' => 'confirmed'])
+        );
+    }
+
     /**
      * Builds an unsaved order and, when a term is authorized, its log row.
      *
      * @param string $method
      * @param int|null $pickedNetTerm
      * @param int|null $authorizedNetTerm
+     * @param string|null $monduState
      * @return Order
      */
-    private function buildOrder(string $method, ?int $pickedNetTerm, ?int $authorizedNetTerm): Order
-    {
+    private function buildOrder(
+        string $method,
+        ?int $pickedNetTerm,
+        ?int $authorizedNetTerm,
+        ?string $monduState = null
+    ): Order {
+        $uuid = 'test-net-term-' . uniqid();
         $orderId = random_int(900000000, 999999999);
         $this->orderIds[] = $orderId;
 
@@ -96,15 +120,16 @@ class NetTermForOrderTest extends TestCase
 
         $order = $om->create(Order::class);
         $order->setEntityId($orderId);
+        $order->setData('mondu_reference_id', $uuid);
         $order->setPayment($payment);
 
         $this->resource->getConnection()->insert(
             $this->resource->getTableName('mondu_transactions'),
             [
-                'reference_id'        => 'test-net-term-' . uniqid(),
+                'reference_id'        => $uuid,
                 'order_id'            => $orderId,
                 'store_id'            => 1,
-                'mondu_state'         => $authorizedNetTerm ? 'authorized' : 'processing',
+                'mondu_state'         => $monduState ?? ($authorizedNetTerm ? 'authorized' : 'processing'),
                 'mode'                => 'sandbox',
                 'payment_method'      => $method,
                 'authorized_net_term' => $authorizedNetTerm,

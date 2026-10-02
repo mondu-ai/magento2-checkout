@@ -47,11 +47,37 @@ class FillAuthorizedNetTermTest extends TestCase
         $calls = 0;
 
         $this->logHelper(['state' => 'authorized', 'authorized_net_term' => 60], $calls)
-            ->fillMissingAuthorizedNetTerm($uuid);
+            ->fillMissingAuthorizedNetTerm($uuid, 1);
 
         $this->assertSame(1, $calls);
         $this->assertSame(60, (int) $this->readRow($uuid)['authorized_net_term']);
-        $this->assertSame('authorized', $this->readRow($uuid)['mondu_state']);
+    }
+
+    public function testStateStoredByTheWebhookIsNotOverwritten(): void
+    {
+        // order/confirmed has just stored "confirmed"; the API still answers the
+        // older "authorized". Taking that over would block shipping the order.
+        $uuid = $this->insertTransaction(null, 'confirmed');
+        $calls = 0;
+
+        $this->logHelper(['state' => 'authorized', 'authorized_net_term' => 60], $calls)
+            ->fillMissingAuthorizedNetTerm($uuid, 1);
+
+        $this->assertSame(60, (int) $this->readRow($uuid)['authorized_net_term']);
+        $this->assertSame('confirmed', $this->readRow($uuid)['mondu_state']);
+        $this->assertSame(1, (int) $this->readRow($uuid)['is_confirmed']);
+    }
+
+    public function testInstalmentsAreNotAskedForATerm(): void
+    {
+        $uuid = $this->insertTransaction(null, 'authorized', 'monduinstallment');
+        $calls = 0;
+
+        $this->logHelper(['state' => 'authorized', 'authorized_net_term' => 60], $calls)
+            ->fillMissingAuthorizedNetTerm($uuid, 1);
+
+        $this->assertSame(0, $calls, 'Instalments are never settled on a term');
+        $this->assertNull($this->readRow($uuid)['authorized_net_term']);
     }
 
     public function testKnownTermIsNotReadAgain(): void
@@ -60,7 +86,7 @@ class FillAuthorizedNetTermTest extends TestCase
         $calls = 0;
 
         $this->logHelper(['state' => 'confirmed', 'authorized_net_term' => 60], $calls)
-            ->fillMissingAuthorizedNetTerm($uuid);
+            ->fillMissingAuthorizedNetTerm($uuid, 1);
 
         $this->assertSame(0, $calls, 'A stored term needs no API call');
         $this->assertSame(30, (int) $this->readRow($uuid)['authorized_net_term']);
@@ -72,7 +98,7 @@ class FillAuthorizedNetTermTest extends TestCase
         $calls = 0;
 
         // Mondu answers an error body without an order, as for an unknown uuid.
-        $this->logHelper(null, $calls)->fillMissingAuthorizedNetTerm($uuid);
+        $this->logHelper(null, $calls)->fillMissingAuthorizedNetTerm($uuid, 1);
 
         $this->assertSame(1, $calls);
         $this->assertNull($this->readRow($uuid)['authorized_net_term']);
@@ -111,8 +137,11 @@ class FillAuthorizedNetTermTest extends TestCase
         return ObjectManager::getInstance()->create(MonduLogHelper::class, ['requestFactory' => $factory]);
     }
 
-    private function insertTransaction(?int $authorizedNetTerm): string
-    {
+    private function insertTransaction(
+        ?int $authorizedNetTerm,
+        string $monduState = 'processing',
+        string $paymentMethod = 'mondu'
+    ): string {
         $uuid = 'test-fill-net-term-' . uniqid();
         $this->testUuids[] = $uuid;
 
@@ -122,9 +151,10 @@ class FillAuthorizedNetTermTest extends TestCase
                 'reference_id'        => $uuid,
                 'order_id'            => 0,
                 'store_id'            => 1,
-                'mondu_state'         => 'processing',
+                'mondu_state'         => $monduState,
                 'mode'                => 'sandbox',
-                'payment_method'      => 'mondu',
+                'payment_method'      => $paymentMethod,
+                'is_confirmed'        => $monduState === 'confirmed' ? 1 : 0,
                 'authorized_net_term' => $authorizedNetTerm,
                 'order_flow'          => 'async',
                 'created_at'          => date('Y-m-d H:i:s'),

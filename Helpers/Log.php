@@ -31,6 +31,11 @@ class Log
     public const MONDU_STATE_PROCESSING = 'processing';
 
     /**
+     * States in which the order is not settled on any term.
+     */
+    public const MONDU_STATES_WITHOUT_TERM = ['declined', 'canceled'];
+
+    /**
      * Invoice state Mondu reports for an invoice that is no longer live.
      */
     public const MONDU_INVOICE_STATE_CANCELED = 'canceled';
@@ -476,20 +481,41 @@ class Log
      *
      * Async orders are logged from the create_async answer, which comes before
      * Mondu has decided and so carries no authorized term. It is read from the
-     * API once a webhook says the order has been decided.
+     * API once a webhook says the order has been decided. Only the term is
+     * taken over: the state is the webhook's, and the API may answer an older one.
      *
      * @param string $orderUid
+     * @param int|null $storeId
      * @return void
      */
-    public function fillMissingAuthorizedNetTerm(string $orderUid): void
+    public function fillMissingAuthorizedNetTerm(string $orderUid, ?int $storeId = null): void
     {
         try {
             $log = $this->getLogCollection($orderUid);
-            if (!$log->getId() || $log->getData('authorized_net_term')) {
+            $needsTerm = $log->getId()
+                && !$log->getData('authorized_net_term')
+                && AsyncOrderFields::takesNetTerm((string) $log->getData('payment_method'));
+            if (!$needsTerm) {
                 return;
             }
 
-            $this->syncOrder($orderUid);
+            $data = $this->requestFactory
+                ->create(Factory::TRANSACTION_CONFIRM_METHOD, $storeId ?? $this->getStoreIdByOrderUid($orderUid))
+                ->setValidate(false)
+                ->process(['orderUid' => $orderUid]);
+
+            $authorizedNetTerm = (int) ($data['order']['authorized_net_term'] ?? 0);
+            if ($authorizedNetTerm <= 0) {
+                $this->monduFileLogger->info('Mondu returned no authorized net term', [
+                    'order_uid' => $orderUid,
+                    'response' => $data,
+                ]);
+
+                return;
+            }
+
+            $log->setData('authorized_net_term', $authorizedNetTerm);
+            $log->save();
         } catch (Exception $e) {
             // The term is shown to the merchant only, never worth failing a webhook over.
             $this->monduFileLogger->error('Could not read the authorized net term', [
@@ -504,22 +530,26 @@ class Log
      *
      * The term Mondu authorized wins. Until it is known, the term the buyer or
      * the admin picked is the best answer. Methods that are not settled on a
-     * term at all have none, whatever was left on the payment.
+     * term at all have none, whatever was left on the payment, and neither has
+     * an order Mondu declined or canceled.
      *
      * @param OrderInterface $order
+     * @param array|null $log The order's mondu_transactions row when the caller already holds it
      * @return int|null
      */
-    public function getNetTermForOrder(OrderInterface $order): ?int
+    public function getNetTermForOrder(OrderInterface $order, ?array $log = null): ?int
     {
         $payment = $order->getPayment();
         if (!$payment || !AsyncOrderFields::takesNetTerm((string) $payment->getMethod())) {
             return null;
         }
 
-        try {
-            $log = $order->getEntityId() ? $this->getTransactionByIncrementId((int) $order->getEntityId()) : [];
-        } catch (Exception $e) {
-            $log = [];
+        if ($log === null) {
+            $log = $this->getLogForOrder($order);
+        }
+
+        if (in_array($log['mondu_state'] ?? null, self::MONDU_STATES_WITHOUT_TERM, true)) {
+            return null;
         }
 
         $authorized = (int) ($log['authorized_net_term'] ?? 0);
@@ -530,6 +560,34 @@ class Log
         $picked = $payment->getAdditionalInformation(AsyncOrderFields::FIELD_NET_TERM);
 
         return is_numeric($picked) && (int) $picked > 0 ? (int) $picked : null;
+    }
+
+    /**
+     * The order's mondu_transactions row, found by its Mondu reference.
+     *
+     * The reference rather than the order id: editing an order moves the row to
+     * the new order, while the reference stays with the Mondu order.
+     *
+     * @param OrderInterface $order
+     * @return array
+     */
+    private function getLogForOrder(OrderInterface $order): array
+    {
+        $orderUid = (string) $order->getData('mondu_reference_id');
+        if ($orderUid === '') {
+            return [];
+        }
+
+        try {
+            return (array) $this->getTransactionByOrderUid($orderUid);
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('Could not read the Mondu log for the net term', [
+                'order_uid' => $orderUid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
     }
 
     /**

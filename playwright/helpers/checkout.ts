@@ -232,14 +232,15 @@ async function handleHostedCheckout(page: Page): Promise<string | null> {
   await confirmButton.waitFor({ state: 'visible', timeout: 20_000 })
 
   // Some accounts first ask the buyer to confirm the payment terms in a modal
-  // ("Zahlungsbedingungen auswählen" → "Weiter"), and pay stays disabled until then.
-  const termsStep = page.getByRole('button', { name: /^(weiter|continue)$/i })
-  const hasTermsStep = await termsStep
-    .waitFor({ state: 'visible', timeout: 5_000 })
-    .then(() => true)
-    .catch(() => false)
+  // ("Zahlungsbedingungen auswählen" → "Weiter"), and pay stays disabled until
+  // then. Whichever comes first decides: the modal, or pay becoming enabled.
+  const termsModal = page.getByRole('heading', { name: /zahlungsbedingungen auswählen|payment terms/i })
+  const hasTermsStep = await Promise.race([
+    termsModal.waitFor({ state: 'visible', timeout: 10_000 }).then(() => true),
+    expect(confirmButton).toBeEnabled({ timeout: 10_000 }).then(() => false),
+  ]).catch(() => false)
   if (hasTermsStep) {
-    await termsStep.click()
+    await page.getByRole('button', { name: /^(weiter|continue)$/i }).click()
     await expect(confirmButton).toBeEnabled({ timeout: 10_000 })
   }
 
