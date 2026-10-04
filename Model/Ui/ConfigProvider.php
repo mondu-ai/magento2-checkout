@@ -28,6 +28,16 @@ class ConfigProvider implements ConfigProviderInterface
     public const API_URL = 'https://api.mondu.ai/api/v1';
     public const SANDBOX_API_URL = 'https://api.demo.mondu.ai/api/v1';
 
+    /**
+     * @deprecated 2.9.2 This constant will be removed in version 2.9.3 without replacement, see getSdkUrl()
+     */
+    public const SDK_URL = 'https://checkout.mondu.ai/widget.js';
+
+    /**
+     * @deprecated 2.9.2 This constant will be removed in version 2.9.3 without replacement, see getSdkUrl()
+     */
+    public const SANDBOX_SDK_URL = 'https://checkout.demo.mondu.ai/widget.js';
+
     public const AUTHORIZATION_STATE_FLOW = 'authorization_flow';
 
     /**
@@ -55,6 +65,21 @@ class ConfigProvider implements ConfigProviderInterface
         private readonly StoreManagerInterface $storeManager,
         private readonly LoggerInterface $logger,
     ) {
+    }
+
+    /**
+     * Returns the widget SDK URL based on the current mode.
+     *
+     * Nothing in this module uses it any more. Hyvä Checkout below 1.0.8 calls
+     * it from its payment component, and a manual install bypasses the composer
+     * conflict that would stop that pairing, so it stays for one release.
+     *
+     * @deprecated 2.9.2 This method will be removed in version 2.9.3 without replacement
+     * @return string
+     */
+    public function getSdkUrl(): string
+    {
+        return $this->isSandboxModeEnabled() ? self::SANDBOX_SDK_URL : self::SDK_URL;
     }
 
     /**
