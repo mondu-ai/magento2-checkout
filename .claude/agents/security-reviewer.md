@@ -13,7 +13,7 @@ You are a security reviewer for the Mondu Magento 2 B2B payment module (`Mondu_M
 - **CSRF** — Magento validates form keys on all POST requests. Admin controllers extending `Backend\App\Action` get this automatically. Frontend controllers get it via `CsrfValidator`. **This module explicitly bypasses CSRF for the webhook endpoint** via `Plugin/Magento/Framework/App/Request/CsrfValidator.php`.
 - **ACL** — Admin controllers declare `ADMIN_RESOURCE` constants (e.g., `Mondu_Mondu::log`) checked by `_isAllowed()`. ACL tree defined in `etc/acl.xml`.
 - **Encrypted Config** — Sensitive fields use `backend_model="Magento\Config\Model\Config\Backend\Encrypted"`. The API key field at `config_path="payment/mondu/mondu_key"` uses this.
-- **CSP** — `etc/csp_whitelist.xml` whitelists `*.mondu.ai` for script-src (widget.js), frame-src, and img-src. Also allows `*.mondu.local` and `localhost:*` for development.
+- **CSP** — `etc/csp_whitelist.xml` whitelists `*.mondu.ai` for frame-src and img-src. Also allows `*.mondu.local` and `localhost:*` for development.
 - **Output Escaping** — Magento's `.phtml` templates should use `$block->escapeHtml()`, `$block->escapeUrl()`, etc. Knockout.js templates use `text:` binding (safe) vs `html:` binding (dangerous).
 - **Serialization** — Magento provides `SerializerInterface` (JSON-based). Native PHP `unserialize()` is forbidden.
 
@@ -72,12 +72,12 @@ Review checklist:
 #### 5. Frontend Security
 **Checkout JS**: `view/frontend/web/js/view/payment/method-renderer/mondu.js`
 **Checkout template**: `view/frontend/template/payment/form.html` (Knockout.js)
-**SDK widget**: External `checkout.mondu.ai/widget.js` loaded in iframe
+**Hosted checkout**: buyer is redirected to `hosted_checkout_url`; no Mondu JavaScript is loaded on the storefront
 
 Review checklist:
 - [ ] No `html:` bindings in Knockout templates (XSS risk) — prefer `text:` binding
-- [ ] `ConfigProvider::getConfig()` only exposes necessary frontend data (method codes, titles, SDK URL, sandbox flag) — never API keys or secrets
-- [ ] SDK widget loaded from CSP-whitelisted domain only
+- [ ] `ConfigProvider::getConfig()` only exposes necessary frontend data (method codes, titles, token URL, descriptions) — never API keys or secrets
+- [ ] Redirect target is `hosted_checkout_url` from the Mondu API response only
 - [ ] Checkout redirect controllers (`Payment/Checkout/Success`, `Cancel`, `Decline`) validate return parameters
 - [ ] No user input reflected in templates without escaping
 

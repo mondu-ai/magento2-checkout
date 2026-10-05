@@ -79,7 +79,7 @@ Located in `Observer/`, triggered by Magento events:
 - `OrderHelper` - Line item formatting, tax calculation, quote management
 - `BulkActions` - Batch shipments, cancellations, adjustments
 - `PaymentMethod` - Payment method detection and filtering
-- `ConfigProvider` - Payment configuration, API URLs, SDK integration
+- `ConfigProvider` - Payment configuration, API URLs, checkout config for the storefront
 
 ### Plugins
 - `CsrfValidator` - Bypasses CSRF for webhook endpoints

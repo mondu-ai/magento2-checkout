@@ -6,8 +6,13 @@ namespace Mondu\Mondu\Helpers\ABTesting;
 
 class ABTesting
 {
+    /**
+     * Only Hyvä Checkout below 1.0.8 reads the source, and hosted checkout is
+     * the only one left.
+     *
+     * @deprecated 2.9.2 This constant will be removed in version 2.9.3 without replacement
+     */
     protected const HOSTED_SOURCE = 'hosted';
-    protected const WIDGET_SOURCE = 'widget';
 
     /**
      * Formats the API response and extracts Mondu order data.
@@ -28,18 +33,8 @@ class ABTesting
             'message' => $result['message'],
             'token' => $order['token'] ?? null,
             'hosted_checkout_url' => $order['hosted_checkout_url'] ?? null,
-            'source' => $this->isHostedCheckout($order) ? self::HOSTED_SOURCE : self::WIDGET_SOURCE,
+            // Hyvä Checkout below 1.0.8 reads this key unchecked, keep it until 2.9.3.
+            'source' => self::HOSTED_SOURCE,
         ];
-    }
-
-    /**
-     * Checks if the order uses hosted checkout.
-     *
-     * @param array $monduOrder
-     * @return bool
-     */
-    protected function isHostedCheckout(array $monduOrder): bool
-    {
-        return isset($monduOrder['hosted_checkout_url']);
     }
 }

@@ -11,6 +11,9 @@
     "require-dev": {
         "phpunit/phpunit": "^10.5"
     },
+    "conflict": {
+        "mondu/magento2-hyva-payment": "<1.0.8"
+    },
     "autoload": {
         "psr-4": {
             "Mondu\\Mondu\\": ""

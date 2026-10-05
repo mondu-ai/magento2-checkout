@@ -14,7 +14,7 @@ interface CustomerData {
   phone?: string
 }
 
-function defaultCustomer(company: string, overrides: Partial<CustomerData> = {}): CustomerData {
+export function defaultCustomer(company: string, overrides: Partial<CustomerData> = {}): CustomerData {
   return {
     firstName: process.env.BUYER_FIRST_NAME || 'Jane',
     lastName: process.env.BUYER_LAST_NAME || 'Doe',
@@ -189,28 +189,14 @@ export async function placeOrder(page: Page): Promise<void> {
 }
 
 export async function handleMonduCheckout(page: Page): Promise<string | null> {
-  // After clicking place order, wait for redirect to Mondu hosted checkout or widget
+  // After clicking place order, wait for redirect to Mondu hosted checkout (pay.demo.mondu.ai)
   try {
-    await Promise.race([
-      // Any mondu.ai domain (hosted checkout: pay.demo.mondu.ai)
-      page.waitForURL('**mondu.ai/**', { timeout: 30_000 }),
-      // In-page modal/widget
-      page.waitForSelector('.mondu-modal, #mondu-checkout, iframe[src*="mondu"]', {
-        timeout: 30_000,
-      }),
-    ])
+    await page.waitForURL('**mondu.ai/**', { timeout: 30_000 })
   } catch {
-    throw new Error(
-      `Neither hosted checkout nor modal appeared. Current URL: ${page.url()}`
-    )
+    throw new Error(`Hosted checkout did not open. Current URL: ${page.url()}`)
   }
 
-  // Hosted checkout: any mondu.ai domain
-  if (page.url().includes('mondu.ai')) {
-    return await handleHostedCheckout(page)
-  }
-
-  return await handleWidgetCheckout(page)
+  return await handleHostedCheckout(page)
 }
 
 async function handleHostedCheckout(page: Page): Promise<string | null> {
@@ -255,32 +241,6 @@ async function handleHostedCheckout(page: Page): Promise<string | null> {
   if (!finalUrl.includes('/checkout/onepage/success')) {
     console.warn(`Landed on unexpected URL after Mondu checkout: ${finalUrl}`)
   }
-
-  return capturedOrderUuid
-}
-
-async function handleWidgetCheckout(page: Page): Promise<string | null> {
-  const magentoHost = new URL(process.env.MAGENTO_URL || 'https://example.com').hostname
-
-  let capturedOrderUuid: string | null = null
-  const requestHandler = (request: Request) => {
-    const url = request.url()
-    if (url.includes('/mondu/payment_checkout/success')) {
-      const match = url.match(/[?&]order_uuid=([^&]+)/)
-      if (match) capturedOrderUuid = match[1]
-    }
-  }
-  page.on('request', requestHandler)
-
-  // In-page modal — look for confirm button inside modal/iframe
-  const iframe = page.frameLocator('iframe[src*="mondu"]').first()
-  const confirmBtn = iframe.locator('button:has-text("Confirm"), button[type="submit"]').first()
-  if (await confirmBtn.isVisible({ timeout: 10_000 })) {
-    await confirmBtn.click()
-  }
-
-  await page.waitForURL(`**${magentoHost}**`, { timeout: 60_000 })
-  page.off('request', requestHandler)
 
   return capturedOrderUuid
 }
