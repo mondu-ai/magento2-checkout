@@ -73,7 +73,28 @@ class PendingCheckout extends AbstractDb
     }
 
     /**
-     * Returns unprocessed links created between $maxAgeMinutes and $minAgeMinutes ago.
+     * Records a failed recovery attempt and when the next one is due.
+     *
+     * @param string $orderUuid
+     * @param int $attempts Failed attempts so far, this one included
+     * @param int $delayMinutes
+     * @return void
+     */
+    public function scheduleRetry(string $orderUuid, int $attempts, int $delayMinutes): void
+    {
+        $this->getConnection()->update(
+            $this->getMainTable(),
+            [
+                'attempts' => $attempts,
+                'next_attempt_at' => gmdate('Y-m-d H:i:s', time() + $delayMinutes * 60),
+            ],
+            ['order_uuid = ?' => $orderUuid, 'processed_at IS NULL']
+        );
+    }
+
+    /**
+     * Returns unprocessed links created between $maxAgeMinutes and $minAgeMinutes ago
+     * whose next attempt is due.
      *
      * @param int $minAgeMinutes
      * @param int $maxAgeMinutes
@@ -90,6 +111,7 @@ class PendingCheckout extends AbstractDb
                 ->where('processed_at IS NULL')
                 ->where('created_at <= ?', gmdate('Y-m-d H:i:s', time() - $minAgeMinutes * 60))
                 ->where('created_at >= ?', gmdate('Y-m-d H:i:s', time() - $maxAgeMinutes * 60))
+                ->where('next_attempt_at IS NULL OR next_attempt_at <= ?', gmdate('Y-m-d H:i:s'))
                 ->order('created_at ASC')
                 ->limit($limit)
         );

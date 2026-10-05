@@ -43,7 +43,9 @@
             "quote_id": true,
             "store_id": true,
             "created_at": true,
-            "processed_at": true
+            "processed_at": true,
+            "attempts": true,
+            "next_attempt_at": true
         },
         "index": {
             "MONDU_PENDING_CHECKOUTS_PROCESSED_AT_CREATED_AT": true

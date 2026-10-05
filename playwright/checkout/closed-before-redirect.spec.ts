@@ -129,7 +129,7 @@ test('Buyer closes the tab before the redirect: order/authorized webhook places 
   await row.locator('a[href*="sales/order/view"]').click()
   await adminPage.waitForSelector('.page-title', { timeout: 20_000 })
   await expect(adminPage.locator('#order_history_block, .order-history-block').first()).toContainText(
-    'did not return from the Mondu checkout'
+    /Mondu: order placed by the (webhook|cron)/
   )
 
   await api.dispose()

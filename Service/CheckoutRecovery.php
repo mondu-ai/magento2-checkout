@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Mondu\Mondu\Service;
 
 use Exception;
-use Magento\Customer\Model\Group as CustomerGroup;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\State as AppState;
 use Magento\Framework\Config\ScopeInterface as ConfigScope;
@@ -23,6 +22,7 @@ use Mondu\Mondu\Helpers\Log as MonduTransactions;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Model\Checkout\GuestQuote;
 use Mondu\Mondu\Model\Checkout\OrderUuidContext;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\ResourceModel\PendingCheckout;
@@ -42,6 +42,22 @@ class CheckoutRecovery
     private const PLACEABLE_STATES = [OrderHelper::AUTHORIZED, 'pending'];
 
     /**
+     * Mondu states after which the order can no longer be placed from the quote.
+     *
+     * Only these close the link. Anything else, a missing state above all, is what an
+     * HTTP error answers with, and the cron is there to retry exactly those.
+     */
+    private const TERMINAL_STATES = [
+        OrderHelper::DECLINED,
+        OrderHelper::CANCELED,
+        MonduTransactions::MONDU_STATE_CONFIRMED,
+        MonduTransactions::MONDU_STATE_PARTIALLY_SHIPPED,
+        MonduTransactions::MONDU_STATE_PARTIALLY_COMPLETE,
+        MonduTransactions::MONDU_STATE_SHIPPED,
+        MonduTransactions::MONDU_STATE_COMPLETE,
+    ];
+
+    /**
      * Mondu state of an order the buyer has not finished yet.
      */
     private const DRAFT_STATE = 'draft';
@@ -59,6 +75,7 @@ class CheckoutRecovery
      * @param CartManagementInterface $quoteManagement
      * @param CartRepositoryInterface $cartRepository
      * @param ConfigScope $configScope
+     * @param GuestQuote $guestQuote
      * @param LockManagerInterface $lockManager
      * @param MonduFileLogger $monduFileLogger
      * @param MonduTransactions $monduTransactions
@@ -74,6 +91,7 @@ class CheckoutRecovery
         private readonly CartManagementInterface $quoteManagement,
         private readonly CartRepositoryInterface $cartRepository,
         private readonly ConfigScope $configScope,
+        private readonly GuestQuote $guestQuote,
         private readonly LockManagerInterface $lockManager,
         private readonly MonduFileLogger $monduFileLogger,
         private readonly MonduTransactions $monduTransactions,
@@ -168,11 +186,21 @@ class CheckoutRecovery
             return null;
         }
 
-        if (!in_array($state, self::PLACEABLE_STATES, true)) {
+        if (in_array($state, self::TERMINAL_STATES, true)) {
             $this->monduFileLogger->info('CheckoutRecovery: Mondu order is not awaiting confirmation', $context + [
                 'mondu_state' => $state,
             ]);
             $this->pendingCheckout->markProcessed($orderUuid);
+            return null;
+        }
+
+        if (!in_array($state, self::PLACEABLE_STATES, true)) {
+            // With validation off, an HTTP error from Mondu (5xx, 429, 401) comes back as a body
+            // without an order. Leave the link open so the next run asks again.
+            $this->monduFileLogger->warning('CheckoutRecovery: no usable Mondu order state, will retry', $context + [
+                'mondu_state' => $state,
+                'response' => $monduOrder,
+            ]);
             return null;
         }
 
@@ -186,8 +214,9 @@ class CheckoutRecovery
             $this->storeManager->setCurrentStore($storeId);
         }
 
+        // There is no session here: a quote without a customer is a guest checkout.
         if (!$quote->getCustomerId()) {
-            $this->prepareGuestQuote($quote);
+            $this->guestQuote->prepare($quote);
         }
 
         $order = $this->submitQuote($quote, $orderUuid);
@@ -200,9 +229,7 @@ class CheckoutRecovery
             ]);
         }
 
-        $order->addCommentToStatusHistory(
-            __('Mondu: order placed by the %1 because the buyer did not return from the Mondu checkout', $source)
-        );
+        $order->addCommentToStatusHistory(__('Mondu: order placed by the %1', $source));
         $this->orderRepository->save($order);
 
         try {
@@ -299,22 +326,5 @@ class CheckoutRecovery
         }
 
         return $quote;
-    }
-
-    /**
-     * Prepares a guest quote for submitting without the buyer's session.
-     *
-     * @param CartInterface $quote
-     * @return void
-     */
-    private function prepareGuestQuote(CartInterface $quote): void
-    {
-        $billingAddress = $quote->getBillingAddress();
-        $email = $quote->getCustomerEmail() ?: $billingAddress->getEmail();
-
-        $quote->setCustomerId(null)
-            ->setCustomerEmail($email)
-            ->setCustomerIsGuest(true)
-            ->setCustomerGroupId(CustomerGroup::NOT_LOGGED_IN_ID);
     }
 }
