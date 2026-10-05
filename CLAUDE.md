@@ -87,7 +87,16 @@ Located in `Observer/`, triggered by Magento events:
 - `EmailTemplate` - Injects payment variables into emails
 
 ### Cron
-Single cron job (`Cron/Cron.php`) runs every 30 minutes for batch shipment processing. Configured in `etc/crontab.xml`.
+Two cron jobs, configured in `etc/crontab.xml`:
+- `Cron/Cron.php` runs every 30 minutes for batch shipment processing.
+- `Cron/RecoverCheckouts.php` runs every 10 minutes and places the order for authorized Mondu orders whose buyer never came back to the success page (see Checkout recovery).
+
+### Checkout recovery
+The Magento order is normally placed when the buyer's browser returns to `mondu/payment_checkout/success`. If it never does (tab closed during the redirect), `Service/CheckoutRecovery.php` places and confirms it from the quote:
+- `Model/Request/Transactions.php` stores the Mondu order uuid with its quote in `mondu_pending_checkouts` when the order is created.
+- The `order/authorized` and `order/pending` webhooks and the `RecoverCheckouts` cron call the service; it is a no-op when the order already exists.
+- A lock per Mondu order uuid serializes the service and the `Success` controller, so a returning buyer and a webhook cannot place two orders.
+- Without a buyer session, `Model/Checkout/OrderUuidContext.php` hands the uuid to the `CreateOrder` observer.
 
 ## Configuration Files
 
@@ -96,7 +105,7 @@ Single cron job (`Cron/Cron.php`) runs every 30 minutes for batch shipment proce
 | `etc/config.xml` | Default payment settings for all 5 methods |
 | `etc/di.xml` | Dependency injection, plugins, logger config |
 | `etc/events.xml` | Core event listeners |
-| `etc/db_schema.xml` | Database tables: `mondu_transactions`, `mondu_transaction_items` |
+| `etc/db_schema.xml` | Database tables: `mondu_transactions`, `mondu_transaction_items`, `mondu_pending_checkouts` |
 | `etc/adminhtml/system.xml` | Admin settings (API key, titles, descriptions) |
 
 ## API Endpoints
@@ -106,8 +115,9 @@ Single cron job (`Cron/Cron.php`) runs every 30 minutes for batch shipment proce
 
 ## Database
 
-Two custom tables:
+Three custom tables:
 - `mondu_transactions` - Stores order references (reference_id, order_id, mondu_state, payment_method)
 - `mondu_transaction_items` - Maps products to transactions
+- `mondu_pending_checkouts` - Links a Mondu order uuid to its quote until the Magento order is placed
 
 Extended `sales_order` table with `mondu_reference_id` column.

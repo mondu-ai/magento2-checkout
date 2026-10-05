@@ -36,6 +36,25 @@
             "PRIMARY": true
         }
     },
+    "mondu_pending_checkouts": {
+        "column": {
+            "entity_id": true,
+            "order_uuid": true,
+            "quote_id": true,
+            "store_id": true,
+            "created_at": true,
+            "processed_at": true,
+            "attempts": true,
+            "next_attempt_at": true
+        },
+        "index": {
+            "MONDU_PENDING_CHECKOUTS_PROCESSED_AT_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MONDU_PENDING_CHECKOUTS_ORDER_UUID": true
+        }
+    },
     "sales_order": {
         "column": {
             "mondu_reference_id": true
