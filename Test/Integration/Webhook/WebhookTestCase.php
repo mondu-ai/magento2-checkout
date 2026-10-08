@@ -419,5 +419,11 @@ abstract class WebhookTestCase extends TestCase
             $this->resource->getTableName('sales_order'),
             ['entity_id = ?' => $orderId]
         );
+        // The grid row has no foreign key to the order: left behind, it lists an order
+        // that no longer opens.
+        $connection->delete(
+            $this->resource->getTableName('sales_order_grid'),
+            ['entity_id = ?' => $orderId]
+        );
     }
 }
