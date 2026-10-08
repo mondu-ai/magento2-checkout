@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="billing_method">
+            <block class="Mondu\Mondu\Block\Adminhtml\Order\Create\MonduFields"
+                   name="mondu.order.create.fields"
+                   after="order_create_billing_form"
+                   template="Mondu_Mondu::order/create/payment/mondu_fields.phtml"
+                   cacheable="false">
+                <arguments>
+                    <argument name="legal_form_category_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\LegalFormCategory</argument>
+                    <argument name="installments_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\Installments</argument>
+                    <argument name="net_term_source" xsi:type="object">Mondu\Mondu\Model\Payment\Source\NetTerm</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceContainer name="js">
+            <block class="Mondu\Mondu\Block\Adminhtml\Order\Create\MonduFields"
+                   name="mondu.order.create.fields.init"
+                   template="Mondu_Mondu::order/create/payment/mondu_fields_init.phtml"
+                   cacheable="false"/>
+        </referenceContainer>
+    </body>
+</page>

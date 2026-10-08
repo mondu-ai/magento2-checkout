@@ -15,6 +15,7 @@ use Magento\Framework\App\AreaList;
 use Magento\Framework\App\State;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Framework\Webapi\Response;
 use Magento\Quote\Model\SubmitQuoteValidator;

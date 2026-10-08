@@ -37,7 +37,7 @@ test('Payment declined → customer redirected with error message', async ({ pag
   // Decline controller redirects to checkout/cart with error message
   await page.waitForURL(/checkout\/cart/, { timeout: 15_000 })
 
-  const errorMessage = page.locator('.message-error, .messages .message, .error-message')
+  const errorMessage = page.locator('.message-error, .error-message').first()
   await expect(errorMessage).toBeVisible({ timeout: 15_000 })
   // Message starts with "Mondu:" in all locales
   await expect(errorMessage).toContainText(/Mondu:/i)

@@ -63,8 +63,8 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>Payment reference:</strong> %1, <strong>Riferimento di pagamento:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Termine di pagamento:</strong> %1 giorni
 
-"Invoice (30 days)","Fattura (30 giorni)"
-"SEPA direct debit (30 days)","Addebito diretto SEPA (30 giorni)"
+"Invoice","Fattura"
+"SEPA direct debit","Addebito diretto SEPA"
 "Installments (3, 6, 12 months)","Rate (3, 6, 12 mesi)"
 "Installments (3, 6, 12 months) via Bank Transfer","Rate (3, 6, 12 mesi) per bonifico bancario"
 "Instant Pay","Bonifico istantaneo"
@@ -108,3 +108,5 @@ Seleziona un altro metodo di pagamento per completare il tuo acquisto."
 <strong>Bank:</strong> %1,<strong>Banca:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Codice filiale:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Numero di conto:</strong> %1
+"Payment term","Termine di pagamento"
+"%1 days","%1 giorni"
