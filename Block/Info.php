@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mondu\Mondu\Block;
 
-use Magento\Framework\App\Area;
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Block\Info as PaymentInfo;
@@ -22,16 +21,6 @@ use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 class Info extends PaymentInfo
 {
     /**
-     * Template the parent block renders with, a table of the details.
-     */
-    private const DEFAULT_TEMPLATE = 'Magento_Payment::info/default.phtml';
-
-    /**
-     * Admin template: the details as plain lines, like the rest of the order view.
-     */
-    private const ADMIN_TEMPLATE = 'Mondu_Mondu::info/mondu.phtml';
-
-    /**
      * @param Context $context
      * @param MonduLogHelper $monduLogHelper
      * @param array $data
@@ -42,25 +31,6 @@ class Info extends PaymentInfo
         array $data = []
     ) {
         parent::__construct($context, $data);
-    }
-
-    /**
-     * Uses the admin template when the block renders for the admin.
-     *
-     * Decided by the design area rather than by DI, so an order email sent from the
-     * admin, which renders under the storefront design, keeps the standard template.
-     * The PDF sets its own template and is left alone.
-     *
-     * @return string
-     */
-    public function getTemplate()
-    {
-        $template = parent::getTemplate();
-        if ($template === self::DEFAULT_TEMPLATE && $this->_design->getArea() === Area::AREA_ADMINHTML) {
-            return self::ADMIN_TEMPLATE;
-        }
-
-        return $template;
     }
 
     /**
