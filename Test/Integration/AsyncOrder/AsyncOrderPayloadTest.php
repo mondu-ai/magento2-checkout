@@ -6,6 +6,7 @@ namespace Mondu\Mondu\Test\Integration\AsyncOrder;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\State as AppState;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Address;
 use Magento\Sales\Model\Order\Item;
@@ -117,6 +118,32 @@ class AsyncOrderPayloadTest extends TestCase
         $payload = $this->buildPayloadFor([F::FIELD_NET_TERM => 30], '12345678');
 
         $this->assertSame('12345678', $payload['buyer']['registration_id']);
+    }
+
+    public function testOrderGoesToMonduUnderItsOwnReferenceNotTheIncrementId(): void
+    {
+        $first = $this->buildPayloadFor([F::FIELD_REGISTRATION_ID => '86653938', F::FIELD_NET_TERM => 30]);
+        $second = $this->buildPayloadFor([F::FIELD_REGISTRATION_ID => '86653938', F::FIELD_NET_TERM => 30]);
+
+        // create_async answers a reference it already holds a confirmed order under with that
+        // order; increment ids repeat across websites and shared accounts.
+        $this->assertStringStartsWith(CreateAsyncOrder::TEMPORARY_REFERENCE_PREFIX, $first['external_reference_id']);
+        $this->assertStringNotContainsString('TEST-', $first['external_reference_id']);
+        $this->assertNotSame($first['external_reference_id'], $second['external_reference_id']);
+    }
+
+    public function testAnExistingOrderInTheAnswerIsRefused(): void
+    {
+        $assertNewOrder = new ReflectionMethod(CreateAsyncOrder::class, 'assertNewOrder');
+        $request = $this->om->create(CreateAsyncOrder::class);
+        $order = $this->createOrder([], null, 'mondu');
+
+        // A new order: nothing happens.
+        $assertNewOrder->invoke($request, $order, ['uuid' => 'new', 'state' => 'processing']);
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Mondu answered with an existing order');
+        $assertNewOrder->invoke($request, $order, ['uuid' => 'old', 'state' => 'confirmed', 'external_reference_id' => '000000010']);
     }
 
     /**

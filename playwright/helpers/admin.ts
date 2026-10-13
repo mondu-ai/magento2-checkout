@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 
 const BACKEND_URL = process.env.MAGENTO_BACKEND_URL || ''
 const BACKEND_USER = process.env.MAGENTO_BACKEND_USERNAME || 'admin'
@@ -179,4 +179,93 @@ export async function selectBulkAction(
   await page.locator('select[name="group_action"], .action-select').selectOption({ label: action })
   await page.locator('button:has-text("Submit")').click()
   await page.waitForSelector('.message-success, .message-notice', { timeout: 60_000 })
+}
+
+const PRODUCT_SKU = process.env.MAGENTO_PRODUCT_SKU || '24-MB02'
+
+/**
+ * Creates an invoice order from the admin for a new customer, the way a merchant does it.
+ * Returns the net term picked in the Mondu fields.
+ */
+export async function createAdminOrder(page: Page, email: string): Promise<{ netTerm: string }> {
+  await loginToAdmin(page)
+
+  await page.locator('#menu-magento-sales-sales > a').click()
+  await page.locator('#menu-magento-sales-sales .item-sales-order a').click()
+  await page.getByRole('button', { name: 'Create New Order' }).click()
+
+  // The button does nothing until the order-create scripts have initialised.
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('button', { name: 'Create New Customer' }).click()
+  // Single store shops skip the store step, others ask for it first.
+  const items = page.locator('#order-items')
+  const storeRadio = page.locator('#order-store-selector input[type="radio"]:visible').first()
+  await page
+    .locator('#order-items:visible, #order-store-selector input[type="radio"]:visible')
+    .first()
+    .waitFor({ state: 'visible', timeout: 30_000 })
+  if (await storeRadio.isVisible()) {
+    await storeRadio.check()
+  }
+  await items.waitFor({ state: 'visible', timeout: 30_000 })
+
+  await page.getByRole('button', { name: 'Add Products' }).click()
+  const skuFilter = page.locator('#sales_order_create_search_grid_filter_sku')
+  await skuFilter.fill(PRODUCT_SKU)
+  await skuFilter.press('Enter')
+  await waitForReload(page)
+  const productRow = page.locator('#sales_order_create_search_grid_table tbody tr', { hasText: PRODUCT_SKU }).first()
+  await productRow.locator('input[type="checkbox"]').check()
+  await page.getByRole('button', { name: 'Add Selected Product(s) to Order' }).click()
+  await waitForReload(page)
+  await expect(page.locator('#order-items_grid')).toContainText(PRODUCT_SKU, { timeout: 30_000 })
+
+  await page.locator('#email').fill(email)
+
+  const billing = (field: string) => page.locator(`#order-billing_address_${field}`)
+  await billing('firstname').fill('Jane')
+  await billing('lastname').fill('Doe')
+  await billing('company').fill(process.env.BUYER_COMPANY_AUTHORIZED || 'Mondu GmbH')
+  await billing('street0').fill('Strassmannstr. 45')
+  await billing('country_id').selectOption('DE')
+  await waitForReload(page)
+  await billing('city').fill('Berlin')
+  await billing('postcode').fill('10122')
+  await billing('telephone').fill('+493031196513')
+  await billing('telephone').blur()
+  await waitForReload(page)
+
+  await page.locator('#order-shipping-method-summary a').click()
+  await waitForReload(page)
+  await page.locator('#s_method_flatrate_flatrate').check()
+  await waitForReload(page)
+
+  await page.locator('#p_method_mondu').check()
+  await waitForReload(page)
+
+  const fields = page.locator('#mondu-order-create-fields')
+  await expect(fields).toBeVisible()
+  await fields.locator('#mondu_legal_form_category').selectOption('kapital_und_personen_gesellschaft')
+  await fields.locator('#mondu_registration_id').fill('HRB 232626 B')
+
+  const netTerm = fields.locator('#mondu_net_term')
+  await expect(netTerm.locator('option[value]:not([value=""])').first()).toBeAttached({ timeout: 15_000 })
+  if (!(await netTerm.inputValue())) {
+    await netTerm.selectOption({ index: 1 })
+  }
+  const picked = await netTerm.inputValue()
+
+  await page.locator('#submit_order_top_button').click()
+  await expect(page.locator('.message-success')).toContainText('You created the order', { timeout: 60_000 })
+
+  return { netTerm: picked }
+}
+
+export async function waitForReload(page: Page): Promise<void> {
+  await page.waitForTimeout(500)
+  await page
+    .locator('#order-container .loading-mask, .admin__data-grid-loading-mask, body > .loading-mask')
+    .first()
+    .waitFor({ state: 'hidden', timeout: 30_000 })
+    .catch(() => {})
 }

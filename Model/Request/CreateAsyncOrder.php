@@ -25,6 +25,17 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     /**
      * Reverse mapping: Magento payment code → Mondu API payment_method name.
      */
+    /**
+     * Prefix of the reference the order goes to Mondu under until the buyer confirms it.
+     */
+    public const TEMPORARY_REFERENCE_PREFIX = 'M2_';
+
+    /**
+     * States of an order create_async has just created. The answer for a reference Mondu
+     * already holds a confirmed order under is that order, in a later state.
+     */
+    private const NEW_ORDER_STATES = ['processing', 'pending', 'authorized'];
+
     private const PAYMENT_METHOD_MAP = [
         'mondu'                      => 'invoice',
         'mondusepa'                  => 'direct_debit',
@@ -105,7 +116,39 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
             );
         }
 
+        $this->assertNewOrder($order, $result['order']);
+
         return $result;
+    }
+
+    /**
+     * Refuses an answer that is not the order just created.
+     *
+     * The Magento order must never be linked to an order Mondu already holds (another
+     * shop's, or an earlier one).
+     *
+     * @param OrderInterface $order
+     * @param array $monduOrder
+     * @throws LocalizedException
+     */
+    private function assertNewOrder(OrderInterface $order, array $monduOrder): void
+    {
+        $state = (string) ($monduOrder['state'] ?? '');
+
+        if (in_array($state, self::NEW_ORDER_STATES, true)) {
+            return;
+        }
+
+        $this->monduFileLogger->error('CreateAsyncOrder: Mondu answered with an existing order', [
+            'order_increment_id' => $order->getIncrementId(),
+            'mondu_uuid' => $monduOrder['uuid'] ?? null,
+            'mondu_state' => $state,
+            'external_reference_id' => $monduOrder['external_reference_id'] ?? null,
+        ]);
+
+        throw new LocalizedException(
+            __('Mondu: the order could not be created, Mondu answered with an existing order. Please try again.')
+        );
     }
 
     /**
@@ -216,7 +259,12 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         $payload = [
             'currency'              => $order->getBaseCurrencyCode(),
             'language'              => $language,
-            'external_reference_id' => $order->getIncrementId(),
+            // Not the increment id: create_async answers a reference Mondu already holds a
+            // confirmed order under with that order instead of creating one. Increment ids repeat
+            // across websites sharing a Mondu account, after a reinstall, and on shared sandbox
+            // accounts. The order number follows through update_external_info once the buyer
+            // confirmed (see the order/confirmed webhook).
+            'external_reference_id' => uniqid(self::TEMPORARY_REFERENCE_PREFIX),
             'payment_method'        => $this->getMonduPaymentMethod($order),
             'gross_amount_cents'    => (int) round($order->getBaseGrandTotal() * 100),
             'buyer'                 => $this->buildBuyerParams($order),
