@@ -30,6 +30,15 @@ use Mondu\Mondu\Setup\Patch\Data\PendingBuyerConfirmationStatus;
 class Index implements ActionInterface
 {
     /**
+     * States an async order can be in until the buyer confirmed it.
+     */
+    private const AWAITING_BUYER_STATES = [
+        Order::STATE_NEW,
+        Order::STATE_PENDING_PAYMENT,
+        Order::STATE_PAYMENT_REVIEW,
+    ];
+
+    /**
      * @param ConfigProvider $monduConfig
      * @param JsonFactory $resultJson
      * @param MonduLogHelper $monduLogHelper
@@ -272,6 +281,11 @@ class Index implements ActionInterface
      * Processes the 'order/authorized' topic: sets order to Pending Buyer Confirmation.
      * Triggered for async orders after Mondu approves but before buyer confirms via email.
      *
+     * Mondu sends the topic for checkout orders too, where the buyer has nothing left to
+     * confirm, and it can arrive after order/confirmed or order/declined. Only an async
+     * order that is still waiting moves; any other order keeps its state and only gets
+     * the authorized net term.
+     *
      * @param array|null $params
      * @param OrderInterface|null $order
      * @param int|null $storeId
@@ -301,6 +315,18 @@ class Index implements ActionInterface
             'mondu_order_state' => $params['order_state'] ?? 'unknown',
             'mondu_order_uuid' => $monduId,
         ]);
+
+        $isAsync = $this->isAsyncOrder($monduId);
+        if (!$isAsync || !in_array($order->getState(), self::AWAITING_BUYER_STATES, true)) {
+            $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Authorized webhook - status left unchanged', [
+                'order_increment_id' => $order->getIncrementId(),
+                'current_state' => $order->getState(),
+                'is_async' => $isAsync,
+            ]);
+            $this->monduLogHelper->fillMissingAuthorizedNetTerm($monduId, $storeId);
+
+            return [['message' => 'ok', 'error' => 0], 200];
+        }
 
         $order->setState(Order::STATE_PAYMENT_REVIEW);
         $order->setStatus(PendingBuyerConfirmationStatus::STATUS_CODE);
