@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+use Mondu\Mondu\Model\Payment\AsyncOrderFields;
+
+/**
+ * @var \Mondu\Mondu\Block\Adminhtml\Order\Create\MonduFields $block
+ */
+
+$registrationIdHints = [];
+foreach (AsyncOrderFields::REGISTRATION_ID_HINTS as $countryCode => $hint) {
+    $registrationIdHints[$countryCode] = (string) __($hint);
+}
+
+$configJson = json_encode(
+    [
+        'requiredByMethod' => AsyncOrderFields::REQUIRED_BY_METHOD,
+        'optionalByMethod' => AsyncOrderFields::OPTIONAL_BY_METHOD,
+        'ownerFields'      => AsyncOrderFields::OWNER_FIELDS,
+        'categoryField'    => AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY,
+        'soleTraderValue'  => AsyncOrderFields::LEGAL_FORM_CATEGORY_SOLE_TRADER,
+        // registration_id follows the billing country, which the admin can change
+        // without a full page reload — so the rule ships to JS instead of being
+        // baked into the required/optional maps above.
+        'registrationIdField'              => AsyncOrderFields::FIELD_REGISTRATION_ID,
+        'registrationIdOptionalCountries'  => AsyncOrderFields::REGISTRATION_ID_OPTIONAL_COUNTRIES,
+        'registrationIdHints'              => $registrationIdHints,
+        'registrationIdFallbackHint'       => (string) __('Commercial register number of the buying company.'),
+        'billingCountryFieldId'            => 'order-billing_address_country_id',
+    ],
+    JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+);
+?>
+<script type="text/x-magento-init">
+{
+    "*": {
+        "Mondu_Mondu/js/order/mondu-admin-init": <?= /* @noEscape */ $configJson ?>
+    }
+}
+</script>

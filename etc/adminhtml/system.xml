@@ -28,6 +28,34 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/require_invoice</config_path>
                     </field>
+                    <field id="mondu_backend_orders" translate="label comment" type="select" sortOrder="33"
+                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Enable orders created in the admin</label>
+                        <comment>Lets you pick a Mondu payment method when creating an order in the admin panel. Requires the async order source to be enabled for your Mondu account; if it is not, the methods stay hidden in the admin regardless of this setting.</comment>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/mondu/backend_orders</config_path>
+                    </field>
+                    <field id="mondu_available_net_terms" translate="label comment" type="multiselect"
+                           sortOrder="34" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Net terms offered for Invoice</label>
+                        <comment>Payment terms buyers may choose from in the checkout. The list holds the terms your Mondu account has for this payment method in the storefront flow. Select more than one to let the buyer choose, select one and every order uses it, select none to keep the term your Mondu account applies by default.</comment>
+                        <source_model>Mondu\Mondu\Model\Config\Source\AvailableNetTerm\Invoice</source_model>
+                        <config_path>payment/mondu/available_net_terms</config_path>
+                    </field>
+                    <field id="mondusepa_available_net_terms" translate="label comment" type="multiselect"
+                           sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Net terms offered for SEPA direct debit</label>
+                        <comment>Payment terms buyers may choose from in the checkout. The list holds the terms your Mondu account has for this payment method in the storefront flow. Select more than one to let the buyer choose, select one and every order uses it, select none to keep the term your Mondu account applies by default.</comment>
+                        <source_model>Mondu\Mondu\Model\Config\Source\AvailableNetTerm\DirectDebit</source_model>
+                        <config_path>payment/mondusepa/available_net_terms</config_path>
+                    </field>
+                    <field id="mondupaynow_available_net_terms" translate="label comment" type="multiselect"
+                           sortOrder="36" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Net terms offered for Instant Pay</label>
+                        <comment>Payment terms buyers may choose from in the checkout. The list holds the terms your Mondu account has for this payment method in the storefront flow. Select more than one to let the buyer choose, select one and every order uses it, select none to keep the term your Mondu account applies by default.</comment>
+                        <source_model>Mondu\Mondu\Model\Config\Source\AvailableNetTerm\PayNow</source_model>
+                        <config_path>payment/mondupaynow/available_net_terms</config_path>
+                    </field>
                     <field id="sandbox" translate="label" type="select" sortOrder="85" showInDefault="1"
                            showInWebsite="1" showInStore="1" canRestore="1">
                         <label>Sandbox mode</label>

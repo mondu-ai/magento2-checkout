@@ -6,6 +6,7 @@ namespace Mondu\Mondu\Model\Payment;
 
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\Method\AbstractMethod;
+use Mondu\Mondu\Block\Info;
 
 class Mondu extends AbstractMethod
 {
@@ -19,7 +20,14 @@ class Mondu extends AbstractMethod
     /**
      * @var bool
      */
-    protected $_canUseInternal = false;
+    protected $_canUseInternal = true;
+
+    /**
+     * Shows the net term the order is settled on in the order view, emails and invoice PDF.
+     *
+     * @var string
+     */
+    protected $_infoBlockType = Info::class;
 
     /**
      * Authorize.

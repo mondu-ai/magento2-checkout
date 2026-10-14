@@ -32,6 +32,7 @@
             <argument name="eventPrefix" xsi:type="string">mondu_mondu_log_grid_collection</argument>
             <argument name="eventObject" xsi:type="string">log_grid_collection</argument>
             <argument name="resourceModel" xsi:type="string">Mondu\Mondu\Model\ResourceModel\Log</argument>
+            <argument name="monduLogHelper" xsi:type="object">Mondu\Mondu\Helpers\Log\Proxy</argument>
         </arguments>
     </type>
     <type name="Magento\Framework\App\Request\CsrfValidator">
@@ -39,6 +40,10 @@
     </type>
     <type name="Magento\Payment\Helper\Data">
         <plugin name="mondu_filter_payment_methods" type="Mondu\Mondu\Plugin\Magento\Payment\Helper\Data"/>
+    </type>
+    <type name="Magento\Backend\Block\Widget\Button\Toolbar">
+        <plugin name="mondu_order_credit_note_button"
+                type="Mondu\Mondu\Plugin\Magento\Backend\Block\Widget\Button\Toolbar"/>
     </type>
     <type name="Magento\Email\Model\Template">
         <plugin name="addTemplateVariable" type="Mondu\Mondu\Plugin\Magento\Email\Model\Template"/>                                                                                             
@@ -53,6 +58,17 @@
             <argument name="monduFileLogger" xsi:type="object">Mondu\Mondu\Helpers\Logger\Logger</argument>
         </arguments>
     </type>
+    <!-- Proxied: the admin session must not be built in the frontend or on the CLI. -->
+    <type name="Mondu\Mondu\Model\Payment\Source\NetTerm">
+        <arguments>
+            <argument name="quoteSession" xsi:type="object">Magento\Backend\Model\Session\Quote\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Mondu\Mondu\Plugin\Magento\Payment\Helper\Data">
+        <arguments>
+            <argument name="quoteSession" xsi:type="object">Magento\Backend\Model\Session\Quote\Proxy</argument>
+        </arguments>
+    </type>
     <preference for="Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface"
                 type="Mondu\Mondu\Model\Pdf\CompositeInvoicePdfRenderer"/>
     <type name="Mondu\Mondu\Model\Pdf\CompositeInvoicePdfRenderer">
@@ -63,4 +79,27 @@
             </argument>
         </arguments>
     </type>
+    <!--
+        One net term source per payment method: a merchant's terms differ per
+        method, so a single shared list would offer terms that order creation
+        then refuses. The identifiers are the Mondu ones the API filters by.
+    -->
+    <virtualType name="Mondu\Mondu\Model\Config\Source\AvailableNetTerm\Invoice"
+                 type="Mondu\Mondu\Model\Config\Source\AvailableNetTerm">
+        <arguments>
+            <argument name="monduMethod" xsi:type="string">invoice</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Mondu\Mondu\Model\Config\Source\AvailableNetTerm\DirectDebit"
+                 type="Mondu\Mondu\Model\Config\Source\AvailableNetTerm">
+        <arguments>
+            <argument name="monduMethod" xsi:type="string">direct_debit</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Mondu\Mondu\Model\Config\Source\AvailableNetTerm\PayNow"
+                 type="Mondu\Mondu\Model\Config\Source\AvailableNetTerm">
+        <arguments>
+            <argument name="monduMethod" xsi:type="string">pay_now</argument>
+        </arguments>
+    </virtualType>
 </config>

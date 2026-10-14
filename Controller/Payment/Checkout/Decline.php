@@ -16,7 +16,7 @@ class Decline extends AbstractPaymentController
      */
     public function execute(): ResponseInterface|ResultInterface
     {
-        return $this->redirectWithErrorMessage(
+        return $this->redirectToCheckoutWithErrorMessage(
             "Mondu: Unfortunately, we cannot offer you this payment method at the moment.\n"
             . 'Please select another payment option to complete your purchase.'
         );
