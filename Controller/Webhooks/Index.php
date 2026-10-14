@@ -198,12 +198,21 @@ class Index implements ActionInterface
             'viban' => $viban
         ]);
 
-        $order->setState(Order::STATE_PROCESSING);
-        $order->setStatus(Order::STATE_PROCESSING);
-        $order->addCommentToStatusHistory(
-            __('Mondu: Order Status changed to Processing by a webhook')
-        );
-        $this->orderRepository->save($order);
+        // The webhook usually arrives while the checkout request is still finishing the order, which
+        // already put it into processing. Saving it again here would be a no-op for us, but it fires
+        // sales_order_save_* in parallel with checkout, and 3rd-party auto-invoice modules hooked there
+        // then create the invoice twice. Only save when the state actually changes.
+        $alreadyProcessing = $currentState === Order::STATE_PROCESSING
+            && $currentStatus === Order::STATE_PROCESSING;
+
+        if (!$alreadyProcessing) {
+            $order->setState(Order::STATE_PROCESSING);
+            $order->setStatus(Order::STATE_PROCESSING);
+            $order->addCommentToStatusHistory(
+                __('Mondu: Order Status changed to Processing by a webhook')
+            );
+            $this->orderRepository->save($order);
+        }
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'], $viban);
 
         $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing confirmed webhook - AFTER status change', [
@@ -214,7 +223,9 @@ class Index implements ActionInterface
             'previous_status' => $currentStatus,
             'new_state' => $order->getState(),
             'new_status' => $order->getStatus(),
-            'reason' => 'Webhook topic: order/confirmed - Order confirmed by Mondu',
+            'reason' => $alreadyProcessing
+                ? 'Webhook topic: order/confirmed - Order already processing, save skipped'
+                : 'Webhook topic: order/confirmed - Order confirmed by Mondu',
             'mondu_order_state' => $params['order_state'] ?? 'unknown'
         ]);
 
