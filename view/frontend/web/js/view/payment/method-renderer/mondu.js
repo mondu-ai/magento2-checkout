@@ -2,7 +2,6 @@ define([
     'jquery',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/view/payment/default',
-    'Magento_Checkout/js/action/redirect-on-success',
     'Magento_Ui/js/model/messages',
     'Magento_Checkout/js/model/payment/additional-validators',
     'Magento_Checkout/js/action/set-payment-information',
@@ -11,7 +10,6 @@ define([
     $,
     quote,
     Component,
-    redirectOnSuccessAction,
     Messages,
     additionalValidators,
     SetPaymentInformationAction,
@@ -22,25 +20,12 @@ define([
     return Component.extend({
         defaults: {
             template: 'Mondu_Mondu/payment/form',
-            monduSdkLoaded: false,
         },
 
         initObservable: function () {
-            var self = this;
-
-            if (!window.monduLoading) {
-                window.monduLoading = true;
-                var monduSkd = document.createElement("script");
-                monduSkd.onload = function () {
-                    self.monduSdkLoaded = true;
-                };
-                monduSkd.src = self.getMonduSdkUrl();
-                document.head.appendChild(monduSkd);
-            }
-
             this.messageContainer = new Messages();
 
-            return self;
+            return this;
         },
 
         getData: function () {
@@ -53,11 +38,6 @@ define([
             var self = this;
             return window.checkoutConfig.payment[self.getCode()]
               .monduCheckoutTokenUrl;
-        },
-
-        getMonduSdkUrl: function () {
-            var self = this;
-            return window.checkoutConfig.payment[self.getCode()].sdkUrl;
         },
 
         getCustomerEmail: function () {
@@ -110,15 +90,16 @@ define([
                         payment_method: payment_method
                     },
                 }).always(function (res) {
-                    if (res && res.token && !res.error) {
-                        self.handlePayment(res.source, res);
+                    if (res && !res.error && res.hosted_checkout_url) {
+                        customerData.invalidate(['cart', 'checkout-data']);
+                        $.mage.redirect(res.hosted_checkout_url);
                         return;
-                    } else {
-                        self.isPlaceOrderActionAllowed(true);
-                        self.messageContainer.addErrorMessage({
-                            message: res.message,
-                        });
                     }
+
+                    self.isPlaceOrderActionAllowed(true);
+                    self.messageContainer.addErrorMessage({
+                        message: (res && res.message) || $.mage.__('Error placing an order. Please try again later.'),
+                    });
 
                     $("body").trigger("processStop");
                 });
@@ -132,50 +113,6 @@ define([
                 self.isPlaceOrderActionAllowed(true);
                 $("body").trigger("processStop");
             })
-        },
-
-        handlePayment: function (source, res) {
-            var self = this;
-            if (source === 'hosted') {
-                customerData.invalidate(['cart', 'checkout-data']);
-                $.mage.redirect(res.hosted_checkout_url);
-                return;
-            }
-
-            if (source === 'widget') {
-                self.openWidget(res.token);
-            }
-        },
-
-        openWidget: function (token) {
-            var self = this;
-            $(
-              '<div id="mondu-checkout-widget" style="position: fixed; top: 0;right: 0;left: 0;bottom: 0; z-index: 99999999;"></div>'
-            ).appendTo("body");
-            window.monduCheckout.render({
-                token,
-                onCancel: () => {
-                    $("#mondu-checkout-widget").remove();
-                    self.isPlaceOrderActionAllowed(true);
-                    $("body").trigger("processStop");
-                },
-                onSuccess: () => {
-                    self.getPlaceOrderDeferredObject()
-                      .fail(function () {
-                          self.isPlaceOrderActionAllowed(true);
-                          $("body").trigger("processStop");
-                      })
-                      .done(function () {
-                          self.afterPlaceOrder();
-                          if (self.redirectAfterPlaceOrder) {
-                              redirectOnSuccessAction.execute();
-                          }
-                      });
-                    $("#mondu-checkout-widget").remove();
-                    $("body").trigger("processStop");
-                },
-                onClose: () => {},
-            });
         },
     });
 });

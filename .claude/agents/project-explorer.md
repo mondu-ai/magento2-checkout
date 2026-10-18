@@ -58,7 +58,7 @@ Config is read via `Model/Ui/ConfigProvider` which extends `Magento\Checkout\Mod
 ### Checkout Flow
 1. Customer selects Mondu payment → frontend JS `Mondu_Mondu/js/view/payment/method-renderer/mondu` calls `placeOrder()`
 2. `sales_order_place_before` event → `Observer/CreateOrder.php` sends order to Mondu API via `Factory::TRANSACTIONS_REQUEST_METHOD`
-3. Redirect to Mondu checkout widget (SDK loaded from `checkout.mondu.ai/widget.js`)
+3. Redirect to the Mondu hosted checkout (`hosted_checkout_url` from the API response)
 4. `sales_order_place_after` event → `Observer/AfterPlaceOrder.php` post-processing
 
 ### Webhook Flow
