@@ -16,6 +16,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\App\Emulation as AppEmulation;
 use Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Zend_Pdf_Exception;
 
 class Invoice implements ActionInterface
@@ -27,6 +28,7 @@ class Invoice implements ActionInterface
      * @param RequestInterface $request
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param AppEmulation $appEmulation
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
@@ -35,11 +37,15 @@ class Invoice implements ActionInterface
         private readonly RequestInterface $request,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly AppEmulation $appEmulation,
+        private readonly ConfigProvider $configProvider,
     ) {
     }
 
     /**
      * Generates and returns the PDF content for a Mondu invoice by its reference ID.
+     *
+     * The route is public and Mondu fetches it without a session, so the request
+     * must carry the token that ConfigProvider::getPdfUrl() put into the link.
      *
      * @throws NotFoundException
      * @throws Zend_Pdf_Exception
@@ -49,7 +55,8 @@ class Invoice implements ActionInterface
     {
         $orderIdentifierMondu = $this->request->getParam('id');
         $invoiceReference = $this->request->getParam('r');
-        if (!$orderIdentifierMondu || !$invoiceReference) {
+        $token = $this->request->getParam('t');
+        if (!$this->isAuthorized($orderIdentifierMondu, $invoiceReference, $token)) {
             throw new NotFoundException(__('Not found'));
         }
 
@@ -75,6 +82,25 @@ class Invoice implements ActionInterface
             ->setHeader('Content-type', 'application/pdf')
             ->setHeader('Content-Disposition', 'attachment; filename=invoice.pdf')
             ->setContents($pdfContent);
+    }
+
+    /**
+     * Checks that the link was issued by ConfigProvider::getPdfUrl() for this order and invoice.
+     *
+     * @param mixed $orderUid
+     * @param mixed $invoiceId
+     * @param mixed $token
+     * @return bool
+     */
+    private function isAuthorized($orderUid, $invoiceId, $token): bool
+    {
+        foreach ([$orderUid, $invoiceId, $token] as $value) {
+            if (!is_string($value) || $value === '') {
+                return false;
+            }
+        }
+
+        return hash_equals($this->configProvider->getPdfToken($orderUid, $invoiceId), $token);
     }
 
     /**
