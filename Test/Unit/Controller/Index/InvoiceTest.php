@@ -7,8 +7,8 @@ namespace Mondu\Mondu\Test\Unit\Controller\Index;
 use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
 use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Raw;
@@ -25,6 +25,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Controller\Index\Invoice;
 use Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Setup\Patch\Data\InvoicePdfTokenPatch;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -53,6 +54,13 @@ class InvoiceTest extends TestCase
      * @var array
      */
     private array $params = [];
+
+    /**
+     * When InvoicePdfTokenPatch ran, null when it has not.
+     *
+     * @var string|null
+     */
+    private ?string $tokensSince = '2026-10-21 08:00:00';
 
     protected function setUp(): void
     {
@@ -115,11 +123,8 @@ class InvoiceTest extends TestCase
         $validToken = hash_hmac('sha256', $signed, 'deployment-key');
 
         return [
-            'order and invoice only, the old link' => [
-                ['id' => self::ORDER_UID, 'r' => self::INVOICE_ID],
-            ],
-            'empty token' => [
-                ['id' => self::ORDER_UID, 'r' => self::INVOICE_ID, 't' => ''],
+            'order as an array' => [
+                ['id' => [self::ORDER_UID], 'r' => self::INVOICE_ID, 't' => $validToken],
             ],
             'made up token' => [
                 ['id' => self::ORDER_UID, 'r' => self::INVOICE_ID, 't' => str_repeat('a', 64)],
@@ -141,12 +146,61 @@ class InvoiceTest extends TestCase
     }
 
     /**
-     * Wires the order repository to return one order with the requested invoice.
+     * @dataProvider legacyLinks
+     * @param array $params
      */
-    private function expectOrderLookup(): void
+    public function testLinkWithoutTokenServesInvoiceCreatedBeforeTokens(array $params): void
+    {
+        $this->params = $params;
+        $this->expectOrderLookup('2026-10-20 23:59:59');
+
+        $this->assertInstanceOf(Raw::class, $this->createController()->execute());
+    }
+
+    /**
+     * @dataProvider legacyLinks
+     * @param array $params
+     */
+    public function testLinkWithoutTokenIsNotFoundForInvoiceCreatedSinceTokens(array $params): void
+    {
+        $this->params = $params;
+        $this->expectOrderLookup('2026-10-21 08:00:00');
+
+        $this->expectException(NotFoundException::class);
+        $this->createController()->execute();
+    }
+
+    public function testLinkWithoutTokenIsNotFoundWhenThePatchHasNotRun(): void
+    {
+        $this->tokensSince = null;
+        $this->params = ['id' => self::ORDER_UID, 'r' => self::INVOICE_ID];
+        $this->expectOrderLookup('2020-01-01 00:00:00');
+
+        $this->expectException(NotFoundException::class);
+        $this->createController()->execute();
+    }
+
+    /**
+     * @return array
+     */
+    public static function legacyLinks(): array
+    {
+        return [
+            'no token' => [['id' => self::ORDER_UID, 'r' => self::INVOICE_ID]],
+            'empty token' => [['id' => self::ORDER_UID, 'r' => self::INVOICE_ID, 't' => '']],
+        ];
+    }
+
+    /**
+     * Wires the order repository to return one order with the requested invoice.
+     *
+     * @param string $invoiceCreatedAt
+     */
+    private function expectOrderLookup(string $invoiceCreatedAt = '2026-10-22 10:00:00'): void
     {
         $invoice = $this->createMock(OrderInvoice::class);
         $invoice->method('getIncrementId')->willReturn(self::INVOICE_ID);
+        $invoice->method('getCreatedAt')->willReturn($invoiceCreatedAt);
 
         $order = $this->createMock(Order::class);
         $order->method('getInvoiceCollection')->willReturn([$invoice]);
@@ -176,6 +230,11 @@ class InvoiceTest extends TestCase
         $searchCriteriaBuilder->method('addFilter')->willReturnSelf();
         $searchCriteriaBuilder->method('create')->willReturn($this->createMock(SearchCriteria::class));
 
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $scopeConfig->method('getValue')->willReturnCallback(
+            fn ($path) => $path === InvoicePdfTokenPatch::CONFIG_PATH ? $this->tokensSince : null
+        );
+
         $pdfRenderer = $this->createMock(InvoicePdfRendererInterface::class);
         $pdfRenderer->method('render')->willReturn('%PDF-1.4');
 
@@ -187,6 +246,7 @@ class InvoiceTest extends TestCase
             $searchCriteriaBuilder,
             $this->createMock(AppEmulation::class),
             $this->configProvider,
+            $scopeConfig,
         );
     }
 }

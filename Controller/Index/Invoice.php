@@ -7,6 +7,7 @@ namespace Mondu\Mondu\Controller\Index;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
@@ -17,6 +18,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\App\Emulation as AppEmulation;
 use Mondu\Mondu\Model\Pdf\InvoicePdfRendererInterface;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Setup\Patch\Data\InvoicePdfTokenPatch;
 use Zend_Pdf_Exception;
 
 class Invoice implements ActionInterface
@@ -29,6 +31,7 @@ class Invoice implements ActionInterface
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param AppEmulation $appEmulation
      * @param ConfigProvider $configProvider
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
@@ -38,6 +41,7 @@ class Invoice implements ActionInterface
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly AppEmulation $appEmulation,
         private readonly ConfigProvider $configProvider,
+        private readonly ScopeConfigInterface $scopeConfig,
     ) {
     }
 
@@ -45,7 +49,9 @@ class Invoice implements ActionInterface
      * Generates and returns the PDF content for a Mondu invoice by its reference ID.
      *
      * The route is public and Mondu fetches it without a session, so the request
-     * must carry the token that ConfigProvider::getPdfUrl() put into the link.
+     * must carry the token that ConfigProvider::getPdfUrl() put into the link. Links
+     * issued before tokens existed have none; they keep working for invoices created
+     * before InvoicePdfTokenPatch ran, because Mondu may still hand them out.
      *
      * @throws NotFoundException
      * @throws Zend_Pdf_Exception
@@ -56,7 +62,11 @@ class Invoice implements ActionInterface
         $orderIdentifierMondu = $this->request->getParam('id');
         $invoiceReference = $this->request->getParam('r');
         $token = $this->request->getParam('t');
-        if (!$this->isAuthorized($orderIdentifierMondu, $invoiceReference, $token)) {
+        if (!$this->isNonEmptyString($orderIdentifierMondu) || !$this->isNonEmptyString($invoiceReference)) {
+            throw new NotFoundException(__('Not found'));
+        }
+        $isLegacyLink = $token === null || $token === '';
+        if (!$isLegacyLink && !$this->isAuthorized($orderIdentifierMondu, $invoiceReference, $token)) {
             throw new NotFoundException(__('Not found'));
         }
 
@@ -72,7 +82,7 @@ class Invoice implements ActionInterface
         /** @var OrderInterface $order */
         $order = end($orders);
         $invoice = $this->getInvoiceByIncrementId($order, $invoiceReference);
-        if (!$invoice) {
+        if (!$invoice || ($isLegacyLink && !$this->isIssuedBeforeTokens($invoice))) {
             throw new NotFoundException(__('Not found'));
         }
 
@@ -87,20 +97,41 @@ class Invoice implements ActionInterface
     /**
      * Checks that the link was issued by ConfigProvider::getPdfUrl() for this order and invoice.
      *
-     * @param mixed $orderUid
-     * @param mixed $invoiceId
+     * @param string $orderUid
+     * @param string $invoiceId
      * @param mixed $token
      * @return bool
      */
-    private function isAuthorized($orderUid, $invoiceId, $token): bool
+    private function isAuthorized(string $orderUid, string $invoiceId, $token): bool
     {
-        foreach ([$orderUid, $invoiceId, $token] as $value) {
-            if (!is_string($value) || $value === '') {
-                return false;
-            }
-        }
+        return is_string($token)
+            && hash_equals($this->configProvider->getPdfToken($orderUid, $invoiceId), $token);
+    }
 
-        return hash_equals($this->configProvider->getPdfToken($orderUid, $invoiceId), $token);
+    /**
+     * Request parameters can be arrays; only a non empty string is a usable value.
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    private function isNonEmptyString($value): bool
+    {
+        return is_string($value) && $value !== '';
+    }
+
+    /**
+     * Checks that the invoice was created before invoice PDF links started to carry a token.
+     *
+     * @param InvoiceInterface $invoice
+     * @return bool
+     */
+    private function isIssuedBeforeTokens(InvoiceInterface $invoice): bool
+    {
+        $tokensSince = (string) $this->scopeConfig->getValue(InvoicePdfTokenPatch::CONFIG_PATH);
+        $createdAt = (string) $invoice->getCreatedAt();
+
+        // Both are UTC 'Y-m-d H:i:s' strings, so they compare as text.
+        return $tokensSince !== '' && $createdAt !== '' && $createdAt < $tokensSince;
     }
 
     /**
