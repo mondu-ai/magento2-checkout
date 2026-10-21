@@ -9,6 +9,7 @@ use Magento\Framework\Api\Filter;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Controller\Result\Json;
@@ -25,6 +26,8 @@ use Magento\Store\Model\Website;
 use Mondu\Mondu\Controller\Webhooks\Index;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -113,6 +116,25 @@ class IndexTest extends TestCase
 
         $this->orderRepository->expects($this->once())->method('save');
         $this->sendPendingWebhook('sandbox-' . self::SECRETS[1]);
+    }
+
+    public function testOrderFoundByIncrementIdWithoutStoredReferenceIsIgnored(): void
+    {
+        $this->monduLogHelper->method('getTransactionByOrderUid')->willReturn([]);
+        $this->givenIncrementIdLookupFinds($this->createOrder(1, 'mondu', ''));
+
+        $this->orderRepository->expects($this->never())->method('save');
+        $this->sendPendingWebhook(self::SECRETS[1]);
+
+        $this->assertSame(['message' => 'ok', 'error' => 0], $this->response);
+    }
+
+    public function testOrderFoundThroughTheTransactionWithoutStoredReferenceIsChanged(): void
+    {
+        $this->givenTransactionFor($this->createOrder(1, 'mondu', ''));
+
+        $this->orderRepository->expects($this->once())->method('save');
+        $this->sendPendingWebhook(self::SECRETS[1]);
     }
 
     public function testMissingOrderIsStillAnsweredForAnyWebsite(): void
@@ -235,6 +257,11 @@ class IndexTest extends TestCase
             $this->createStoreManager(),
             $scopeConfig,
             $encryptor,
+            new PaymentMethod(
+                $this->createMock(CacheInterface::class),
+                $this->createMock(RequestFactory::class),
+                new JsonSerializer()
+            ),
         ))->execute();
     }
 

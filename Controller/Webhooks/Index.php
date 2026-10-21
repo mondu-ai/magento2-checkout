@@ -41,6 +41,7 @@ class Index implements ActionInterface
      * @param StoreManagerInterface $storeManager
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
+     * @param PaymentMethod $paymentMethod
      */
     public function __construct(
         private readonly ConfigProvider $monduConfig,
@@ -55,6 +56,7 @@ class Index implements ActionInterface
         private readonly StoreManagerInterface $storeManager,
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly EncryptorInterface $encryptor,
+        private readonly PaymentMethod $paymentMethod,
     ) {
     }
 
@@ -385,6 +387,7 @@ class Index implements ActionInterface
 
         $websites = $this->storeManager->getWebsites(true);
         $order = null;
+        $foundByUuid = false;
         $orderUuid = $params['order_uuid'] ?? null;
 
         // Primary: look up via mondu_transactions by Mondu UUID — avoids ambiguity when
@@ -394,6 +397,7 @@ class Index implements ActionInterface
             if ($transaction && !empty($transaction['order_id'])) {
                 try {
                     $order = $this->orderRepository->get($transaction['order_id']);
+                    $foundByUuid = true;
                 } catch (Exception $e) {
                     $this->monduFileLogger->warning('Order entity not found for mondu_transactions order_id', [
                         'order_id' => $transaction['order_id'],
@@ -415,7 +419,13 @@ class Index implements ActionInterface
         }
 
         if ($order) {
-            return $this->validateSignatureForOrder($content, (string) $receivedSignature, $order, $orderUuid);
+            return $this->validateSignatureForOrder(
+                $content,
+                (string) $receivedSignature,
+                $order,
+                $orderUuid,
+                $foundByUuid
+            );
         }
 
         foreach ($websites as $website) {
@@ -453,24 +463,29 @@ class Index implements ActionInterface
      * @param string $receivedSignature
      * @param OrderInterface $order
      * @param string|null $orderUuid
+     * @param bool $foundByUuid True when the order came from the mondu_transactions row of $orderUuid
      * @return array|null
      */
     private function validateSignatureForOrder(
         string $content,
         string $receivedSignature,
         OrderInterface $order,
-        ?string $orderUuid
+        ?string $orderUuid,
+        bool $foundByUuid
     ): ?array {
         $payment = $order->getPayment();
-        if (!$payment || !in_array($payment->getMethod(), PaymentMethod::PAYMENTS, true)) {
+        if (!$payment || !$this->paymentMethod->isMondu($payment)) {
             $this->monduFileLogger->info('Webhook refers to an order not paid with Mondu, ignoring webhook', [
                 'order_id' => $order->getEntityId(),
             ]);
             return null;
         }
 
+        // The mondu_transactions row already ties the uuid to the order, so only that path may
+        // accept an order without a stored reference. An order found by increment id must carry it.
         $monduReferenceId = (string) $order->getData('mondu_reference_id');
-        if ($orderUuid && $monduReferenceId !== '' && $monduReferenceId !== $orderUuid) {
+        $referenceMatches = $monduReferenceId === $orderUuid || ($foundByUuid && $monduReferenceId === '');
+        if ($orderUuid && !$referenceMatches) {
             $this->monduFileLogger->info('Webhook order_uuid does not belong to the order, ignoring webhook', [
                 'order_id' => $order->getEntityId(),
                 'order_uuid' => $orderUuid,
