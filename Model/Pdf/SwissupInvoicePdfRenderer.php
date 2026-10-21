@@ -22,8 +22,10 @@ use Magento\Sales\Api\Data\OrderInterface;
  */
 class SwissupInvoicePdfRenderer implements InvoicePdfProviderInterface
 {
+    // phpcs:disable Magento2.PHP.LiteralNamespaces -- Swissup is optional, see the class comment.
     private const PDF_MODEL = 'Swissup\\PdfInvoice\\Model\\Pdf';
     private const HELPER = 'Swissup\\PdfInvoice\\Helper\\Data';
+    // phpcs:enable Magento2.PHP.LiteralNamespaces
     private const TEMPLATE_TYPE_INVOICE = 'invoice';
     private const OUTPUT_STRING_RETURN = 'S';
 
