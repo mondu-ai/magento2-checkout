@@ -83,6 +83,7 @@ class InvoiceTest extends TestCase
     public function testLinkFromGetPdfUrlDownloadsTheInvoice(): void
     {
         $url = $this->configProvider->getPdfUrl(self::ORDER_UID, self::INVOICE_ID);
+        $this->assertStringStartsWith('https://shop.example/mondu/index/invoice?id=' . self::ORDER_UID . '&r=', $url);
         parse_str((string) parse_url($url, PHP_URL_QUERY), $this->params);
 
         $this->expectOrderLookup();
@@ -108,7 +109,7 @@ class InvoiceTest extends TestCase
     /**
      * @return array
      */
-    public function unauthorizedParams(): array
+    public static function unauthorizedParams(): array
     {
         $signed = 'mondu_invoice_pdf|' . self::ORDER_UID . '|' . self::INVOICE_ID;
         $validToken = hash_hmac('sha256', $signed, 'deployment-key');
