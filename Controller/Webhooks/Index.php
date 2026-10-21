@@ -23,6 +23,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Index implements ActionInterface
@@ -355,7 +356,12 @@ class Index implements ActionInterface
     }
 
     /**
-     * Validates webhook signature by iterating through all websites.
+     * Validates the webhook signature and finds the order it refers to.
+     *
+     * When the order exists, only the secret of the order's own website can sign a
+     * webhook for it, so the holder of one website's secret cannot change orders of
+     * another website. When it does not exist, every website is tried to find the
+     * one that signed the request.
      *
      * Returns validation result if signature matches, null otherwise (no exceptions thrown).
      *
@@ -408,6 +414,10 @@ class Index implements ActionInterface
             }
         }
 
+        if ($order) {
+            return $this->validateSignatureForOrder($content, (string) $receivedSignature, $order, $orderUuid);
+        }
+
         foreach ($websites as $website) {
             $websiteId = (int) $website->getId();
 
@@ -416,15 +426,7 @@ class Index implements ActionInterface
             }
 
             try {
-                $webhookSecret = $this->getWebhookSecretForWebsite($websiteId);
-
-                if (empty($webhookSecret)) {
-                    continue;
-                }
-
-                $expectedSignature = hash_hmac('sha256', $content, $webhookSecret);
-
-                if ($expectedSignature === $receivedSignature) {
+                if ($this->isSignedByWebsite($content, (string) $receivedSignature, $websiteId)) {
                     $storeId = $this->resolveStoreIdForWebsite($order, $website);
                     return [$order, $storeId, $websiteId];
                 }
@@ -439,6 +441,80 @@ class Index implements ActionInterface
 
         $this->monduFileLogger->info('No matching signature found in any website, ignoring webhook');
         return null;
+    }
+
+    /**
+     * Validates a webhook for an existing order.
+     *
+     * The webhook is accepted only when it is signed with the secret of the order's website,
+     * the order is paid with Mondu and it belongs to the Mondu order sent.
+     *
+     * @param string $content
+     * @param string $receivedSignature
+     * @param OrderInterface $order
+     * @param string|null $orderUuid
+     * @return array|null
+     */
+    private function validateSignatureForOrder(
+        string $content,
+        string $receivedSignature,
+        OrderInterface $order,
+        ?string $orderUuid
+    ): ?array {
+        $payment = $order->getPayment();
+        if (!$payment || !in_array($payment->getMethod(), PaymentMethod::PAYMENTS, true)) {
+            $this->monduFileLogger->info('Webhook refers to an order not paid with Mondu, ignoring webhook', [
+                'order_id' => $order->getEntityId(),
+            ]);
+            return null;
+        }
+
+        $monduReferenceId = (string) $order->getData('mondu_reference_id');
+        if ($orderUuid && $monduReferenceId !== '' && $monduReferenceId !== $orderUuid) {
+            $this->monduFileLogger->info('Webhook order_uuid does not belong to the order, ignoring webhook', [
+                'order_id' => $order->getEntityId(),
+                'order_uuid' => $orderUuid,
+            ]);
+            return null;
+        }
+
+        $storeId = (int) $order->getStoreId();
+        try {
+            $websiteId = (int) $this->storeManager->getStore($storeId)->getWebsiteId();
+            if ($this->isSignedByWebsite($content, $receivedSignature, $websiteId)) {
+                return [$order, $storeId, $websiteId];
+            }
+        } catch (Exception $e) {
+            $this->monduFileLogger->warning('Error checking signature for the order website', [
+                'store_id' => $storeId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+
+        $this->monduFileLogger->info('Signature does not match the order website, ignoring webhook', [
+            'order_id' => $order->getEntityId(),
+            'website_id' => $websiteId,
+        ]);
+        return null;
+    }
+
+    /**
+     * Checks the signature against the webhook secret of one website.
+     *
+     * @param string $content
+     * @param string $receivedSignature
+     * @param int $websiteId
+     * @return bool
+     */
+    private function isSignedByWebsite(string $content, string $receivedSignature, int $websiteId): bool
+    {
+        $webhookSecret = $this->getWebhookSecretForWebsite($websiteId);
+        if ($webhookSecret === '') {
+            return false;
+        }
+
+        return hash_equals(hash_hmac('sha256', $content, $webhookSecret), $receivedSignature);
     }
 
     /**
