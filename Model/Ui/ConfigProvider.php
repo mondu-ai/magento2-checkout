@@ -270,8 +270,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getPdfUrl(string $orderUid, string $invoiceId): string
     {
-        return $this->urlBuilder->getBaseUrl() . 'mondu/index/invoice?id=' . $orderUid . '&r=' . $invoiceId
-            . '&t=' . $this->getPdfToken($orderUid, $invoiceId);
+        return $this->urlBuilder->getBaseUrl() . 'mondu/index/invoice?' . http_build_query([
+            'id' => $orderUid,
+            'r' => $invoiceId,
+            't' => $this->getPdfToken($orderUid, $invoiceId),
+        ]);
     }
 
     /**
