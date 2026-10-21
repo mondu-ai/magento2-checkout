@@ -52,6 +52,13 @@ class IndexTest extends TestCase
      */
     private array $response = [];
 
+    /**
+     * Store views running in sandbox mode, keyed by store id.
+     *
+     * @var array
+     */
+    private array $sandboxStores = [];
+
     protected function setUp(): void
     {
         $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
@@ -74,6 +81,8 @@ class IndexTest extends TestCase
 
         $this->orderRepository->expects($this->never())->method('save');
         $this->sendPendingWebhook(self::SECRETS[2]);
+
+        $this->assertSame(['message' => 'ok', 'error' => 0], $this->response);
     }
 
     public function testWebhookForAnOrderNotPaidWithMonduIsIgnored(): void
@@ -82,6 +91,8 @@ class IndexTest extends TestCase
 
         $this->orderRepository->expects($this->never())->method('save');
         $this->sendPendingWebhook(self::SECRETS[1]);
+
+        $this->assertSame(['message' => 'ok', 'error' => 0], $this->response);
     }
 
     public function testOrderFoundByIncrementIdMustBelongToTheMonduOrder(): void
@@ -91,6 +102,17 @@ class IndexTest extends TestCase
 
         $this->orderRepository->expects($this->never())->method('save');
         $this->sendPendingWebhook(self::SECRETS[1]);
+
+        $this->assertSame(['message' => 'ok', 'error' => 0], $this->response);
+    }
+
+    public function testSandboxModeIsReadAtTheOrderStoreView(): void
+    {
+        $this->sandboxStores = [1 => true];
+        $this->givenTransactionFor($this->createOrder(1, 'mondu'));
+
+        $this->orderRepository->expects($this->once())->method('save');
+        $this->sendPendingWebhook('sandbox-' . self::SECRETS[1]);
     }
 
     public function testMissingOrderIsStillAnsweredForAnyWebsite(): void
@@ -187,9 +209,13 @@ class IndexTest extends TestCase
         $searchCriteriaBuilder->method('create')->willReturn($this->createMock(SearchCriteria::class));
 
         $scopeConfig = $this->createMock(ScopeConfigInterface::class);
-        $scopeConfig->method('isSetFlag')->willReturn(false);
+        // Store ids equal website ids here; sandbox can only be switched on for a store view.
+        $scopeConfig->method('isSetFlag')->willReturnCallback(
+            fn ($path, $scope, $id) => $scope === 'store' && !empty($this->sandboxStores[$id])
+        );
         $scopeConfig->method('getValue')->willReturnCallback(
-            static fn ($path, $scope, $websiteId) => 'encrypted:' . self::SECRETS[$websiteId]
+            static fn ($path, $scope, $id) => 'encrypted:'
+                . (str_contains($path, 'sandbox_') ? 'sandbox-' : '') . self::SECRETS[$id]
         );
         $encryptor = $this->createMock(EncryptorInterface::class);
         $encryptor->method('decrypt')->willReturnCallback(

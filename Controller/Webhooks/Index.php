@@ -481,7 +481,10 @@ class Index implements ActionInterface
         $storeId = (int) $order->getStoreId();
         try {
             $websiteId = (int) $this->storeManager->getStore($storeId)->getWebsiteId();
-            if ($this->isSignedByWebsite($content, $receivedSignature, $websiteId)) {
+            // Read at the order's store view: sandbox mode can be set per store view, and the
+            // secret saved at website scope is inherited there.
+            $webhookSecret = $this->getWebhookSecret(ScopeInterface::SCOPE_STORE, $storeId);
+            if ($this->isSignedWith($content, $receivedSignature, $webhookSecret)) {
                 return [$order, $storeId, $websiteId];
             }
         } catch (Exception $e) {
@@ -492,8 +495,9 @@ class Index implements ActionInterface
             return null;
         }
 
-        $this->monduFileLogger->info('Signature does not match the order website, ignoring webhook', [
+        $this->monduFileLogger->warning('Signature does not match the order website, ignoring webhook', [
             'order_id' => $order->getEntityId(),
+            'store_id' => $storeId,
             'website_id' => $websiteId,
         ]);
         return null;
@@ -509,7 +513,23 @@ class Index implements ActionInterface
      */
     private function isSignedByWebsite(string $content, string $receivedSignature, int $websiteId): bool
     {
-        $webhookSecret = $this->getWebhookSecretForWebsite($websiteId);
+        return $this->isSignedWith(
+            $content,
+            $receivedSignature,
+            $this->getWebhookSecret(ScopeInterface::SCOPE_WEBSITE, $websiteId)
+        );
+    }
+
+    /**
+     * Checks the signature against a webhook secret; an empty secret never matches.
+     *
+     * @param string $content
+     * @param string $receivedSignature
+     * @param string $webhookSecret
+     * @return bool
+     */
+    private function isSignedWith(string $content, string $receivedSignature, string $webhookSecret): bool
+    {
         if ($webhookSecret === '') {
             return false;
         }
@@ -545,24 +565,25 @@ class Index implements ActionInterface
     }
 
     /**
-     * Gets webhook secret for a specific website.
+     * Gets the webhook secret of the given website or store view.
      *
-     * @param int $websiteId
+     * @param string $scope ScopeInterface::SCOPE_WEBSITE or ScopeInterface::SCOPE_STORE
+     * @param int $scopeId
      * @return string
      */
-    private function getWebhookSecretForWebsite(int $websiteId): string
+    private function getWebhookSecret(string $scope, int $scopeId): string
     {
         $isSandbox = $this->scopeConfig->isSetFlag(
             'payment/mondu/sandbox',
-            ScopeInterface::SCOPE_WEBSITE,
-            $websiteId
+            $scope,
+            $scopeId
         );
         $mode = $isSandbox ? 'sandbox' : 'live';
         
         $val = $this->scopeConfig->getValue(
             'payment/mondu/' . $mode . '_webhook_secret',
-            ScopeInterface::SCOPE_WEBSITE,
-            $websiteId
+            $scope,
+            $scopeId
         );
 
         if (empty($val)) {
