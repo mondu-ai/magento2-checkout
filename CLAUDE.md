@@ -33,8 +33,10 @@ Requires `auth.json` with repo.magento.com credentials (see `auth.json.example`)
 ### Code Quality
 ```bash
 # PHPCS with PSR-12 + Magento2 standards (runs in CI on PRs)
-magento/vendor/bin/phpcs --standard=PSR12,Magento2 --ignore=magento/* .
+composer create-project magento/magento-coding-standard:41 /tmp/magento-coding-standard
+/tmp/magento-coding-standard/vendor/bin/phpcs --standard=PSR12,Magento2 .
 ```
+The Magento2 ruleset includes PHPCompatibility for the module's minimum PHP (8.1), so PHP 8.2+ syntax fails CI.
 
 ### Version Release
 ```bash
