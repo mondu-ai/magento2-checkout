@@ -20,6 +20,11 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 class InvoiceOrderHelper
 {
     /**
+     * Each invoice is rounded on its own, so partial invoices of one order can sum to a cent above its total.
+     */
+    private const ROUNDING_TOLERANCE_CENTS = 1;
+
+    /**
      * @param ConfigProvider $configProvider
      * @param ManagerInterface $messageManager
      * @param MonduFileLogger $monduFileLogger
@@ -374,7 +379,7 @@ class InvoiceOrderHelper
         $invoiceCents = (int) round((float) $invoice->getBaseGrandTotal() * 100);
         $orderCents = (int) round((float) $order->getBaseGrandTotal() * 100);
 
-        if ($sentCents + $invoiceCents <= $orderCents) {
+        if ($sentCents + $invoiceCents <= $orderCents + self::ROUNDING_TOLERANCE_CENTS) {
             return false;
         }
 
