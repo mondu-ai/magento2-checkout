@@ -20,6 +20,11 @@ use Mondu\Mondu\Model\Ui\ConfigProvider;
 class InvoiceOrderHelper
 {
     /**
+     * Each invoice is rounded on its own, so partial invoices of one order can sum to a cent above its total.
+     */
+    private const ROUNDING_TOLERANCE_CENTS = 1;
+
+    /**
      * @param ConfigProvider $configProvider
      * @param ManagerInterface $messageManager
      * @param MonduFileLogger $monduFileLogger
@@ -188,6 +193,22 @@ class InvoiceOrderHelper
     ): void {
         foreach ($invoiceCollection as $invoiceItem) {
             if (!in_array($invoiceItem->getEntityId(), $createdInvoices, true)) {
+                if ($this->exceedsOrderAmount($invoiceItem->getOrder(), $invoiceItem, $invoiceMapping)) {
+                    $this->messageManager->addWarningMessage(
+                        __(
+                            'Mondu: invoice %1 was not sent, it would exceed the order total.',
+                            $invoiceItem->getIncrementId()
+                        )
+                    );
+                    $shipment->addComment(
+                        __(
+                            'Mondu: invoice %1 was not sent, it would exceed the order total.',
+                            $invoiceItem->getIncrementId()
+                        )
+                    );
+                    continue;
+                }
+
                 $this->createInvoiceForItem(
                     $monduId,
                     $invoiceItem,
@@ -325,6 +346,55 @@ class InvoiceOrderHelper
         if ($shippingInfo !== []) {
             $body['shipping_info'] = $shippingInfo;
         }
+    }
+
+    /**
+     * Checks whether sending the invoice would bill more than the order total.
+     *
+     * Magento can end up with two full invoices for one order, e.g. when a 3rd-party auto-invoice module
+     * runs in two parallel requests. The Mondu API does not reliably reject the second one: it validates
+     * the amount before the first invoice is persisted on its side, so both get billed to the buyer.
+     *
+     * @param OrderInterface $order
+     * @param InvoiceInterface $invoice
+     * @param array $invoiceMapping Invoices already sent to Mondu, keyed by increment ID
+     * @return bool
+     */
+    public function exceedsOrderAmount(OrderInterface $order, InvoiceInterface $invoice, array $invoiceMapping): bool
+    {
+        $sentIds = [];
+        foreach ($invoiceMapping as $item) {
+            if (($item['state'] ?? null) !== 'canceled' && isset($item['local_id'])) {
+                $sentIds[] = (string) $item['local_id'];
+            }
+        }
+
+        $sentCents = 0;
+        foreach ($order->getInvoiceCollection() as $sentInvoice) {
+            if (in_array((string) $sentInvoice->getEntityId(), $sentIds, true)) {
+                $sentCents += (int) round((float) $sentInvoice->getBaseGrandTotal() * 100);
+            }
+        }
+
+        $invoiceCents = (int) round((float) $invoice->getBaseGrandTotal() * 100);
+        $orderCents = (int) round((float) $order->getBaseGrandTotal() * 100);
+
+        if ($sentCents + $invoiceCents <= $orderCents + self::ROUNDING_TOLERANCE_CENTS) {
+            return false;
+        }
+
+        $this->monduFileLogger->info(
+            'InvoiceOrderHelper: invoice skipped, it would exceed the order total',
+            [
+                'orderNumber' => $order->getIncrementId(),
+                'invoiceNumber' => $invoice->getIncrementId(),
+                'invoice_cents' => $invoiceCents,
+                'already_sent_cents' => $sentCents,
+                'order_cents' => $orderCents,
+            ]
+        );
+
+        return true;
     }
 
     /**
