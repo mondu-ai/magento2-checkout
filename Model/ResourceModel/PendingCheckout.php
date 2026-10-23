@@ -93,8 +93,9 @@ class PendingCheckout extends AbstractDb
     }
 
     /**
-     * Returns unprocessed links created between $maxAgeMinutes and $minAgeMinutes ago
-     * whose next attempt is due.
+     * Returns unprocessed links whose next attempt is due.
+     *
+     * Only links created between $maxAgeMinutes and $minAgeMinutes ago are returned.
      *
      * @param int $minAgeMinutes
      * @param int $maxAgeMinutes
