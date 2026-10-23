@@ -29,6 +29,7 @@ use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Service\CheckoutRecovery;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -262,6 +263,7 @@ class IndexTest extends TestCase
                 $this->createMock(RequestFactory::class),
                 new JsonSerializer()
             ),
+            $this->createMock(CheckoutRecovery::class),
         ))->execute();
     }
 

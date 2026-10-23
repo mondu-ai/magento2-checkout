@@ -16,6 +16,7 @@ use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\MonduTransactionItem;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
+use Mondu\Mondu\Model\Checkout\OrderUuidContext;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 
 class CreateOrder extends MonduObserver
@@ -35,6 +36,7 @@ class CreateOrder extends MonduObserver
      * @param OrderHelper $orderHelper
      * @param RequestFactory $requestFactory
      * @param OrderRepositoryInterface $orderRepository
+     * @param OrderUuidContext $orderUuidContext
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -46,6 +48,7 @@ class CreateOrder extends MonduObserver
         private readonly OrderHelper $orderHelper,
         private readonly RequestFactory $requestFactory,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly OrderUuidContext $orderUuidContext,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -59,7 +62,7 @@ class CreateOrder extends MonduObserver
      */
     public function _execute(Observer $observer): void
     {
-        $orderUid = $this->checkoutSession->getMonduid();
+        $orderUid = $this->orderUuidContext->getOrderUuid() ?? $this->checkoutSession->getMonduid();
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
         $payment = $order->getPayment();

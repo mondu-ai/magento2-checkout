@@ -5,5 +5,8 @@
         <job name="mondu_cron" instance="Mondu\Mondu\Cron\Cron" method="execute">
             <schedule>*/30 * * * *</schedule>
         </job>
+        <job name="mondu_recover_checkouts" instance="Mondu\Mondu\Cron\RecoverCheckouts" method="execute">
+            <schedule>*/10 * * * *</schedule>
+        </job>
     </group>
 </config>
