@@ -270,7 +270,27 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getPdfUrl(string $orderUid, string $invoiceId): string
     {
-        return $this->urlBuilder->getBaseUrl() . 'mondu/index/invoice?id=' . $orderUid . '&r=' . $invoiceId;
+        return $this->urlBuilder->getBaseUrl() . 'mondu/index/invoice?' . http_build_query([
+            'id' => $orderUid,
+            'r' => $invoiceId,
+            't' => $this->getPdfToken($orderUid, $invoiceId),
+        ]);
+    }
+
+    /**
+     * Returns the token that authorizes the download of one invoice PDF.
+     *
+     * The PDF link is sent to Mondu and fetched without a session, so the token is
+     * what proves the link was issued here. It is an HMAC keyed with the Magento
+     * deployment key, so rotating that key revokes every link issued before.
+     *
+     * @param string $orderUid
+     * @param string $invoiceId
+     * @return string
+     */
+    public function getPdfToken(string $orderUid, string $invoiceId): string
+    {
+        return $this->encryptor->hash('mondu_invoice_pdf|' . $orderUid . '|' . $invoiceId);
     }
 
     /**

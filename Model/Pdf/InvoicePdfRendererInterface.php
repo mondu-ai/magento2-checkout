@@ -18,6 +18,8 @@ use Magento\Sales\Api\Data\OrderInterface;
 interface InvoicePdfRendererInterface
 {
     /**
+     * Renders the invoice PDF.
+     *
      * @param OrderInterface $order
      * @param InvoiceInterface $invoice
      * @return string Raw PDF content

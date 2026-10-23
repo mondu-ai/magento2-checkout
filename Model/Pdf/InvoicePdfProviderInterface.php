@@ -15,6 +15,8 @@ use Magento\Sales\Api\Data\OrderInterface;
 interface InvoicePdfProviderInterface extends InvoicePdfRendererInterface
 {
     /**
+     * Tells whether this renderer can produce the PDF for the given invoice.
+     *
      * @param OrderInterface $order
      * @param InvoiceInterface $invoice
      * @return bool

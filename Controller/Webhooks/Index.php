@@ -23,6 +23,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
+use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Mondu\Mondu\Service\CheckoutRecovery;
 
@@ -41,6 +42,7 @@ class Index implements ActionInterface
      * @param StoreManagerInterface $storeManager
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
+     * @param PaymentMethod $paymentMethod
      * @param CheckoutRecovery $checkoutRecovery
      */
     public function __construct(
@@ -56,6 +58,7 @@ class Index implements ActionInterface
         private readonly StoreManagerInterface $storeManager,
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly EncryptorInterface $encryptor,
+        private readonly PaymentMethod $paymentMethod,
         private readonly CheckoutRecovery $checkoutRecovery,
     ) {
     }
@@ -409,7 +412,12 @@ class Index implements ActionInterface
     }
 
     /**
-     * Validates webhook signature by iterating through all websites.
+     * Validates the webhook signature and finds the order it refers to.
+     *
+     * When the order exists, only the secret of the order's own website can sign a
+     * webhook for it, so the holder of one website's secret cannot change orders of
+     * another website. When it does not exist, every website is tried to find the
+     * one that signed the request.
      *
      * Returns validation result if signature matches, null otherwise (no exceptions thrown).
      *
@@ -433,6 +441,7 @@ class Index implements ActionInterface
 
         $websites = $this->storeManager->getWebsites(true);
         $order = null;
+        $foundByUuid = false;
         $orderUuid = $params['order_uuid'] ?? null;
 
         // Primary: look up via mondu_transactions by Mondu UUID — avoids ambiguity when
@@ -442,6 +451,7 @@ class Index implements ActionInterface
             if ($transaction && !empty($transaction['order_id'])) {
                 try {
                     $order = $this->orderRepository->get($transaction['order_id']);
+                    $foundByUuid = true;
                 } catch (Exception $e) {
                     $this->monduFileLogger->warning('Order entity not found for mondu_transactions order_id', [
                         'order_id' => $transaction['order_id'],
@@ -462,6 +472,16 @@ class Index implements ActionInterface
             }
         }
 
+        if ($order) {
+            return $this->validateSignatureForOrder(
+                $content,
+                (string) $receivedSignature,
+                $order,
+                $orderUuid,
+                $foundByUuid
+            );
+        }
+
         foreach ($websites as $website) {
             $websiteId = (int) $website->getId();
 
@@ -470,15 +490,7 @@ class Index implements ActionInterface
             }
 
             try {
-                $webhookSecret = $this->getWebhookSecretForWebsite($websiteId);
-
-                if (empty($webhookSecret)) {
-                    continue;
-                }
-
-                $expectedSignature = hash_hmac('sha256', $content, $webhookSecret);
-
-                if ($expectedSignature === $receivedSignature) {
+                if ($this->isSignedByWebsite($content, (string) $receivedSignature, $websiteId)) {
                     $storeId = $this->resolveStoreIdForWebsite($order, $website);
                     return [$order, $storeId, $websiteId];
                 }
@@ -493,6 +505,105 @@ class Index implements ActionInterface
 
         $this->monduFileLogger->info('No matching signature found in any website, ignoring webhook');
         return null;
+    }
+
+    /**
+     * Validates a webhook for an existing order.
+     *
+     * The webhook is accepted only when it is signed with the secret of the order's website,
+     * the order is paid with Mondu and it belongs to the Mondu order sent.
+     *
+     * @param string $content
+     * @param string $receivedSignature
+     * @param OrderInterface $order
+     * @param string|null $orderUuid
+     * @param bool $foundByUuid True when the order came from the mondu_transactions row of $orderUuid
+     * @return array|null
+     */
+    private function validateSignatureForOrder(
+        string $content,
+        string $receivedSignature,
+        OrderInterface $order,
+        ?string $orderUuid,
+        bool $foundByUuid
+    ): ?array {
+        $payment = $order->getPayment();
+        if (!$payment || !$this->paymentMethod->isMondu($payment)) {
+            $this->monduFileLogger->info('Webhook refers to an order not paid with Mondu, ignoring webhook', [
+                'order_id' => $order->getEntityId(),
+            ]);
+            return null;
+        }
+
+        // The mondu_transactions row already ties the uuid to the order, so only that path may
+        // accept an order without a stored reference. An order found by increment id must carry it.
+        $monduReferenceId = (string) $order->getData('mondu_reference_id');
+        $referenceMatches = $monduReferenceId === $orderUuid || ($foundByUuid && $monduReferenceId === '');
+        if ($orderUuid && !$referenceMatches) {
+            $this->monduFileLogger->info('Webhook order_uuid does not belong to the order, ignoring webhook', [
+                'order_id' => $order->getEntityId(),
+                'order_uuid' => $orderUuid,
+            ]);
+            return null;
+        }
+
+        $storeId = (int) $order->getStoreId();
+        try {
+            $websiteId = (int) $this->storeManager->getStore($storeId)->getWebsiteId();
+            // Read at the order's store view: sandbox mode can be set per store view, and the
+            // secret saved at website scope is inherited there.
+            $webhookSecret = $this->getWebhookSecret(ScopeInterface::SCOPE_STORE, $storeId);
+            if ($this->isSignedWith($content, $receivedSignature, $webhookSecret)) {
+                return [$order, $storeId, $websiteId];
+            }
+        } catch (Exception $e) {
+            $this->monduFileLogger->warning('Error checking signature for the order website', [
+                'store_id' => $storeId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+
+        $this->monduFileLogger->warning('Signature does not match the order website, ignoring webhook', [
+            'order_id' => $order->getEntityId(),
+            'store_id' => $storeId,
+            'website_id' => $websiteId,
+        ]);
+        return null;
+    }
+
+    /**
+     * Checks the signature against the webhook secret of one website.
+     *
+     * @param string $content
+     * @param string $receivedSignature
+     * @param int $websiteId
+     * @return bool
+     */
+    private function isSignedByWebsite(string $content, string $receivedSignature, int $websiteId): bool
+    {
+        return $this->isSignedWith(
+            $content,
+            $receivedSignature,
+            $this->getWebhookSecret(ScopeInterface::SCOPE_WEBSITE, $websiteId)
+        );
+    }
+
+    /**
+     * Checks the signature against a webhook secret; an empty secret never matches.
+     *
+     * @param string $content
+     * @param string $receivedSignature
+     * @param string $webhookSecret
+     * @return bool
+     */
+    private function isSignedWith(string $content, string $receivedSignature, string $webhookSecret): bool
+    {
+        if ($webhookSecret === '') {
+            return false;
+        }
+
+        return hash_equals(hash_hmac('sha256', $content, $webhookSecret), $receivedSignature);
     }
 
     /**
@@ -523,24 +634,25 @@ class Index implements ActionInterface
     }
 
     /**
-     * Gets webhook secret for a specific website.
+     * Gets the webhook secret of the given website or store view.
      *
-     * @param int $websiteId
+     * @param string $scope ScopeInterface::SCOPE_WEBSITE or ScopeInterface::SCOPE_STORE
+     * @param int $scopeId
      * @return string
      */
-    private function getWebhookSecretForWebsite(int $websiteId): string
+    private function getWebhookSecret(string $scope, int $scopeId): string
     {
         $isSandbox = $this->scopeConfig->isSetFlag(
             'payment/mondu/sandbox',
-            ScopeInterface::SCOPE_WEBSITE,
-            $websiteId
+            $scope,
+            $scopeId
         );
         $mode = $isSandbox ? 'sandbox' : 'live';
         
         $val = $this->scopeConfig->getValue(
             'payment/mondu/' . $mode . '_webhook_secret',
-            ScopeInterface::SCOPE_WEBSITE,
-            $websiteId
+            $scope,
+            $scopeId
         );
 
         if (empty($val)) {
