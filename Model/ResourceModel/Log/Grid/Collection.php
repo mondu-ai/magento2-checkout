@@ -14,6 +14,7 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\View\Element\UiComponent\DataProvider\Document;
+use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Model\ResourceModel\Log\Collection as LogCollection;
 use Psr\Log\LoggerInterface;
 
@@ -36,6 +37,7 @@ class Collection extends LogCollection implements SearchResultInterface
      * @param string $model
      * @param AdapterInterface|null $connection
      * @param AbstractDb|null $resource
+     * @param MonduLogHelper|null $monduLogHelper
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -50,6 +52,7 @@ class Collection extends LogCollection implements SearchResultInterface
         string $model = Document::class,
         ?AdapterInterface $connection = null,
         ?AbstractDb $resource = null,
+        private readonly ?MonduLogHelper $monduLogHelper = null,
     ) {
         parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
         $this->_eventPrefix = $eventPrefix;
@@ -71,6 +74,45 @@ class Collection extends LogCollection implements SearchResultInterface
             'main_table.order_id = so.entity_id',
             ['increment_id']
         );
+        return $this;
+    }
+
+    /**
+     * Refreshes rows Mondu has not decided on yet.
+     *
+     * The state is normally kept current by the order/* webhooks. When one is
+     * missed the row would keep showing the transient `processing` forever, so
+     * the few affected rows are re-read from the API while the grid loads.
+     *
+     * @return $this
+     */
+    protected function _afterLoad()
+    {
+        parent::_afterLoad();
+
+        if ($this->monduLogHelper === null) {
+            return $this;
+        }
+
+        $transient = [];
+        foreach ($this->getItems() as $item) {
+            $referenceId = (string) $item->getData('reference_id');
+            $isTransient = $referenceId !== ''
+                && $this->monduLogHelper->isTransientState($item->getData('mondu_state'));
+            if ($isTransient) {
+                $transient[$referenceId] = $item;
+            }
+        }
+
+        if ($transient === []) {
+            return $this;
+        }
+
+        $refreshed = $this->monduLogHelper->syncTransientOrders(array_keys($transient));
+        foreach ($refreshed as $referenceId => $state) {
+            $transient[$referenceId]->setData('mondu_state', $state);
+        }
+
         return $this;
     }
 

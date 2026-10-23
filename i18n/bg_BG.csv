@@ -63,8 +63,8 @@ Information on the processing of your personal data by Mondu GmbH can be found <
 <strong>Payment reference:</strong> %1, <strong>Референция за плащане:</strong> %1
 <strong>Payment term:</strong> %1 days, <strong>Срок на плащане:</strong> %1 дни
 
-"Invoice (30 days)","банков превод (30 дни)"
-"SEPA direct debit (30 days)","директния дебит SEPA (30 дни)"
+"Invoice","банков превод"
+"SEPA direct debit","директния дебит SEPA"
 "Installments (3, 6, 12 months)","разсрочено плащане (3, 6, 12 месеци)"
 "Installments (3, 6, 12 months) via Bank Transfer","разсрочено плащане чрез банков превод (3, 6, 12 месеци)"
 "Instant Pay","прямо плащане"
@@ -108,3 +108,5 @@ Please select another payment option to complete your purchase.","Mondu: За с
 <strong>Bank:</strong> %1,<strong>Банка:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Код на клона:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Номер на сметка:</strong> %1
+"Payment term","Срок на плащане"
+"%1 days","%1 дни"

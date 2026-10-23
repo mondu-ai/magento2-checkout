@@ -250,6 +250,7 @@ class IndexTest extends TestCase
             $this->monduLogHelper,
             $this->createMock(MonduFileLogger::class),
             $this->orderRepository,
+            $this->createMock(RequestFactory::class),
             $searchCriteriaBuilder,
             $filterBuilder,
             $request,

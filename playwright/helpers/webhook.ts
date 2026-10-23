@@ -41,6 +41,15 @@ export function buildOrderPendingPayload(orderUuid: string, externalRefId: strin
   }
 }
 
+export function buildOrderAuthorizedPayload(orderUuid: string, externalRefId: string) {
+  return {
+    topic: 'order/authorized',
+    order_uuid: orderUuid,
+    external_reference_id: externalRefId,
+    order_state: 'authorized',
+  }
+}
+
 export function buildOrderConfirmedPayload(
   orderUuid: string,
   externalRefId: string,

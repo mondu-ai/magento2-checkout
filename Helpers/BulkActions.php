@@ -238,7 +238,7 @@ class BulkActions
                 );
                 continue;
             }
-            $grossAmountCents = round($invoiceItem->getBaseGrandTotal(), 2) * 100;
+            $grossAmountCents = round((float) $invoiceItem->getBaseGrandTotal(), 2) * 100;
 
             $invoiceBody = [
                 'order_uid' => $monduLogData['reference_id'],
@@ -249,6 +249,8 @@ class BulkActions
                     $invoiceItem->getIncrementId()
                 ),
             ];
+
+            $invoiceBody = $this->orderHelper->addAmountsToInvoice($invoiceItem, $invoiceBody);
 
             $externalReferenceIdMapping = $this->invoiceOrderHelper
                 ->getExternalReferenceIdMapping((int) $monduLogData['entity_id']);

@@ -1,0 +1,4 @@
+/* Mondu payment details in the admin order view: spaced like the order currency line below. */
+.order-payment-method-title .mondu-payment-info {
+    margin-top: 1rem;
+}

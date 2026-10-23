@@ -6,6 +6,8 @@
             <argument name="configProviders" xsi:type="array">
                 <item name="custom_payment_gateway_config_provider"
                       xsi:type="object">Mondu\Mondu\Model\Ui\ConfigProvider</item>
+                <item name="mondu_net_term_config_provider"
+                      xsi:type="object">Mondu\Mondu\Model\Ui\NetTermConfigProvider</item>
             </argument>
         </arguments>
     </type>

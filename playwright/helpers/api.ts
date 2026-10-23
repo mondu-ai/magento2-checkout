@@ -67,3 +67,30 @@ export async function getMonduInvoice(
   const body = await response.json()
   return body.invoice ?? body
 }
+
+export async function getMonduInvoices(apiContext: APIRequestContext, orderUuid: string) {
+  const response = await apiContext.get(`${API_URL}/orders/${orderUuid}/invoices`, {
+    headers: headers(),
+  })
+  if (!response.ok()) {
+    throw new Error(`Failed to list invoices for order ${orderUuid}: ${response.status()}`)
+  }
+  const body = await response.json()
+  return body.invoices ?? body
+}
+
+export async function waitForMonduInvoice(
+  apiContext: APIRequestContext,
+  orderUuid: string,
+  retries = 8,
+  delayMs = 3000
+) {
+  for (let i = 0; i < retries; i++) {
+    const invoices = await getMonduInvoices(apiContext, orderUuid)
+    if (Array.isArray(invoices) && invoices.length > 0) return invoices[0]
+    if (i < retries - 1) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+  }
+  throw new Error(`No invoice showed up at Mondu for order ${orderUuid}`)
+}
