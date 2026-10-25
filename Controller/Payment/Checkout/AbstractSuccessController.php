@@ -8,7 +8,6 @@ use Exception;
 use Magento\Checkout\Helper\Data as CheckoutData;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Checkout\Model\Type\Onepage;
-use Magento\Customer\Model\Group as CustomerGroup;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\RedirectInterface;
@@ -25,7 +24,9 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Mondu\Mondu\Helpers\ABTesting\ABTesting;
 use Mondu\Mondu\Helpers\Log as MonduTransactions;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
+use Mondu\Mondu\Model\Checkout\GuestQuote;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
+use Mondu\Mondu\Service\CheckoutRecovery;
 
 abstract class AbstractSuccessController extends AbstractPaymentController
 {
@@ -46,6 +47,8 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      * @param CustomerSession $customerSession
      * @param OrderRepositoryInterface $orderRepository
      * @param OrderSender $orderSender
+     * @param CheckoutRecovery $checkoutRecovery
+     * @param GuestQuote $guestQuote
      */
     public function __construct(
         ABTesting $aBTesting,
@@ -64,6 +67,8 @@ abstract class AbstractSuccessController extends AbstractPaymentController
         protected CustomerSession $customerSession,
         protected OrderRepositoryInterface $orderRepository,
         protected OrderSender $orderSender,
+        protected CheckoutRecovery $checkoutRecovery,
+        protected GuestQuote $guestQuote,
     ) {
         parent::__construct(
             $aBTesting,
@@ -104,15 +109,7 @@ abstract class AbstractSuccessController extends AbstractPaymentController
      */
     protected function prepareGuestQuote(CartInterface $quote): CartInterface
     {
-        $billingAddress = $quote->getBillingAddress();
-        $email = $billingAddress->getOrigData('email') ?? $billingAddress->getEmail();
-
-        $quote->setCustomerId(null)
-            ->setCustomerEmail($email)
-            ->setCustomerIsGuest(true)
-            ->setCustomerGroupId(CustomerGroup::NOT_LOGGED_IN_ID);
-
-        return $quote;
+        return $this->guestQuote->prepare($quote);
     }
 
     /**
