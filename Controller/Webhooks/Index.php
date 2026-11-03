@@ -262,7 +262,18 @@ class Index implements ActionInterface
             __('Mondu: Order Status changed to Processing by a webhook')
         );
         $this->orderRepository->save($order);
-        $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state'], $viban);
+        // The buyer may pick another net term on the Mondu confirmation page, so the term
+        // stored at order/authorized is not final: order/confirmed carries the final one.
+        $confirmedNetTerm = (int) ($params['net_term'] ?? 0);
+        $this->monduLogHelper->updateLogMonduData(
+            $monduId,
+            $params['order_state'],
+            $viban,
+            null,
+            null,
+            null,
+            $confirmedNetTerm > 0 ? $confirmedNetTerm : null
+        );
         $this->monduLogHelper->fillMissingAuthorizedNetTerm($monduId, $storeId);
 
         $this->monduFileLogger->logOrderStatus('[ORDER STATUS] Processing confirmed webhook - AFTER status change', [
