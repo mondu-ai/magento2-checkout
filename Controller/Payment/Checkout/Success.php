@@ -25,6 +25,12 @@ class Success extends AbstractSuccessController
             throw new NotFoundException(__('Not found'));
         }
 
+        // The order/authorized webhook may be placing the same order right now.
+        $isLocked = $this->checkoutRecovery->lock($monduId);
+        if (!$isLocked) {
+            $this->monduFileLogger->warning('Success: could not lock the Mondu order', ['order_uuid' => $monduId]);
+        }
+
         try {
             $monduTransaction = $this->monduTransactions->getTransactionByOrderUid($monduId);
 
@@ -65,6 +71,10 @@ class Success extends AbstractSuccessController
             return $this->processException($e, 'Mondu: An error occurred while trying to confirm the order');
         } catch (Exception $e) {
             return $this->processException($e, 'Mondu: Error during the order process');
+        } finally {
+            if ($isLocked) {
+                $this->checkoutRecovery->unlock($monduId);
+            }
         }
     }
 }

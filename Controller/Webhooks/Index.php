@@ -25,6 +25,7 @@ use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Service\CheckoutRecovery;
 
 class Index implements ActionInterface
 {
@@ -42,6 +43,7 @@ class Index implements ActionInterface
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
      * @param PaymentMethod $paymentMethod
+     * @param CheckoutRecovery $checkoutRecovery
      */
     public function __construct(
         private readonly ConfigProvider $monduConfig,
@@ -57,6 +59,7 @@ class Index implements ActionInterface
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly EncryptorInterface $encryptor,
         private readonly PaymentMethod $paymentMethod,
+        private readonly CheckoutRecovery $checkoutRecovery,
     ) {
     }
 
@@ -94,6 +97,9 @@ class Index implements ActionInterface
             switch ($topic) {
                 case 'order/confirmed':
                     [$resBody, $resStatus] = $this->handleConfirmed($params, $order, $storeId);
+                    break;
+                case 'order/authorized':
+                    [$resBody, $resStatus] = $this->handleAuthorized($params, $order);
                     break;
                 case 'order/pending':
                     [$resBody, $resStatus] = $this->handlePending($params, $order, $storeId);
@@ -134,6 +140,8 @@ class Index implements ActionInterface
             throw new Exception('Required params missing');
         }
 
+        $order = $order ?? $this->placeMissingOrder($monduId);
+
         if (!$order) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
@@ -161,6 +169,52 @@ class Index implements ActionInterface
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * Processes the 'order/authorized' topic: places and confirms the order if the buyer never came back.
+     *
+     * @param array|null $params
+     * @param OrderInterface|null $order
+     * @throws Exception
+     * @return array
+     */
+    public function handleAuthorized(?array $params, ?OrderInterface $order = null): array
+    {
+        $monduId = $params['order_uuid'] ?? null;
+
+        if (!$monduId) {
+            throw new Exception('Required params missing');
+        }
+
+        $order = $order ?? $this->placeMissingOrder($monduId);
+
+        if (!$order) {
+            return [['message' => 'Order does not exist', 'error' => 0], 200];
+        }
+
+        return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * Places the Magento order for a Mondu order the buyer did not return from.
+     *
+     * Failures are logged only: the cron retries unprocessed checkouts.
+     *
+     * @param string $monduId
+     * @return OrderInterface|null
+     */
+    private function placeMissingOrder(string $monduId): ?OrderInterface
+    {
+        try {
+            return $this->checkoutRecovery->placeOrder($monduId, CheckoutRecovery::SOURCE_WEBHOOK);
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('Webhook: could not place the order for the Mondu order', [
+                'order_uuid' => $monduId,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
     }
 
     /**

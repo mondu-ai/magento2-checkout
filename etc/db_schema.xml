@@ -39,6 +39,29 @@
             <column name="entity_id"/>
         </constraint>
     </table>
+    <table name="mondu_pending_checkouts" resource="default" engine="innodb">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
+                comment="Pending checkout id"/>
+        <column xsi:type="varchar" name="order_uuid" length="64" nullable="false" comment="Mondu order uuid"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" comment="Quote id"/>
+        <column xsi:type="int" name="store_id" unsigned="true" nullable="true" comment="Store id"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" default="CURRENT_TIMESTAMP"
+                comment="Created at"/>
+        <column xsi:type="timestamp" name="processed_at" nullable="true" comment="Processed at"/>
+        <column xsi:type="smallint" name="attempts" unsigned="true" nullable="false" default="0"
+                comment="Failed recovery attempts"/>
+        <column xsi:type="timestamp" name="next_attempt_at" nullable="true" comment="Next recovery attempt at"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="MONDU_PENDING_CHECKOUTS_ORDER_UUID">
+            <column name="order_uuid"/>
+        </constraint>
+        <index referenceId="MONDU_PENDING_CHECKOUTS_PROCESSED_AT_CREATED_AT" indexType="btree">
+            <column name="processed_at"/>
+            <column name="created_at"/>
+        </index>
+    </table>
     <table name="sales_order" resource="sales">
         <column xsi:type="varchar" name="mondu_reference_id" nullable="false" comment="Mondu Reference id"/>
     </table>
