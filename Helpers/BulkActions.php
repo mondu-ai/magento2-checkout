@@ -238,6 +238,10 @@ class BulkActions
                 );
                 continue;
             }
+            if ($this->invoiceOrderHelper->exceedsOrderAmount($order, $invoiceItem, $addons)) {
+                $errors[] = $order->getIncrementId();
+                continue;
+            }
             $grossAmountCents = round((float) $invoiceItem->getBaseGrandTotal(), 2) * 100;
 
             $invoiceBody = [

@@ -26,6 +26,7 @@ use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Service\CheckoutRecovery;
 use Mondu\Mondu\Setup\Patch\Data\PendingBuyerConfirmationStatus;
 
 class Index implements ActionInterface
@@ -54,6 +55,7 @@ class Index implements ActionInterface
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
      * @param PaymentMethod $paymentMethod
+     * @param CheckoutRecovery $checkoutRecovery
      */
     public function __construct(
         private readonly ConfigProvider $monduConfig,
@@ -70,6 +72,7 @@ class Index implements ActionInterface
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly EncryptorInterface $encryptor,
         private readonly PaymentMethod $paymentMethod,
+        private readonly CheckoutRecovery $checkoutRecovery,
     ) {
     }
 
@@ -179,6 +182,8 @@ class Index implements ActionInterface
             throw new Exception('Required params missing');
         }
 
+        $order = $order ?? $this->placeMissingOrder($monduId);
+
         if (!$order) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];
         }
@@ -206,6 +211,27 @@ class Index implements ActionInterface
         $this->monduLogHelper->updateLogMonduData($monduId, $params['order_state']);
 
         return [['message' => 'ok', 'error' => 0], 200];
+    }
+
+    /**
+     * Places the Magento order for a Mondu order the buyer did not return from.
+     *
+     * Failures are logged only: the cron retries unprocessed checkouts.
+     *
+     * @param string $monduId
+     * @return OrderInterface|null
+     */
+    private function placeMissingOrder(string $monduId): ?OrderInterface
+    {
+        try {
+            return $this->checkoutRecovery->placeOrder($monduId, CheckoutRecovery::SOURCE_WEBHOOK);
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('Webhook: could not place the order for the Mondu order', [
+                'order_uuid' => $monduId,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
     }
 
     /**
@@ -256,12 +282,21 @@ class Index implements ActionInterface
                 ]);
         }
 
-        $order->setState(Order::STATE_PROCESSING);
-        $order->setStatus(Order::STATE_PROCESSING);
-        $order->addCommentToStatusHistory(
-            __('Mondu: Order Status changed to Processing by a webhook')
-        );
-        $this->orderRepository->save($order);
+        // The webhook usually arrives while the checkout request is still finishing the order, which
+        // already put it into processing. Saving it again here would be a no-op for us, but it fires
+        // sales_order_save_* in parallel with checkout, and 3rd-party auto-invoice modules hooked there
+        // then create the invoice twice. Only save when the state actually changes.
+        $alreadyProcessing = $currentState === Order::STATE_PROCESSING
+            && $currentStatus === Order::STATE_PROCESSING;
+
+        if (!$alreadyProcessing) {
+            $order->setState(Order::STATE_PROCESSING);
+            $order->setStatus(Order::STATE_PROCESSING);
+            $order->addCommentToStatusHistory(
+                __('Mondu: Order Status changed to Processing by a webhook')
+            );
+            $this->orderRepository->save($order);
+        }
         // The buyer may pick another net term on the Mondu confirmation page, so the term
         // stored at order/authorized is not final: order/confirmed carries the final one.
         $confirmedNetTerm = (int) ($params['net_term'] ?? 0);
@@ -284,7 +319,9 @@ class Index implements ActionInterface
             'previous_status' => $currentStatus,
             'new_state' => $order->getState(),
             'new_status' => $order->getStatus(),
-            'reason' => 'Webhook topic: order/confirmed - Order confirmed by Mondu',
+            'reason' => $alreadyProcessing
+                ? 'Webhook topic: order/confirmed - Order already processing, save skipped'
+                : 'Webhook topic: order/confirmed - Order confirmed by Mondu',
             'mondu_order_state' => $params['order_state'] ?? 'unknown'
         ]);
 
@@ -300,6 +337,9 @@ class Index implements ActionInterface
      * order that is still waiting moves; any other order keeps its state and only gets
      * the authorized net term.
      *
+     * If the buyer never came back from the hosted checkout, the order does not exist yet
+     * and is placed and confirmed here first.
+     *
      * @param array|null $params
      * @param OrderInterface|null $order
      * @param int|null $storeId
@@ -311,9 +351,12 @@ class Index implements ActionInterface
         $monduId = $params['order_uuid'] ?? null;
         $externalReferenceId = $params['external_reference_id'] ?? null;
 
-        if (!$externalReferenceId || !$monduId) {
+        if (!$monduId) {
             throw new Exception('Required params missing');
         }
+
+        // Places the order if the buyer never came back from the hosted checkout.
+        $order = $order ?? $this->placeMissingOrder($monduId);
 
         if (!$order) {
             return [['message' => 'Order does not exist', 'error' => 0], 200];

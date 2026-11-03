@@ -20,6 +20,7 @@ use Mondu\Mondu\Helpers\OrderHelper;
 use Mondu\Mondu\Helpers\PaymentMethod;
 use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 use Mondu\Mondu\Helpers\Request\UrlBuilder;
+use Mondu\Mondu\Model\ResourceModel\PendingCheckout;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
 
 class Transactions extends CommonRequest implements RequestInterface
@@ -44,6 +45,7 @@ class Transactions extends CommonRequest implements RequestInterface
      * @param OrderHelper $orderHelper
      * @param Resolver $store
      * @param UrlInterface $urlBuilder
+     * @param PendingCheckout $pendingCheckout
      */
     public function __construct(
         Curl $curl,
@@ -55,6 +57,7 @@ class Transactions extends CommonRequest implements RequestInterface
         private readonly OrderHelper $orderHelper,
         private readonly Resolver $store,
         private readonly UrlInterface $urlBuilder,
+        private readonly PendingCheckout $pendingCheckout,
     ) {
         $this->curl = $curl;
     }
@@ -108,6 +111,8 @@ class Transactions extends CommonRequest implements RequestInterface
                 ];
             }
 
+            $this->registerPendingCheckout($data['order']['uuid']);
+
             return [
                 'error' => 0,
                 'body' => json_decode($result, true),
@@ -160,6 +165,25 @@ class Transactions extends CommonRequest implements RequestInterface
         }
 
         return (int) $netTerm;
+    }
+
+    /**
+     * Links the Mondu order to the quote, so the order can be placed without the buyer's session.
+     *
+     * @param string $orderUuid
+     * @return void
+     */
+    private function registerPendingCheckout(string $orderUuid): void
+    {
+        try {
+            $quote = $this->checkoutSession->getQuote();
+            $this->pendingCheckout->register($orderUuid, (int) $quote->getId(), (int) $quote->getStoreId());
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('Could not link the Mondu order to the quote', [
+                'order_uuid' => $orderUuid,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
