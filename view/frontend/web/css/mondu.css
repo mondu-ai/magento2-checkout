@@ -1,7 +1,10 @@
 /********************************************
  * 1. Base styles for all Mondu payment labels
+ *
+ * Scoped to the method title: the prefix match also caught other labels inside
+ * the method block, e.g. the net term one, and indented them by the logo padding.
  ********************************************/
-label[for^="mondu"] {
+.payment-method-title label[for^="mondu"] {
     background-repeat: no-repeat;
     background-position: 0 10px;
     background-position-y: 2px;
@@ -38,3 +41,31 @@ html[lang="nl"] label[for="monduinstallment"],
 html[lang="nl"] label[for="monduinstallmentbyinvoice"] {
                                                       background-image: url("../images/nl/installments_white_rectangle.png"); }
 html[lang="nl"] label[for="mondupaynow"]            { background-image: url("../images/nl/instant_pay_white_rectangle.png"); }
+
+/********************************************
+ * 5. Net term selector
+ ********************************************/
+.payment-method-content .mondu-net-term {
+    margin: 0 0 22px;
+}
+
+.payment-method-content .mondu-net-term > .label {
+    display: block;
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+
+.payment-method-content .mondu-net-term .control {
+    /* A term is a handful of characters, so the field is sized to its content
+       instead of stretching across the whole method block. */
+    max-width: 20rem;
+}
+
+.payment-method-content .mondu-net-term select {
+    width: 100%;
+}
+
+.payment-method-content .mondu-net-term .mondu-net-term-single {
+    display: inline-block;
+    padding: 6px 0;
+}

@@ -10,6 +10,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Mondu\Mondu\Helpers\ContextHelper;
+use Mondu\Mondu\Helpers\FollowUpOperations;
 use Mondu\Mondu\Helpers\InvoiceOrderHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -30,6 +31,7 @@ class ShipOrder extends MonduObserver
      * @param InvoiceOrderHelper $invoiceOrderHelper
      * @param MonduLogHelper $monduLogHelper
      * @param OrderRepositoryInterface $orderRepository
+     * @param FollowUpOperations $followUpOperations
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -38,6 +40,7 @@ class ShipOrder extends MonduObserver
         private readonly InvoiceOrderHelper $invoiceOrderHelper,
         private readonly MonduLogHelper $monduLogHelper,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly FollowUpOperations $followUpOperations,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -55,6 +58,15 @@ class ShipOrder extends MonduObserver
         $shipment = $observer->getEvent()->getShipment();
         /** @var OrderInterface $order */
         $order = $shipment->getOrder();
+
+        if ($this->followUpOperations->isDisabledFor($order)) {
+            $this->monduFileLogger->info(
+                'Follow-up operations to Mondu are switched off, invoice not sent',
+                ['orderNumber' => $order->getIncrementId()]
+            );
+            return;
+        }
+
         $monduId = $order->getMonduReferenceId();
         $currentState = $order->getState();
         $currentStatus = $order->getStatus();

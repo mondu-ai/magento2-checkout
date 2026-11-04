@@ -10,6 +10,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\AdminOrder;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -37,6 +38,7 @@ class CreateOrder extends MonduObserver
      * @param RequestFactory $requestFactory
      * @param OrderRepositoryInterface $orderRepository
      * @param OrderUuidContext $orderUuidContext
+     * @param AdminOrder $adminOrder
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -49,6 +51,7 @@ class CreateOrder extends MonduObserver
         private readonly RequestFactory $requestFactory,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly OrderUuidContext $orderUuidContext,
+        private readonly AdminOrder $adminOrder,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -68,7 +71,17 @@ class CreateOrder extends MonduObserver
         $payment = $order->getPayment();
         $createMonduDatabaseRecord = true;
 
-        $isEditOrder = $order->getRelationParentRealId() || $order->getRelationParentId();
+        if ($this->adminOrder->isNewAdminOrder($order)) {
+            // There is no checkout session to confirm: a new admin order goes to
+            // Mondu through create_async, see CreateAsyncOrder.
+            $this->monduFileLogger->info(
+                'New admin order, left to CreateAsyncOrder',
+                ['orderNumber' => $order->getIncrementId()]
+            );
+            return;
+        }
+
+        $isEditOrder = $this->adminOrder->isEdit($order);
         $isMondu = $this->paymentMethodHelper->isMondu($payment);
 
         if ($isEditOrder && !$isMondu) {
@@ -131,6 +144,20 @@ class CreateOrder extends MonduObserver
             ]);
             throw new LocalizedException(__($e->getMessage()));
         }
+    }
+
+    /**
+     * Runs for Mondu orders and for every edit.
+     *
+     * An edit that moved a Mondu order to another payment method is not a Mondu
+     * order any more, but the Mondu order it replaces still has to be cancelled.
+     *
+     * @param OrderInterface $order
+     * @return bool
+     */
+    protected function shouldExecute(OrderInterface $order): bool
+    {
+        return $this->checkOrderPlacedWithMondu($order) || $this->adminOrder->isEdit($order);
     }
 
     /**
