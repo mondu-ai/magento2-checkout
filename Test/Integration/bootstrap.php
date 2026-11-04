@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/**
+/*
  * Bootstrap for Mondu integration tests.
  *
  * Finds the Magento root, initialises Magento's ObjectManager and makes it
@@ -28,9 +28,10 @@ for ($i = 0; $i < 12; $i++) {
 }
 
 if ($magentoRoot === null) {
-    echo "ERROR: Could not locate Magento root (no app/bootstrap.php + app/etc/env.php found).\n";
-    echo "Make sure the module is installed inside a Magento installation.\n";
-    exit(1);
+    throw new \RuntimeException(
+        'Could not locate Magento root (no app/bootstrap.php + app/etc/env.php found). '
+        . 'Make sure the module is installed inside a Magento installation.'
+    );
 }
 
 // Let Magento's own autoload.php define BP — suppress the harmless redefinition

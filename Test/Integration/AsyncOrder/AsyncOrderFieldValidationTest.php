@@ -24,7 +24,18 @@ use PHPUnit\Framework\TestCase;
  */
 class AsyncOrderFieldValidationTest extends TestCase
 {
+    /**
+     * Object manager used to build real services.
+     *
+     * @var \Magento\Framework\ObjectManagerInterface
+     */
     private $om;
+
+    /**
+     * The observer under test.
+     *
+     * @var DataAssignObserver
+     */
     private DataAssignObserver $observer;
 
     protected function setUp(): void

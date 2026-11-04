@@ -14,7 +14,7 @@ namespace Mondu\Mondu\Model\Payment;
  * buyer picked through the same observer, so an order keeps its net term in one
  * place no matter which flow created it. The rest of the fields are admin only.
  */
-final class AsyncOrderFields
+class AsyncOrderFields
 {
     public const FIELD_REGISTRATION_ID         = 'mondu_registration_id';
     public const FIELD_LEGAL_FORM_CATEGORY     = 'mondu_legal_form_category';
@@ -136,7 +136,11 @@ final class AsyncOrderFields
         self::FIELD_OWNER_BIRTH_DATE,
     ];
 
+    // phpcs:disable Magento2.Functions.StaticFunction -- stateless lookups on the constants above.
     /**
+     * Fields the async order API requires for the given payment method.
+     *
+     * @param string $methodCode Magento payment method code
      * @return string[]
      */
     public static function requiredFor(string $methodCode): array
@@ -145,6 +149,9 @@ final class AsyncOrderFields
     }
 
     /**
+     * Fields the admin form offers for the given payment method without requiring them.
+     *
+     * @param string $methodCode Magento payment method code
      * @return string[]
      */
     public static function optionalFor(string $methodCode): array
@@ -155,6 +162,7 @@ final class AsyncOrderFields
     /**
      * Every field the admin form should display for the given method.
      *
+     * @param string $methodCode Magento payment method code
      * @return string[]
      */
     public static function visibleFor(string $methodCode): array
@@ -198,6 +206,7 @@ final class AsyncOrderFields
     /**
      * Fields that become mandatory because of the selected legal_form_category.
      *
+     * @param string|null $category Selected legal_form_category value
      * @return string[]
      */
     public static function requiredForCategory(?string $category): array
@@ -207,12 +216,21 @@ final class AsyncOrderFields
 
     /**
      * True when the field is only sent along with the `owners` object.
+     *
+     * @param string $field
+     * @return bool
      */
     public static function isOwnerField(string $field): bool
     {
         return in_array($field, self::OWNER_FIELDS, true);
     }
 
+    /**
+     * True when the payment method code is one of the Mondu methods.
+     *
+     * @param string $methodCode Magento payment method code
+     * @return bool
+     */
     public static function isMonduMethod(string $methodCode): bool
     {
         return array_key_exists($methodCode, self::REQUIRED_BY_METHOD);
@@ -250,4 +268,5 @@ final class AsyncOrderFields
     {
         return in_array($methodCode, self::NET_TERM_METHODS, true);
     }
+    // phpcs:enable Magento2.Functions.StaticFunction
 }

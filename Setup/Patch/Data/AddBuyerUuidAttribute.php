@@ -47,6 +47,8 @@ class AddBuyerUuidAttribute implements DataPatchInterface
     }
 
     /**
+     * This patch does not depend on any other patch.
+     *
      * @return string[]
      */
     public static function getDependencies(): array
@@ -55,6 +57,8 @@ class AddBuyerUuidAttribute implements DataPatchInterface
     }
 
     /**
+     * This patch was never known under another name.
+     *
      * @return string[]
      */
     public function getAliases(): array

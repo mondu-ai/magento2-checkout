@@ -87,7 +87,7 @@ class Log
      * @param array $response
      * @param array|null $addons
      * @param string $paymentMethod
-     * @param string $orderFlow  'authorization' for standard checkout, 'async' for admin back-office orders
+     * @param string $orderFlow 'authorization' for standard checkout, 'async' for admin back-office orders
      * @throws Exception
      * @return void
      */

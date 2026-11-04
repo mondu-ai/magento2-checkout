@@ -36,21 +36,75 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class WebhookTestCase extends TestCase
 {
+    /**
+     * Object manager used to build real services.
+     *
+     * @var ObjectManagerInterface
+     */
     protected ObjectManagerInterface $om;
+    /**
+     * The webhook controller under test.
+     *
+     * @var WebhookController
+     */
     protected WebhookController $webhookController;
+    /**
+     * Reads and writes Mondu transaction log rows.
+     *
+     * @var MonduLogHelper
+     */
     protected MonduLogHelper $logHelper;
+    /**
+     * Loads and saves the test orders.
+     *
+     * @var OrderRepositoryInterface
+     */
     protected OrderRepositoryInterface $orderRepository;
+    /**
+     * Encodes webhook payloads.
+     *
+     * @var SerializerInterface
+     */
     protected SerializerInterface $serializer;
+    /**
+     * Decrypts the stored webhook secret.
+     *
+     * @var EncryptorInterface
+     */
     protected EncryptorInterface $encryptor;
+    /**
+     * Resolves the default store and website.
+     *
+     * @var StoreManagerInterface
+     */
     protected StoreManagerInterface $storeManager;
+    /**
+     * Database connection for setup and cleanup.
+     *
+     * @var ResourceConnection
+     */
     protected ResourceConnection $resource;
 
-    /** Webhook secret loaded once per test class. */
+    /**
+     * Webhook secret loaded once per test class.
+     *
+     * @var string|null
+     */
     private static ?string $webhookSecret = null;
 
-    /** Whether the sandbox API credentials are usable (checked once). */
+    /**
+     * Whether the sandbox API credentials are usable (checked once).
+     *
+     * @var bool
+     */
     private static bool $apiAvailable = false;
-    private static bool $apiChecked   = false;
+
+    /**
+     * Whether the sandbox API check has already run.
+     *
+     * @var bool
+     */
+    private static bool $apiChecked = false;
 
     // -----------------------------------------------------------------------
     // PHPUnit lifecycle

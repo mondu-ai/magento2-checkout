@@ -20,9 +20,18 @@ use PHPUnit\Framework\TestCase;
  */
 class FillAuthorizedNetTermTest extends TestCase
 {
+    /**
+     * Database connection for setup and cleanup.
+     *
+     * @var ResourceConnection
+     */
     private ResourceConnection $resource;
 
-    /** UUIDs inserted during the test, for cleanup. */
+    /**
+     * UUIDs inserted during the test, for cleanup.
+     *
+     * @var string[]
+     */
     private array $testUuids = [];
 
     protected function setUp(): void

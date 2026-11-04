@@ -50,6 +50,8 @@ class NetTermConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Returns the net terms the buyer can pick, per payment method and country.
+     *
      * @return array
      */
     public function getConfig(): array
@@ -88,7 +90,7 @@ class NetTermConfigProvider implements ConfigProviderInterface
      * added to each country the merchant has, and kept under a wildcard key for a
      * buyer whose country appears nowhere else.
      *
-     * @param array<int, array{net_term?: int, country_code?: string}> $rows
+     * @param array $rows Payment terms rows, each with net_term and an optional country_code
      * @param int[] $configured
      * @return array<string, int[]>
      */
@@ -116,7 +118,7 @@ class NetTermConfigProvider implements ConfigProviderInterface
         }
 
         foreach (array_keys($byCountry) as $countryCode) {
-            $byCountry[$countryCode] = $this->normalise(array_merge($byCountry[$countryCode], $anyCountry));
+            $byCountry[$countryCode] = $this->normalise([...$byCountry[$countryCode], ...$anyCountry]);
         }
 
         if ($anyCountry !== []) {
@@ -127,6 +129,8 @@ class NetTermConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Removes duplicate terms and sorts them in ascending order.
+     *
      * @param int[] $netTerms
      * @return int[]
      */
@@ -139,6 +143,8 @@ class NetTermConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Returns the store of the checkout quote, or null when there is none.
+     *
      * @return int|null
      */
     private function getStoreId(): ?int

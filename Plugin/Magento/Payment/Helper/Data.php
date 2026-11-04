@@ -57,8 +57,9 @@ class Data
                 unset($result['mondupaynow']);
                 return $result;
             }
-        } catch (\Exception $e) {
-            // area not set yet — safe to continue with filter
+        } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+            // getAreaCode() throws when no area is set yet, which is never the admin
+            // area, so the storefront filter below is the right one to apply.
         }
 
         return $this->paymentMethodList->filterMonduPaymentMethods($result);

@@ -60,7 +60,10 @@ $invoices = $block->getMonduInvoices();
                                value=""/>
                         <div class="admin__field-note">
                             <?= $escaper->escapeHtml(
-                                __('Order total is %1. Mondu checks the amount against the invoice as well.', $block->getFormattedOrderTotal())
+                                __(
+                                    'Order total is %1. Mondu checks the amount against the invoice as well.',
+                                    $block->getFormattedOrderTotal()
+                                )
                             ) ?>
                         </div>
                     </div>
@@ -78,6 +81,7 @@ $invoices = $block->getMonduInvoices();
                                value=""/>
                         <div class="admin__field-note">
                             <?= $escaper->escapeHtml(
+                                // phpcs:ignore Generic.Files.LineLength -- one literal so the i18n collector finds it
                                 __('Leave empty to number it after the order. Mondu rejects a reference it has already seen.')
                             ) ?>
                         </div>

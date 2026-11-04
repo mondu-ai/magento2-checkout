@@ -23,6 +23,8 @@ use Magento\Quote\Model\Quote\Payment;
 class StripAdditionalDataPlugin
 {
     /**
+     * Removes the additional_data array from the data about to be added to the payment.
+     *
      * @param Payment $subject
      * @param mixed $arr
      * @return array

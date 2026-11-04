@@ -189,6 +189,13 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         return $parts === [] ? (string) __('error creating async order') : implode('; ', $parts);
     }
 
+    /**
+     * Turns a known API validation error into a readable message, or returns null for unknown ones.
+     *
+     * @param string $name Field name the API reported the error for
+     * @param string $details Error text from the API
+     * @return string|null
+     */
     private function friendlyErrorMessage(string $name, string $details): ?string
     {
         if (str_contains($details, 'minimum amount')) {
@@ -309,9 +316,9 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         if (in_array(AsyncOrderFields::FIELD_NET_TERM, $required, true) && $netTerm !== null && $netTerm !== '') {
             $payload['net_term'] = (int) $netTerm;
         }
-        if (in_array(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS, $required, true)
-            && $installments !== null && $installments !== ''
-        ) {
+        $sendsInstallments = in_array(AsyncOrderFields::FIELD_NUMBER_OF_INSTALLMENTS, $required, true)
+            && $installments !== null && $installments !== '';
+        if ($sendsInstallments) {
             $payload['number_of_installments'] = (int) $installments;
         }
     }

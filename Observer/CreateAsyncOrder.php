@@ -91,7 +91,13 @@ class CreateAsyncOrder extends MonduObserver
             $order->addCommentToStatusHistory(__('Mondu: async order created, uuid %1', $orderUuid));
             $this->orderRepository->save($order);
 
-            $this->monduLogHelper->logTransaction($order, $orderData, null, $this->paymentMethodHelper->getCode($order->getPayment()), 'async');
+            $this->monduLogHelper->logTransaction(
+                $order,
+                $orderData,
+                null,
+                $this->paymentMethodHelper->getCode($order->getPayment()),
+                'async'
+            );
 
             $this->saveBuyerUuidIfPresent($order, $orderData);
 

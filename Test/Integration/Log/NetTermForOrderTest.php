@@ -23,10 +23,25 @@ use PHPUnit\Framework\TestCase;
  */
 class NetTermForOrderTest extends TestCase
 {
+    /**
+     * Reads and writes Mondu transaction log rows.
+     *
+     * @var MonduLogHelper
+     */
     private MonduLogHelper $logHelper;
+
+    /**
+     * Database connection for setup and cleanup.
+     *
+     * @var ResourceConnection
+     */
     private ResourceConnection $resource;
 
-    /** Fake order ids inserted during the test, for cleanup. */
+    /**
+     * Fake order ids inserted during the test, for cleanup.
+     *
+     * @var int[]
+     */
     private array $orderIds = [];
 
     protected function setUp(): void

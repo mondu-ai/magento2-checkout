@@ -44,6 +44,8 @@ class AvailableNetTerm implements OptionSourceInterface
     }
 
     /**
+     * Lists the net terms the Mondu account offers as config options.
+     *
      * @return array<int, array{value: int, label: string}>
      */
     public function toOptionArray(): array

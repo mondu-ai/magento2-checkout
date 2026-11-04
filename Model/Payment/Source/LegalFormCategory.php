@@ -23,6 +23,11 @@ class LegalFormCategory implements OptionSourceInterface, ArgumentInterface
         'andere_gesellschaftsform'             => 'Other legal form',
     ];
 
+    /**
+     * Returns the legal form categories with translated labels.
+     *
+     * @return array
+     */
     public function toOptionArray(): array
     {
         $out = [];

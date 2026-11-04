@@ -330,6 +330,7 @@ class Index implements ActionInterface
 
     /**
      * Processes the 'order/authorized' topic: sets order to Pending Buyer Confirmation.
+     *
      * Triggered for async orders after Mondu approves but before buyer confirms via email.
      *
      * Mondu sends the topic for checkout orders too, where the buyer has nothing left to

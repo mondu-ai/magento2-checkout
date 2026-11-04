@@ -102,8 +102,9 @@ class UrlBuilder
     }
 
     /**
-     * Returns the API URL for retrieving the merchant's payment terms (net terms per country),
-     * optionally narrowed to one order source and/or one payment method.
+     * Returns the API URL for the merchant's payment terms (net terms per country).
+     *
+     * The terms can be narrowed to one order source and/or one payment method.
      *
      * @param array $filters e.g. ['source' => 'async', 'payment_method' => 'invoice']
      * @return string

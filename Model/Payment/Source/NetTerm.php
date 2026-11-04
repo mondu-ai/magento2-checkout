@@ -29,6 +29,11 @@ class NetTerm implements OptionSourceInterface, ArgumentInterface
     ) {
     }
 
+    /**
+     * Returns the net terms offered for the quote's billing country and store.
+     *
+     * @return array
+     */
     public function toOptionArray(): array
     {
         $out = [];

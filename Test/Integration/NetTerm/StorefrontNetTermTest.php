@@ -29,6 +29,11 @@ use ReflectionMethod;
  */
 class StorefrontNetTermTest extends TestCase
 {
+    /**
+     * Object manager used to build real services.
+     *
+     * @var \Magento\Framework\ObjectManagerInterface
+     */
     private $om;
 
     protected function setUp(): void
@@ -138,7 +143,8 @@ class StorefrontNetTermTest extends TestCase
         $this->assertCount(
             4,
             array_unique($keys),
-            'the same store reads this endpoint for several sources and methods, the answers must not overwrite each other'
+            'the same store reads this endpoint for several sources and methods, '
+            . 'the answers must not overwrite each other'
         );
     }
 

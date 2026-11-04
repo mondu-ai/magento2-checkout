@@ -9,6 +9,7 @@ use Magento\Framework\App\State as AppState;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Mondu\Mondu\Model\Payment\AsyncOrderFields;
@@ -24,10 +25,21 @@ use Mondu\Mondu\Model\Payment\Source\LegalFormCategory;
  */
 class DataAssignObserver extends AbstractDataAssignObserver implements ObserverInterface
 {
+    /**
+     * @param AppState $appState
+     */
     public function __construct(
         private readonly AppState $appState,
-    ) {}
+    ) {
+    }
 
+    /**
+     * Copies the Mondu fields from the submitted payment data and validates them.
+     *
+     * @param Observer $observer
+     * @return void
+     * @throws LocalizedException
+     */
     public function execute(Observer $observer): void
     {
         $data = $this->readDataArgument($observer);
@@ -61,6 +73,11 @@ class DataAssignObserver extends AbstractDataAssignObserver implements ObserverI
     }
 
     /**
+     * Checks that the fields required for the method and legal form are present in admin.
+     *
+     * @param string $methodCode
+     * @param InfoInterface $info
+     * @return void
      * @throws LocalizedException
      */
     private function validate(string $methodCode, $info): void
@@ -104,6 +121,8 @@ class DataAssignObserver extends AbstractDataAssignObserver implements ObserverI
     /**
      * The API expects `owners.0.birth_date` as YYYY-MM-DD.
      *
+     * @param InfoInterface $info
+     * @return void
      * @throws LocalizedException
      */
     private function validateBirthDate($info): void
@@ -124,6 +143,13 @@ class DataAssignObserver extends AbstractDataAssignObserver implements ObserverI
         }
     }
 
+    // phpcs:disable Magento2.Functions.StaticFunction -- pure lookup with no state, nothing to intercept.
+    /**
+     * Returns the label shown to the merchant for a field in the missing fields error.
+     *
+     * @param string $field
+     * @return string
+     */
     private static function humanLabel(string $field): string
     {
         return match ($field) {
@@ -139,4 +165,5 @@ class DataAssignObserver extends AbstractDataAssignObserver implements ObserverI
             default                                        => $field,
         };
     }
+    // phpcs:enable Magento2.Functions.StaticFunction
 }

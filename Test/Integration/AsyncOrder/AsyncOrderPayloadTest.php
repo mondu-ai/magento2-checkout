@@ -27,7 +27,18 @@ use ReflectionMethod;
  */
 class AsyncOrderPayloadTest extends TestCase
 {
+    /**
+     * Object manager used to build real services.
+     *
+     * @var \Magento\Framework\ObjectManagerInterface
+     */
     private $om;
+
+    /**
+     * The private payload builder, opened up through reflection.
+     *
+     * @var ReflectionMethod
+     */
     private ReflectionMethod $buildPayload;
 
     protected function setUp(): void
@@ -143,7 +154,11 @@ class AsyncOrderPayloadTest extends TestCase
 
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('Mondu answered with an existing order');
-        $assertNewOrder->invoke($request, $order, ['uuid' => 'old', 'state' => 'confirmed', 'external_reference_id' => '000000010']);
+        $assertNewOrder->invoke(
+            $request,
+            $order,
+            ['uuid' => 'old', 'state' => 'confirmed', 'external_reference_id' => '000000010']
+        );
     }
 
     /**

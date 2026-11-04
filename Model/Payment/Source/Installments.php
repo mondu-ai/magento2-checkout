@@ -11,6 +11,11 @@ class Installments implements OptionSourceInterface, ArgumentInterface
 {
     public const OPTIONS = [3, 6, 12];
 
+    /**
+     * Returns the selectable numbers of installments.
+     *
+     * @return array
+     */
     public function toOptionArray(): array
     {
         $out = [];
