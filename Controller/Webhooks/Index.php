@@ -454,6 +454,9 @@ class Index implements ActionInterface
             $this->orderRepository->save($order);
         } elseif ($orderState === OrderHelper::DECLINED) {
             if (isset($params['reason']) && $params['reason'] === 'buyer_fraud') {
+                // Cancel first, so the order leaves payment_review and its stock is
+                // released like any other declined order, then flag it as fraud.
+                $this->cancelOrder($order);
                 $newStatus = Order::STATUS_FRAUD;
                 $statusChangeReason = 'Webhook topic: order/declined - Order declined due to buyer_fraud';
                 $order->setStatus($newStatus);

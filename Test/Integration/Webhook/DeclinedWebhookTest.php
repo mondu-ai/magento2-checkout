@@ -68,7 +68,7 @@ class DeclinedWebhookTest extends WebhookTestCase
         }
     }
 
-    public function testFraudDeclinedSetsFraudStatus(): void
+    public function testFraudDeclinedCancelsAsyncOrderAndSetsFraudStatus(): void
     {
         $email = 'declined@example.com';
 
@@ -100,6 +100,18 @@ class DeclinedWebhookTest extends WebhookTestCase
                 $fresh->getStatus(),
                 'Order status must be "fraud" when decline reason is buyer_fraud'
             );
+            $this->assertSame(
+                Order::STATE_CANCELED,
+                $fresh->getState(),
+                'A fraud decline must cancel the async order, or it stays in payment_review holding the stock'
+            );
+            foreach ($fresh->getAllItems() as $item) {
+                $this->assertEquals(
+                    (float) $item->getQtyOrdered(),
+                    (float) $item->getQtyCanceled(),
+                    'every item must be cancelled, which returns its stock'
+                );
+            }
         } finally {
             $this->cleanup($orderId, $orderUuid ?? '');
         }

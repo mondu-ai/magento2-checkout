@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mondu\Mondu\Helpers;
 
+use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -118,6 +119,7 @@ class InvoiceOrderHelper
 
         $storeId = (int) $order->getStoreId();
         $data = $this->requestFactory->create(RequestFactory::SHIP_ORDER, $storeId)->process($body);
+        $data = $this->resolveDuplicateInvoice($monduId, $storeId, (string) $order->getIncrementId(), (array) $data);
 
         if ($data && !isset($data['errors'])) {
             $this->monduLogHelper->updateLogSkipObserver($monduId, true);
@@ -251,6 +253,13 @@ class InvoiceOrderHelper
         $this->monduFileLogger->info(
             'InvoiceOrderHelper: createInvoiceForItem',
             ['monduId' => $monduId, 'body' => $invoiceBody]
+        );
+
+        $shipOrderData = $this->resolveDuplicateInvoice(
+            $monduId,
+            $storeId,
+            (string) $invoiceItem->getIncrementId(),
+            (array) $shipOrderData
         );
 
         $this->handleInvoiceOrderErrors($monduId, $shipOrderData);
@@ -461,18 +470,14 @@ class InvoiceOrderHelper
                 ['errors' => $data['errors'], 'monduId' => $monduId]
             );
 
-            if ($errorName === 'external_reference_id' && str_contains($errorDetails, 'must be unique')) {
-                $this->monduFileLogger->info(
-                    'InvoiceOrderHelper: Invoice already exists in Mondu (duplicate external_reference_id)',
-                    ['monduId' => $monduId]
-                );
-                // Letting Magento keep an invoice Mondu refused would leave the two
-                // sides disagreeing about what was invoiced, so fail the whole
-                // operation and let Magento roll the invoice back.
+            if ($this->isDuplicateInvoiceError($data)) {
+                // Reached only when Mondu holds the number but not on this order,
+                // see resolveDuplicateInvoice(). Failing here rolls back the
+                // shipment, so Magento does not ship what Mondu has not invoiced.
                 throw new LocalizedException(
                     __(
-                        'Mondu: an invoice with this number is already registered at Mondu, '
-                        . 'so the invoice was not created. Please check the invoice number and try again.'
+                        'Mondu: an invoice with this number is already registered at Mondu '
+                        . 'for another order. Please check the invoice number and try again.'
                     )
                 );
             }
@@ -484,6 +489,71 @@ class InvoiceOrderHelper
                 __('Mondu: %1 - %2', $errorName, $errorDetails)
             );
         }
+    }
+
+    /**
+     * Turns a duplicate invoice answer into the invoice Mondu already holds.
+     *
+     * Mondu may have created the invoice while its answer got lost, for example on
+     * a timeout. Every retry of the shipment then gets "external_reference_id must
+     * be unique", and the order could never ship. When the order at Mondu holds an
+     * invoice with this number, that invoice is the result of the earlier attempt,
+     * so it is returned as if Mondu had just created it and the mapping is written
+     * as usual. Any other answer is returned unchanged.
+     *
+     * @param string $monduId
+     * @param int $storeId
+     * @param string $invoiceNumber
+     * @param array $data Answer of the create invoice request
+     * @return array
+     */
+    private function resolveDuplicateInvoice(string $monduId, int $storeId, string $invoiceNumber, array $data): array
+    {
+        if (!$this->isDuplicateInvoiceError($data)) {
+            return $data;
+        }
+
+        try {
+            $invoices = (array) $this->requestFactory->create(RequestFactory::ORDER_INVOICES, $storeId)
+                ->process(['order_uuid' => $monduId]);
+        } catch (Exception $e) {
+            $this->monduFileLogger->error('InvoiceOrderHelper: could not read the invoices of the Mondu order', [
+                'monduId' => $monduId,
+                'invoiceNumber' => $invoiceNumber,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $data;
+        }
+
+        foreach ($invoices as $invoice) {
+            if ((string) ($invoice['invoice_number'] ?? '') === $invoiceNumber && isset($invoice['uuid'])) {
+                $this->monduFileLogger->info('InvoiceOrderHelper: invoice is already at Mondu, linking it', [
+                    'monduId' => $monduId,
+                    'invoiceNumber' => $invoiceNumber,
+                    'invoiceUuid' => $invoice['uuid'],
+                ]);
+
+                return ['invoice' => $invoice];
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * True when Mondu refused the invoice because its number is already taken.
+     *
+     * @param array $data
+     * @return bool
+     */
+    private function isDuplicateInvoiceError(array $data): bool
+    {
+        $error = $data['errors'][0] ?? null;
+
+        return is_array($error)
+            && ($error['name'] ?? null) === 'external_reference_id'
+            && str_contains((string) ($error['details'] ?? ''), 'must be unique');
     }
 
     /**

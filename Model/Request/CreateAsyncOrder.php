@@ -271,6 +271,10 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
             'external_reference_id' => uniqid(self::TEMPORARY_REFERENCE_PREFIX),
             'payment_method'        => $this->getMonduPaymentMethod($order),
             'gross_amount_cents'    => (int) round($order->getBaseGrandTotal() * 100),
+            // The lines carry the prices before the discount, so without it the
+            // lines add up to more than gross_amount_cents. Sent on the order the
+            // same way the storefront checkout does it (Transactions).
+            'total_discount_cents'  => (int) round(abs((float) $order->getBaseDiscountAmount()) * 100),
             'buyer'                 => $this->buildBuyerParams($order),
             'billing_address'       => $this->extractAddressParams($billing),
             'shipping_address'      => $this->extractAddressParams($order->getShippingAddress()),

@@ -57,27 +57,68 @@ class NetTermConfigProvider implements ConfigProviderInterface
         $byMethod = [];
 
         foreach (AsyncOrderFields::NET_TERM_METHODS as $methodCode) {
-            $configured = $this->configProvider->getAvailableNetTerms($methodCode, $storeId);
-            if ($configured === []) {
-                continue;
-            }
-
-            $monduMethod = array_search($methodCode, PaymentMethod::MAPPING, true);
-            $byCountry = $this->mapTermsByCountry(
-                $this->paymentTerms->getPaymentTerms(
-                    PaymentTerms::SOURCE_WIDGET,
-                    $storeId,
-                    $monduMethod === false ? null : (string) $monduMethod
-                ),
-                $configured
-            );
-
+            $byCountry = $this->getTermsByCountry($methodCode, $storeId);
             if ($byCountry !== []) {
                 $byMethod[$methodCode] = $byCountry;
             }
         }
 
         return ['monduNetTerms' => ['byMethod' => $byMethod]];
+    }
+
+    /**
+     * The terms a buyer in the given country may pick for the method.
+     *
+     * Resolves the country the same way the payment method renderer does: the
+     * country's own entry, else the terms the API lists without a country. The
+     * server checks a posted term against this, so a term the checkout would not
+     * have offered is never sent.
+     *
+     * @param string $methodCode Magento payment method code
+     * @param string|null $countryCode Billing country
+     * @param int|null $storeId
+     * @return int[]
+     */
+    public function getTermsForCountry(string $methodCode, ?string $countryCode, ?int $storeId): array
+    {
+        if (!in_array($methodCode, AsyncOrderFields::NET_TERM_METHODS, true)) {
+            return [];
+        }
+
+        $byCountry = $this->getTermsByCountry($methodCode, $storeId);
+        $countryCode = strtoupper((string) $countryCode);
+
+        if ($countryCode !== '' && isset($byCountry[$countryCode])) {
+            return $byCountry[$countryCode];
+        }
+
+        return $byCountry[self::ANY_COUNTRY] ?? [];
+    }
+
+    /**
+     * The terms the merchant enabled for the method, grouped by country.
+     *
+     * @param string $methodCode
+     * @param int|null $storeId
+     * @return array<string, int[]>
+     */
+    private function getTermsByCountry(string $methodCode, ?int $storeId): array
+    {
+        $configured = $this->configProvider->getAvailableNetTerms($methodCode, $storeId);
+        if ($configured === []) {
+            return [];
+        }
+
+        $monduMethod = array_search($methodCode, PaymentMethod::MAPPING, true);
+
+        return $this->mapTermsByCountry(
+            $this->paymentTerms->getPaymentTerms(
+                PaymentTerms::SOURCE_WIDGET,
+                $storeId,
+                $monduMethod === false ? null : (string) $monduMethod
+            ),
+            $configured
+        );
     }
 
     /**

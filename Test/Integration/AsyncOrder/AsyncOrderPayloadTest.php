@@ -142,6 +142,38 @@ class AsyncOrderPayloadTest extends TestCase
         $this->assertNotSame($first['external_reference_id'], $second['external_reference_id']);
     }
 
+    public function testDiscountedOrderSendsTheDiscountSoLinesMatchTheGrossAmount(): void
+    {
+        $request = $this->om->create(CreateAsyncOrder::class);
+        $order = $this->createOrder([F::FIELD_REGISTRATION_ID => '86653938', F::FIELD_NET_TERM => 30], null, 'mondu');
+        // 10 off the 100 net item: 90 net + 17.10 tax = 107.10 gross.
+        $order->setBaseDiscountAmount(-10.00)
+            ->setBaseTaxAmount(17.10)
+            ->setBaseGrandTotal(107.10);
+
+        $payload = $this->buildPayload->invoke($request, $order);
+
+        $this->assertSame(1000, $payload['total_discount_cents']);
+
+        $lines = $payload['lines'][0];
+        $netCents = 0;
+        foreach ($lines['line_items'] as $lineItem) {
+            $netCents += $lineItem['net_price_per_item_cents'] * $lineItem['quantity'];
+        }
+        $this->assertSame(
+            $payload['gross_amount_cents'],
+            $netCents + $lines['tax_cents'] + $lines['shipping_price_cents'] - $payload['total_discount_cents'],
+            'lines minus the discount have to add up to the gross amount'
+        );
+    }
+
+    public function testOrderWithoutDiscountSendsZero(): void
+    {
+        $payload = $this->buildPayloadFor([F::FIELD_REGISTRATION_ID => '86653938', F::FIELD_NET_TERM => 30]);
+
+        $this->assertSame(0, $payload['total_discount_cents']);
+    }
+
     public function testAnExistingOrderInTheAnswerIsRefused(): void
     {
         $assertNewOrder = new ReflectionMethod(CreateAsyncOrder::class, 'assertNewOrder');

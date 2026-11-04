@@ -9,6 +9,7 @@ use Magento\Quote\Model\Quote;
 use Mondu\Mondu\Helpers\PaymentTerms;
 use Mondu\Mondu\Model\Payment\AsyncOrderFields as F;
 use Mondu\Mondu\Model\Request\Transactions;
+use Mondu\Mondu\Model\Ui\ConfigProvider;
 use Mondu\Mondu\Model\Ui\NetTermConfigProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -26,6 +27,9 @@ use ReflectionMethod;
  *    over from one of them never travels with an instalment or pay now order
  *  - the term the buyer picked travels on the quote payment, the same field the
  *    admin order-create form uses, so it is on the order for the invoice PDF
+ *  - the server sends a posted term only when the checkout would have offered it,
+ *    so a hand-crafted request cannot put an order on a term the merchant did not
+ *    enable or the billing country does not allow
  */
 class StorefrontNetTermTest extends TestCase
 {
@@ -35,6 +39,13 @@ class StorefrontNetTermTest extends TestCase
      * @var \Magento\Framework\ObjectManagerInterface
      */
     private $om;
+
+    private const ALL_ENABLED = ['mondu' => [30, 60], 'mondusepa' => [30, 60], 'mondupaynow' => [3]];
+
+    private const DE_ROWS = [
+        ['net_term' => 30, 'country_code' => 'DE'],
+        ['net_term' => 60, 'country_code' => 'DE'],
+    ];
 
     protected function setUp(): void
     {
@@ -150,11 +161,77 @@ class StorefrontNetTermTest extends TestCase
 
     public function testSelectedTermTravelsOnTheQuotePayment(): void
     {
-        $quote = $this->om->create(Quote::class);
-        $quote->getPayment()->setMethod('mondu');
-        $quote->getPayment()->setAdditionalInformation(F::FIELD_NET_TERM, 60);
+        $quote = $this->makeQuote('mondu', 60, 'DE');
 
-        $this->assertSame(60, $this->getSelectedNetTerm($quote));
+        $this->assertSame(
+            60,
+            $this->getSelectedNetTerm($quote, ['mondu' => [30, 60]], [
+                ['net_term' => 30, 'country_code' => 'DE'],
+                ['net_term' => 60, 'country_code' => 'DE'],
+            ])
+        );
+    }
+
+    public function testTermTheMerchantDidNotEnableIsNotSent(): void
+    {
+        $quote = $this->makeQuote('mondu', 90, 'DE');
+
+        $this->assertNull(
+            $this->getSelectedNetTerm($quote, ['mondu' => [30, 60]], [
+                ['net_term' => 30, 'country_code' => 'DE'],
+                ['net_term' => 60, 'country_code' => 'DE'],
+                ['net_term' => 90, 'country_code' => 'DE'],
+            ]),
+            'the account holds 90, but the merchant did not enable it for invoice'
+        );
+    }
+
+    public function testNoTermIsSentWhenTheMerchantEnabledNone(): void
+    {
+        $quote = $this->makeQuote('mondu', 60, 'DE');
+
+        $this->assertNull(
+            $this->getSelectedNetTerm($quote, [], [['net_term' => 60, 'country_code' => 'DE']]),
+            'no terms configured means the account keeps applying its own term'
+        );
+    }
+
+    public function testTermOfAnotherCountryIsNotSent(): void
+    {
+        $quote = $this->makeQuote('mondu', 60, 'FR');
+
+        $this->assertNull(
+            $this->getSelectedNetTerm($quote, ['mondu' => [30, 60]], [
+                ['net_term' => 30, 'country_code' => 'FR'],
+                ['net_term' => 60, 'country_code' => 'DE'],
+            ]),
+            '60 is only allowed in DE, the FR buyer would get a 422'
+        );
+    }
+
+    public function testTermEnabledForAnotherMethodOnlyIsNotSent(): void
+    {
+        $quote = $this->makeQuote('mondusepa', 60, 'DE');
+
+        $this->assertNull(
+            $this->getSelectedNetTerm($quote, ['mondu' => [60], 'mondusepa' => [30]], [
+                ['net_term' => 30, 'country_code' => 'DE'],
+                ['net_term' => 60, 'country_code' => 'DE'],
+            ])
+        );
+    }
+
+    public function testCountrylessTermIsSentForAnyCountry(): void
+    {
+        $quote = $this->makeQuote('mondu', 60, 'NL');
+
+        $this->assertSame(
+            60,
+            $this->getSelectedNetTerm($quote, ['mondu' => [30, 60]], [
+                ['net_term' => 30, 'country_code' => 'DE'],
+                ['net_term' => 60],
+            ])
+        );
     }
 
     public function testOnlyTheMethodsTheApiAcceptsATermOnCarryOne(): void
@@ -176,31 +253,26 @@ class StorefrontNetTermTest extends TestCase
         // term stays on the quote payment, and sending it is refused with 422
         // "proposed net terms is not available for merchant", which used to make
         // the instalment order fail to reach Mondu at all.
-        $quote = $this->om->create(Quote::class);
-        $quote->getPayment()->setMethod('monduinstallment');
-        $quote->getPayment()->setAdditionalInformation(F::FIELD_NET_TERM, 60);
+        $quote = $this->makeQuote('monduinstallment', 60, 'DE');
 
-        $this->assertNull($this->getSelectedNetTerm($quote));
+        $this->assertNull($this->getSelectedNetTerm($quote, self::ALL_ENABLED, self::DE_ROWS));
     }
 
     public function testNoTermIsSentWhenTheBuyerPickedNone(): void
     {
-        $quote = $this->om->create(Quote::class);
-        $quote->getPayment()->setMethod('mondu');
+        $quote = $this->makeQuote('mondu', null, 'DE');
 
         $this->assertNull(
-            $this->getSelectedNetTerm($quote),
+            $this->getSelectedNetTerm($quote, self::ALL_ENABLED, self::DE_ROWS),
             'without a term the account keeps applying the one it applied before this was configurable'
         );
     }
 
     public function testGarbageTermIsIgnoredRatherThanSent(): void
     {
-        $quote = $this->om->create(Quote::class);
-        $quote->getPayment()->setMethod('mondu');
-        $quote->getPayment()->setAdditionalInformation(F::FIELD_NET_TERM, 'thirty');
+        $quote = $this->makeQuote('mondu', 'thirty', 'DE');
 
-        $this->assertNull($this->getSelectedNetTerm($quote));
+        $this->assertNull($this->getSelectedNetTerm($quote, self::ALL_ENABLED, self::DE_ROWS));
     }
 
     /**
@@ -216,13 +288,47 @@ class StorefrontNetTermTest extends TestCase
     }
 
     /**
+     * @param string $method
+     * @param int|string|null $netTerm
+     * @param string $countryId
+     * @return Quote
+     */
+    private function makeQuote(string $method, int|string|null $netTerm, string $countryId): Quote
+    {
+        $quote = $this->om->create(Quote::class);
+        $quote->getPayment()->setMethod($method);
+        if ($netTerm !== null) {
+            $quote->getPayment()->setAdditionalInformation(F::FIELD_NET_TERM, $netTerm);
+        }
+        $quote->getBillingAddress()->setCountryId($countryId);
+
+        return $quote;
+    }
+
+    /**
+     * Runs Transactions::getSelectedNetTerm with a stubbed merchant config and terms endpoint.
+     *
      * @param Quote $quote
+     * @param array<string, int[]> $configuredByMethod
+     * @param array $apiRows
      * @return int|null
      */
-    private function getSelectedNetTerm(Quote $quote): ?int
+    private function getSelectedNetTerm(Quote $quote, array $configuredByMethod, array $apiRows): ?int
     {
+        $configProvider = $this->createStub(ConfigProvider::class);
+        $configProvider->method('getAvailableNetTerms')
+            ->willReturnCallback(fn (string $method) => $configuredByMethod[$method] ?? []);
+        $paymentTerms = $this->createStub(PaymentTerms::class);
+        $paymentTerms->method('getPaymentTerms')->willReturn($apiRows);
+
+        $netTermConfigProvider = $this->om->create(NetTermConfigProvider::class, [
+            'configProvider' => $configProvider,
+            'paymentTerms' => $paymentTerms,
+        ]);
+        $transactions = $this->om->create(Transactions::class, ['netTermConfigProvider' => $netTermConfigProvider]);
+
         $method = new ReflectionMethod(Transactions::class, 'getSelectedNetTerm');
 
-        return $method->invoke($this->om->create(Transactions::class), $quote);
+        return $method->invoke($transactions, $quote);
     }
 }

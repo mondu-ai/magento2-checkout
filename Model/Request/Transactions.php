@@ -22,6 +22,7 @@ use Mondu\Mondu\Model\Payment\AsyncOrderFields;
 use Mondu\Mondu\Helpers\Request\UrlBuilder;
 use Mondu\Mondu\Model\ResourceModel\PendingCheckout;
 use Mondu\Mondu\Model\Ui\ConfigProvider;
+use Mondu\Mondu\Model\Ui\NetTermConfigProvider;
 
 class Transactions extends CommonRequest implements RequestInterface
 {
@@ -46,6 +47,7 @@ class Transactions extends CommonRequest implements RequestInterface
      * @param Resolver $store
      * @param UrlInterface $urlBuilder
      * @param PendingCheckout $pendingCheckout
+     * @param NetTermConfigProvider $netTermConfigProvider
      */
     public function __construct(
         Curl $curl,
@@ -58,6 +60,7 @@ class Transactions extends CommonRequest implements RequestInterface
         private readonly Resolver $store,
         private readonly UrlInterface $urlBuilder,
         private readonly PendingCheckout $pendingCheckout,
+        private readonly NetTermConfigProvider $netTermConfigProvider,
     ) {
         $this->curl = $curl;
     }
@@ -138,8 +141,11 @@ class Transactions extends CommonRequest implements RequestInterface
      * the admin order-create form does it, so both flows keep the term in one place
      * and it is on the order afterwards for the invoice PDF.
      *
-     * Nothing is sent when the merchant enabled no terms, which leaves the Mondu
-     * account applying the term it applied before this was configurable.
+     * The posted term is sent only when the checkout would have offered it: the
+     * merchant enabled it for the method and the billing country allows it.
+     * Anything else, including any term when the merchant enabled none, sends no
+     * term, which leaves the Mondu account applying the term it applied before
+     * this was configurable.
      *
      * @param CartInterface $quote
      * @return int|null
@@ -155,7 +161,8 @@ class Transactions extends CommonRequest implements RequestInterface
         // not settled on one, leaving the term behind on the quote payment. Sending
         // it then is refused with "proposed net terms is not available for
         // merchant", which is how the order silently failed to reach Mondu.
-        if (!AsyncOrderFields::takesNetTerm((string) $payment->getMethod())) {
+        $methodCode = (string) $payment->getMethod();
+        if (!AsyncOrderFields::takesNetTerm($methodCode)) {
             return null;
         }
 
@@ -163,8 +170,25 @@ class Transactions extends CommonRequest implements RequestInterface
         if ($netTerm === null || $netTerm === '' || !ctype_digit((string) $netTerm)) {
             return null;
         }
+        $netTerm = (int) $netTerm;
 
-        return (int) $netTerm;
+        $billingAddress = $quote->getBillingAddress();
+        $allowed = $this->netTermConfigProvider->getTermsForCountry(
+            $methodCode,
+            $billingAddress ? $billingAddress->getCountryId() : null,
+            $quote->getStoreId() !== null ? (int) $quote->getStoreId() : null
+        );
+
+        if (!in_array($netTerm, $allowed, true)) {
+            $this->monduFileLogger->info('Posted net term is not offered for this method and country, not sent', [
+                'method' => $methodCode,
+                'net_term' => $netTerm,
+                'allowed' => $allowed,
+            ]);
+            return null;
+        }
+
+        return $netTerm;
     }
 
     /**

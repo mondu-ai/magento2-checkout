@@ -6,11 +6,11 @@ namespace Mondu\Mondu\Observer;
 
 use Exception;
 use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Framework\App\State as AppState;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Mondu\Mondu\Helpers\AdminOrder;
 use Mondu\Mondu\Helpers\BackendOrders;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
@@ -27,7 +27,7 @@ class CreateAsyncOrder extends MonduObserver
     protected string $name = 'CreateAsyncOrder';
 
     /**
-     * @param AppState $appState
+     * @param AdminOrder $adminOrder
      * @param BackendOrders $backendOrders
      * @param ContextHelper $contextHelper
      * @param CustomerRepositoryInterface $customerRepository
@@ -38,7 +38,7 @@ class CreateAsyncOrder extends MonduObserver
      * @param RequestFactory $requestFactory
      */
     public function __construct(
-        private readonly AppState $appState,
+        private readonly AdminOrder $adminOrder,
         private readonly BackendOrders $backendOrders,
         ContextHelper $contextHelper,
         private readonly CustomerRepositoryInterface $customerRepository,
@@ -63,8 +63,10 @@ class CreateAsyncOrder extends MonduObserver
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
 
-        if (!$this->isAdminOrder()) {
-            $this->monduFileLogger->info('CreateAsyncOrder: not an admin order, skipping', [
+        if (!$this->adminOrder->isNewAdminOrder($order)) {
+            // A storefront order, or an admin edit, which CreateOrder adjusts on
+            // the Mondu order it replaces instead of creating a second one.
+            $this->monduFileLogger->info('CreateAsyncOrder: not a new admin order, skipping', [
                 'orderNumber' => $order->getIncrementId(),
             ]);
             return;
@@ -112,20 +114,6 @@ class CreateAsyncOrder extends MonduObserver
                 'error'       => $e->getMessage(),
             ]);
             throw new LocalizedException(__($e->getMessage()));
-        }
-    }
-
-    /**
-     * Checks whether the current request originates from the admin area.
-     *
-     * @return bool
-     */
-    private function isAdminOrder(): bool
-    {
-        try {
-            return $this->appState->getAreaCode() === \Magento\Framework\App\Area::AREA_ADMINHTML;
-        } catch (\Exception $e) {
-            return false;
         }
     }
 

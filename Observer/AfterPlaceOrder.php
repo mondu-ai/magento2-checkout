@@ -9,6 +9,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Mondu\Mondu\Helpers\AdminOrder;
 use Mondu\Mondu\Helpers\ContextHelper;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
@@ -22,6 +23,7 @@ class AfterPlaceOrder extends MonduObserver
      * @param PaymentMethodHelper $paymentMethodHelper
      * @param MonduLogHelper $monduLogHelper
      * @param OrderRepositoryInterface $orderRepository
+     * @param AdminOrder $adminOrder
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -29,6 +31,7 @@ class AfterPlaceOrder extends MonduObserver
         PaymentMethodHelper $paymentMethodHelper,
         private readonly MonduLogHelper $monduLogHelper,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly AdminOrder $adminOrder,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -44,6 +47,12 @@ class AfterPlaceOrder extends MonduObserver
     {
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
+
+        if ($this->adminOrder->isNewAdminOrder($order)) {
+            // Waits for the buyer's confirmation; the webhooks set its state.
+            return;
+        }
+
         $monduReferenceId = $order->getMonduReferenceId();
         $orderData = $this->monduLogHelper->getTransactionByOrderUid($monduReferenceId);
 

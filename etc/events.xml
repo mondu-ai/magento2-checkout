@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- Global, not frontend: admin order edits and REST/GraphQL placement go through them too.
+         A new order placed in the admin is skipped there and handled by CreateAsyncOrder. -->
+    <event name="sales_order_place_before">
+        <observer name="sales_order_place_before_mondu" instance="Mondu\Mondu\Observer\CreateOrder"/>
+    </event>
+    <event name="sales_order_place_after">
+        <observer name="sales_order_place_after_mondu" instance="Mondu\Mondu\Observer\AfterPlaceOrder"/>
+    </event>
     <event name="order_cancel_after">
         <observer name="mondu_order_cancel_after" instance="Mondu\Mondu\Observer\CancelOrder"/>
     </event>
