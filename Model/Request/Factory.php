@@ -25,9 +25,13 @@ class Factory
     public const ADJUST_ORDER = 'ADJUST_ORDER_2';
     public const EDIT_ORDER = 'ADJUST_ORDER';
     public const PAYMENT_METHODS = 'GET_PAYMENT_METHODS';
+    public const PAYMENT_TERMS = 'GET_PAYMENT_TERMS';
     public const ORDER_INVOICES = 'GET_ORDER_INVOICES';
     public const ERROR_EVENTS = 'CREATE_PLUGIN_EVENTS';
     public const CONFIRM_ORDER = 'CONFIRM_ORDER';
+    public const CREATE_ASYNC_ORDER = 'CREATE_ASYNC_ORDER';
+    public const UPDATE_EXTERNAL_INFO = 'UPDATE_EXTERNAL_INFO';
+    public const ASYNC_ORDER_SUPPORT = 'CHECK_ASYNC_ORDER_SUPPORT';
 
     /**
      * @var array
@@ -43,9 +47,13 @@ class Factory
         self::ADJUST_ORDER => Adjust::class,
         self::EDIT_ORDER => Edit::class,
         self::PAYMENT_METHODS => PaymentMethods::class,
+        self::PAYMENT_TERMS => PaymentTerms::class,
         self::ORDER_INVOICES => OrderInvoices::class,
         self::ERROR_EVENTS => ErrorEvents::class,
         self::CONFIRM_ORDER => ConfirmOrder::class,
+        self::CREATE_ASYNC_ORDER => CreateAsyncOrder::class,
+        self::UPDATE_EXTERNAL_INFO => UpdateExternalInfo::class,
+        self::ASYNC_ORDER_SUPPORT => AsyncOrderSupport::class,
     ];
 
     /**
@@ -90,11 +98,8 @@ class Factory
                 if ($store) {
                     $storeIdForContext = (int) $store->getId();
                 }
-            } catch (NoSuchEntityException $e) {
-                $this->monduFileLogger->warning('Could not resolve store for website', [
-                    'website_id' => $websiteId,
-                    'error' => $e->getMessage(),
-                ]);
+            } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+                // leave storeIdForContext null
             }
         }
         if ($storeIdForContext !== null) {
@@ -105,8 +110,7 @@ class Factory
         $model = $this->objectManager->create($className);
         $model->setCommonHeaders($this->headersHelper->getHeaders())
             ->setEnvironmentInformation($this->moduleHelper->getEnvironmentInformation())
-            ->setRequestOrigin($method)
-            ->setLogger($this->monduFileLogger);
+            ->setRequestOrigin($method);
 
         if ($storeId !== null && method_exists($model, 'setStoreId')) {
             $model->setStoreId($storeId);

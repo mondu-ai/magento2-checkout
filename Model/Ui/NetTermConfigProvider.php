@@ -1,0 +1,154 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Mondu\Mondu\Model\Ui;
+
+use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Mondu\Mondu\Helpers\PaymentMethod;
+use Mondu\Mondu\Helpers\PaymentTerms;
+use Mondu\Mondu\Model\Payment\AsyncOrderFields;
+
+/**
+ * Feeds the storefront checkout the net terms a buyer may choose from.
+ *
+ * The terms are narrowed the same way order creation validates them, by payment
+ * method and by country, or the checkout offers something the API then refuses
+ * with 422 "proposed net terms is not available for merchant". A merchant can hold
+ * different terms per payment method and per country, so both dimensions matter.
+ *
+ * Two sources are intersected rather than trusting either alone. The merchant's
+ * per method configuration is authoritative about what to offer, and the endpoint
+ * is authoritative about which country may use a term.
+ *
+ * The country is not settled when the checkout config is generated and can change
+ * without a page reload, so a country map goes out rather than one ready made
+ * list and the payment method renderer reads its own entry when the address
+ * changes. Methods that cannot carry a term at all are absent from the map.
+ */
+class NetTermConfigProvider implements ConfigProviderInterface
+{
+    /**
+     * Terms of a country the API lists without one, reachable for any buyer.
+     */
+    public const ANY_COUNTRY = '*';
+
+    /**
+     * @param CheckoutSession $checkoutSession
+     * @param ConfigProvider $configProvider
+     * @param PaymentTerms $paymentTerms
+     */
+    public function __construct(
+        private readonly CheckoutSession $checkoutSession,
+        private readonly ConfigProvider $configProvider,
+        private readonly PaymentTerms $paymentTerms,
+    ) {
+    }
+
+    /**
+     * Returns the net terms the buyer can pick, per payment method and country.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        $storeId = $this->getStoreId();
+        $byMethod = [];
+
+        foreach (AsyncOrderFields::NET_TERM_METHODS as $methodCode) {
+            $configured = $this->configProvider->getAvailableNetTerms($methodCode, $storeId);
+            if ($configured === []) {
+                continue;
+            }
+
+            $monduMethod = array_search($methodCode, PaymentMethod::MAPPING, true);
+            $byCountry = $this->mapTermsByCountry(
+                $this->paymentTerms->getPaymentTerms(
+                    PaymentTerms::SOURCE_WIDGET,
+                    $storeId,
+                    $monduMethod === false ? null : (string) $monduMethod
+                ),
+                $configured
+            );
+
+            if ($byCountry !== []) {
+                $byMethod[$methodCode] = $byCountry;
+            }
+        }
+
+        return ['monduNetTerms' => ['byMethod' => $byMethod]];
+    }
+
+    /**
+     * Groups the terms by country, keeping only the ones the merchant enabled.
+     *
+     * Rows the API returns without a country count for every country, so they are
+     * added to each country the merchant has, and kept under a wildcard key for a
+     * buyer whose country appears nowhere else.
+     *
+     * @param array $rows Payment terms rows, each with net_term and an optional country_code
+     * @param int[] $configured
+     * @return array<string, int[]>
+     */
+    private function mapTermsByCountry(array $rows, array $configured): array
+    {
+        $byCountry = [];
+        $anyCountry = [];
+
+        foreach ($rows as $row) {
+            if (!isset($row['net_term'])) {
+                continue;
+            }
+            $netTerm = (int) $row['net_term'];
+            if (!in_array($netTerm, $configured, true)) {
+                continue;
+            }
+
+            $countryCode = isset($row['country_code']) ? strtoupper((string) $row['country_code']) : '';
+            if ($countryCode === '') {
+                $anyCountry[] = $netTerm;
+                continue;
+            }
+
+            $byCountry[$countryCode][] = $netTerm;
+        }
+
+        foreach (array_keys($byCountry) as $countryCode) {
+            $byCountry[$countryCode] = $this->normalise([...$byCountry[$countryCode], ...$anyCountry]);
+        }
+
+        if ($anyCountry !== []) {
+            $byCountry[self::ANY_COUNTRY] = $this->normalise($anyCountry);
+        }
+
+        return $byCountry;
+    }
+
+    /**
+     * Removes duplicate terms and sorts them in ascending order.
+     *
+     * @param int[] $netTerms
+     * @return int[]
+     */
+    private function normalise(array $netTerms): array
+    {
+        $netTerms = array_values(array_unique($netTerms));
+        sort($netTerms);
+
+        return $netTerms;
+    }
+
+    /**
+     * Returns the store of the checkout quote, or null when there is none.
+     *
+     * @return int|null
+     */
+    private function getStoreId(): ?int
+    {
+        $quote = $this->checkoutSession->getQuote();
+        $storeId = $quote ? $quote->getStoreId() : null;
+
+        return $storeId !== null ? (int) $storeId : null;
+    }
+}
