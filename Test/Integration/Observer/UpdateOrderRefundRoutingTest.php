@@ -16,6 +16,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Mondu\Mondu\Helpers\BulkActions;
 use Mondu\Mondu\Helpers\ContextHelper;
+use Mondu\Mondu\Helpers\FollowUpOperations;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
@@ -78,6 +79,13 @@ class UpdateOrderRefundRoutingTest extends TestCase
      */
     private array $testUuids = [];
 
+    /**
+     * Whether the merchant switched the follow-up operations to Mondu off.
+     *
+     * @var bool
+     */
+    private bool $followUpOperationsDisabled = false;
+
     protected function setUp(): void
     {
         $om = ObjectManager::getInstance();
@@ -86,6 +94,7 @@ class UpdateOrderRefundRoutingTest extends TestCase
         $this->logHelper = $om->get(MonduLogHelper::class);
         $this->requestedTypes = [];
         $this->errorMessages = [];
+        $this->followUpOperationsDisabled = false;
     }
 
     protected function tearDown(): void
@@ -217,6 +226,55 @@ class UpdateOrderRefundRoutingTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
+    // Follow-up operations switched off
+    // -----------------------------------------------------------------------
+
+    /**
+     * The merchant sends credit notes from an ERP: a refund that would go out as a
+     * credit note sends nothing to Mondu.
+     */
+    public function testSkipFollowUpOperationsSendsNoCreditNote(): void
+    {
+        $uuid = $this->insertTransaction('shipped', $this->invoiceMapping());
+        $this->followUpOperationsDisabled = true;
+
+        $this->runObserver($uuid, ['creditmemo' => ['creditmemo_mondu_id' => self::INVOICE_UUID]]);
+
+        $this->assertSame([], $this->requestedTypes);
+        $this->assertSame([], $this->errorMessages);
+    }
+
+    /**
+     * A full refund that would cancel the order sends nothing either, and the
+     * stored Mondu state is left as it was.
+     */
+    public function testSkipFollowUpOperationsSendsNoCancellation(): void
+    {
+        $uuid = $this->insertTransaction('confirmed', null);
+        $this->followUpOperationsDisabled = true;
+
+        $this->runObserver($uuid, []);
+
+        $this->assertSame([], $this->requestedTypes);
+        $log = $this->logHelper->getTransactionByOrderUid($uuid);
+        $this->assertSame('confirmed', $log['mondu_state']);
+    }
+
+    /**
+     * A partial refund before shipment is no longer refused: Magento is in charge.
+     */
+    public function testSkipFollowUpOperationsDoesNotRefusePartialRefund(): void
+    {
+        $uuid = $this->insertTransaction('confirmed', null);
+        $this->followUpOperationsDisabled = true;
+
+        $this->runObserver($uuid, ['creditmemo' => []], true);
+
+        $this->assertSame([], $this->requestedTypes);
+        $this->assertSame([], $this->errorMessages);
+    }
+
+    // -----------------------------------------------------------------------
     // Harness
     // -----------------------------------------------------------------------
 
@@ -278,6 +336,9 @@ class UpdateOrderRefundRoutingTest extends TestCase
             }
         );
 
+        $followUpOperations = $this->createMock(FollowUpOperations::class);
+        $followUpOperations->method('isDisabledFor')->willReturn($this->followUpOperationsDisabled);
+
         $observerInstance = new UpdateOrder(
             $this->createMock(ContextHelper::class),
             $this->createMock(MonduFileLogger::class),
@@ -287,7 +348,8 @@ class UpdateOrderRefundRoutingTest extends TestCase
             $this->logHelper,
             $this->createRequestFactoryMock(),
             $httpRequest,
-            $this->createMock(OrderRepositoryInterface::class)
+            $this->createMock(OrderRepositoryInterface::class),
+            $followUpOperations
         );
 
         $event = $om->create(Event::class, ['data' => ['creditmemo' => $creditMemo]]);

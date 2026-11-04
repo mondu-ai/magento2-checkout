@@ -13,6 +13,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Mondu\Mondu\Helpers\BulkActions;
 use Mondu\Mondu\Helpers\ContextHelper;
+use Mondu\Mondu\Helpers\FollowUpOperations;
 use Mondu\Mondu\Helpers\Log as MonduLogHelper;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
@@ -35,6 +36,7 @@ class UpdateOrder extends MonduObserver
      * @param RequestFactory $requestFactory
      * @param RequestInterface $request
      * @param OrderRepositoryInterface $orderRepository
+     * @param FollowUpOperations $followUpOperations
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -46,6 +48,7 @@ class UpdateOrder extends MonduObserver
         private readonly RequestFactory $requestFactory,
         private readonly RequestInterface $request,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly FollowUpOperations $followUpOperations,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -61,6 +64,15 @@ class UpdateOrder extends MonduObserver
         $creditMemo = $observer->getEvent()->getCreditmemo();
         /** @var OrderInterface $order */
         $order = $creditMemo->getOrder();
+
+        if ($this->followUpOperations->isDisabledFor($order)) {
+            $this->monduFileLogger->info(
+                'Follow-up operations to Mondu are switched off, credit note or cancellation not sent',
+                ['orderNumber' => $order->getIncrementId()]
+            );
+            return;
+        }
+
         $monduId = $order->getMonduReferenceId();
         $currentState = $order->getState();
         $currentStatus = $order->getStatus();

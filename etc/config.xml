@@ -19,6 +19,7 @@
                 <send_lines>1</send_lines>
                 <require_invoice>1</require_invoice>
                 <backend_orders>0</backend_orders>
+                <skip_follow_up_operations>0</skip_follow_up_operations>
             </mondu>
             <mondusepa>
                 <sort_order>2</sort_order>

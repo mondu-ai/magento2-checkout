@@ -35,6 +35,13 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/mondu/backend_orders</config_path>
                     </field>
+                    <field id="mondu_skip_follow_up_operations" translate="label comment" type="select"
+                           sortOrder="37" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Skip follow-up operations</label>
+                        <comment>Set to Yes if you send invoices and credit notes to Mondu from another system, e.g. your ERP. Shipping, cancelling and refunding a Mondu order in Magento then sends nothing to Mondu, and Magento no longer checks the Mondu order state before it ships the order. The cron job that ships orders in Mondu skips these orders as well.</comment>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/mondu/skip_follow_up_operations</config_path>
+                    </field>
                     <field id="mondu_available_net_terms" translate="label comment" type="multiselect"
                            sortOrder="34" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                         <label>Net terms offered for Invoice</label>

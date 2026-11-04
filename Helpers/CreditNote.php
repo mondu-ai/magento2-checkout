@@ -28,9 +28,11 @@ class CreditNote
 {
     /**
      * @param Log $monduLogHelper
+     * @param FollowUpOperations $followUpOperations
      */
     public function __construct(
         private readonly Log $monduLogHelper,
+        private readonly FollowUpOperations $followUpOperations,
     ) {
     }
 
@@ -43,6 +45,11 @@ class CreditNote
     public function isAvailableFor(?OrderInterface $order): bool
     {
         if (!$order || !$order->getMonduReferenceId()) {
+            return false;
+        }
+
+        // The merchant sends credit notes to Mondu from elsewhere, e.g. an ERP.
+        if ($this->followUpOperations->isDisabledFor($order)) {
             return false;
         }
 
