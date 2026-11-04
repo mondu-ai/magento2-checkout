@@ -31,8 +31,8 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     public const TEMPORARY_REFERENCE_PREFIX = 'M2_';
 
     /**
-     * States of an order create_async has just created. The answer for a reference Mondu
-     * already holds a confirmed order under is that order, in a later state.
+     * States of an order create_async has just created. An answer in any other state
+     * is not the order this request created.
      */
     private const NEW_ORDER_STATES = ['processing', 'pending', 'authorized'];
 
@@ -124,8 +124,7 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     /**
      * Refuses an answer that is not the order just created.
      *
-     * The Magento order must never be linked to an order Mondu already holds (another
-     * shop's, or an earlier one).
+     * The Magento order must only be linked to the Mondu order created for it.
      *
      * @param OrderInterface $order
      * @param array $monduOrder
@@ -266,11 +265,9 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         $payload = [
             'currency'              => $order->getBaseCurrencyCode(),
             'language'              => $language,
-            // Not the increment id: create_async answers a reference Mondu already holds a
-            // confirmed order under with that order instead of creating one. Increment ids repeat
-            // across websites sharing a Mondu account, after a reinstall, and on shared sandbox
-            // accounts. The order number follows through update_external_info once the buyer
-            // confirmed (see the order/confirmed webhook).
+            // Not the increment id: the reference has to be unique per order, and increment ids
+            // repeat across websites and reinstalls. The order number follows through
+            // update_external_info once the buyer confirmed (see the order/confirmed webhook).
             'external_reference_id' => uniqid(self::TEMPORARY_REFERENCE_PREFIX),
             'payment_method'        => $this->getMonduPaymentMethod($order),
             'gross_amount_cents'    => (int) round($order->getBaseGrandTotal() * 100),

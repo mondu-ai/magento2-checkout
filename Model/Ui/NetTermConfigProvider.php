@@ -15,15 +15,12 @@ use Mondu\Mondu\Model\Payment\AsyncOrderFields;
  *
  * The terms are narrowed the same way order creation validates them, by payment
  * method and by country, or the checkout offers something the API then refuses
- * with 422 "proposed net terms is not available for merchant". Both dimensions
- * matter on a real account: the one behind this plugin holds 30, 60 and 90 days
- * for invoice but only 3 days for pay now, and only 30 days for France.
+ * with 422 "proposed net terms is not available for merchant". A merchant can hold
+ * different terms per payment method and per country, so both dimensions matter.
  *
  * Two sources are intersected rather than trusting either alone. The merchant's
- * per method configuration is authoritative about what to offer, and it is what
- * keeps an over broad reply from the terms endpoint out of the checkout while
- * its source and payment method filters are not yet everywhere. The endpoint is
- * authoritative about which country may use a term.
+ * per method configuration is authoritative about what to offer, and the endpoint
+ * is authoritative about which country may use a term.
  *
  * The country is not settled when the checkout config is generated and can change
  * without a page reload, so a country map goes out rather than one ready made

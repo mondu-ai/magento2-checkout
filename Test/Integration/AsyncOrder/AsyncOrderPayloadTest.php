@@ -136,8 +136,7 @@ class AsyncOrderPayloadTest extends TestCase
         $first = $this->buildPayloadFor([F::FIELD_REGISTRATION_ID => '86653938', F::FIELD_NET_TERM => 30]);
         $second = $this->buildPayloadFor([F::FIELD_REGISTRATION_ID => '86653938', F::FIELD_NET_TERM => 30]);
 
-        // create_async answers a reference it already holds a confirmed order under with that
-        // order; increment ids repeat across websites and shared accounts.
+        // The reference has to be unique per order, and increment ids repeat across websites.
         $this->assertStringStartsWith(CreateAsyncOrder::TEMPORARY_REFERENCE_PREFIX, $first['external_reference_id']);
         $this->assertStringNotContainsString('TEST-', $first['external_reference_id']);
         $this->assertNotSame($first['external_reference_id'], $second['external_reference_id']);

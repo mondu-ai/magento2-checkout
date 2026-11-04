@@ -5,10 +5,9 @@ import { getMonduOrder } from '../helpers/api'
 /**
  * Reference of an order placed from the admin (async flow).
  *
- * create_async answers a reference Mondu already holds a confirmed order under with that
- * order instead of creating one, and increment ids repeat across websites sharing a Mondu
- * account and on shared sandbox accounts. The order therefore goes to Mondu under a
- * reference of its own, and the increment id follows once the buyer confirmed.
+ * The reference has to be unique per order, and increment ids repeat across websites and
+ * reinstalls. The order therefore goes to Mondu under a reference of its own, and the
+ * increment id follows once the buyer confirmed.
  *
  * The buyer confirms on the Mondu page the confirmation email links to (confirmation_link),
  * so order/confirmed is Mondu's own webhook. Requires admin order creation to be switched

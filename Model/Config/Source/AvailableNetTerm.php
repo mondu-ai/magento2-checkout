@@ -15,8 +15,7 @@ use Mondu\Mondu\Helpers\PaymentTerms;
  *
  * Populates the multiselect that decides which terms buyers get to choose from.
  * There is one instance per payment method (see the virtual types in etc/di.xml)
- * because a merchant's terms differ per method: the account behind this plugin
- * holds 30, 60 and 90 days for invoice but only 3 days for pay now, and order
+ * because a merchant's terms can differ per method, and order
  * creation refuses the wrong pairing with 422 "proposed net terms is not
  * available for merchant". A single shared list would offer the merchant terms
  * that only ever produce that error.
