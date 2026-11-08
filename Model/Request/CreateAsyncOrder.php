@@ -434,6 +434,38 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
     }
 
     /**
+     * The billing address's company. A sole trader may have none and trades under
+     * their own name, so the owner's name goes out then, as the Shopware plugin does.
+     * Without a company and without that legal form it is null, which Mondu refuses with
+     * "buyer.company_name must be filled"; an empty string would instead fail as an invalid legal form.
+     *
+     * @param OrderInterface $order
+     * @return string|null
+     */
+    private function buildCompanyName(OrderInterface $order): ?string
+    {
+        $billing = $order->getBillingAddress();
+        $company = trim((string) ($billing ? $billing->getCompany() : ''));
+        $payment = $order->getPayment();
+
+        if ($company !== '' || !$payment
+            || (string) $payment->getAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY)
+                !== AsyncOrderFields::LEGAL_FORM_CATEGORY_SOLE_TRADER
+        ) {
+            return $company !== '' ? $company : null;
+        }
+
+        $firstName = (string) ($payment->getAdditionalInformation(AsyncOrderFields::FIELD_OWNER_FIRST_NAME)
+            ?: ($billing ? $billing->getFirstname() : ''));
+        $lastName  = (string) ($payment->getAdditionalInformation(AsyncOrderFields::FIELD_OWNER_LAST_NAME)
+            ?: ($billing ? $billing->getLastname() : ''));
+
+        $name = trim($firstName . ' ' . $lastName);
+
+        return $name !== '' ? $name : null;
+    }
+
+    /**
      * Builds buyer params from order data.
      *
      * @param OrderInterface $order
@@ -447,7 +479,7 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         $params = [
             'is_registered' => (bool) $customerId,
             'email'         => $order->getCustomerEmail() ?? ($billing ? $billing->getEmail() : ''),
-            'company_name'  => $billing ? $billing->getCompany() : '',
+            'company_name'  => $this->buildCompanyName($order),
             'first_name'    => $order->getCustomerFirstname() ?? ($billing ? $billing->getFirstname() : ''),
             'last_name'     => $order->getCustomerLastname() ?? ($billing ? $billing->getLastname() : ''),
             'phone'         => $billing ? $billing->getTelephone() : '',

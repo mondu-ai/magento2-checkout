@@ -41,6 +41,13 @@ class AsyncOrderPayloadTest extends TestCase
      */
     private ReflectionMethod $buildPayload;
 
+    /**
+     * Company on the billing address of the next order the test builds.
+     *
+     * @var string|null
+     */
+    private ?string $billingCompany = 'Mondu GmbH';
+
     protected function setUp(): void
     {
         $this->om = ObjectManager::getInstance();
@@ -111,6 +118,61 @@ class AsyncOrderPayloadTest extends TestCase
             'owners',
             $payload,
             'an owner without birth_date would be rejected by the API'
+        );
+    }
+
+    public function testSoleTraderWithoutCompanySendsTheOwnerNameAsCompany(): void
+    {
+        $this->billingCompany = null;
+        $payload = $this->buildPayloadFor([
+            F::FIELD_REGISTRATION_ID     => '86653938',
+            F::FIELD_NET_TERM            => 30,
+            F::FIELD_LEGAL_FORM_CATEGORY => F::LEGAL_FORM_CATEGORY_SOLE_TRADER,
+            F::FIELD_OWNER_FIRST_NAME    => 'Erika',
+            F::FIELD_OWNER_LAST_NAME     => 'Musterfrau',
+            F::FIELD_OWNER_BIRTH_DATE    => '1980-05-14',
+        ]);
+
+        $this->assertSame('Erika Musterfrau', $payload['buyer']['company_name']);
+    }
+
+    public function testSoleTraderWithoutOwnerNameFallsBackToTheBillingName(): void
+    {
+        $this->billingCompany = '  ';
+        $payload = $this->buildPayloadFor([
+            F::FIELD_REGISTRATION_ID     => '86653938',
+            F::FIELD_NET_TERM            => 30,
+            F::FIELD_LEGAL_FORM_CATEGORY => F::LEGAL_FORM_CATEGORY_SOLE_TRADER,
+        ]);
+
+        $this->assertSame('Max Mustermann', $payload['buyer']['company_name']);
+    }
+
+    public function testSoleTraderWithCompanyKeepsTheCompany(): void
+    {
+        $payload = $this->buildPayloadFor([
+            F::FIELD_REGISTRATION_ID     => '86653938',
+            F::FIELD_NET_TERM            => 30,
+            F::FIELD_LEGAL_FORM_CATEGORY => F::LEGAL_FORM_CATEGORY_SOLE_TRADER,
+            F::FIELD_OWNER_FIRST_NAME    => 'Erika',
+            F::FIELD_OWNER_LAST_NAME     => 'Musterfrau',
+            F::FIELD_OWNER_BIRTH_DATE    => '1980-05-14',
+        ]);
+
+        $this->assertSame('Mondu GmbH', $payload['buyer']['company_name']);
+    }
+
+    public function testOtherBuyerWithoutCompanySendsNull(): void
+    {
+        $this->billingCompany = '';
+        $payload = $this->buildPayloadFor([
+            F::FIELD_REGISTRATION_ID => '86653938',
+            F::FIELD_NET_TERM        => 30,
+        ]);
+
+        $this->assertNull(
+            $payload['buyer']['company_name'],
+            'an empty string fails as an invalid legal form instead of a missing company'
         );
     }
 
@@ -259,7 +321,7 @@ class AsyncOrderPayloadTest extends TestCase
         $address->setAddressType($type)
             ->setFirstname('Max')
             ->setLastname('Mustermann')
-            ->setCompany('Mondu GmbH')
+            ->setCompany($this->billingCompany)
             ->setStreet(['Alexanderplatz 1'])
             ->setCity('Berlin')
             ->setPostcode('10115')
