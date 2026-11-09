@@ -448,10 +448,10 @@ class CreateAsyncOrder extends CommonRequest implements RequestInterface
         $company = trim((string) ($billing ? $billing->getCompany() : ''));
         $payment = $order->getPayment();
 
-        if ($company !== '' || !$payment
-            || (string) $payment->getAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY)
-                !== AsyncOrderFields::LEGAL_FORM_CATEGORY_SOLE_TRADER
-        ) {
+        $category = $payment
+            ? (string) $payment->getAdditionalInformation(AsyncOrderFields::FIELD_LEGAL_FORM_CATEGORY)
+            : '';
+        if ($company !== '' || $category !== AsyncOrderFields::LEGAL_FORM_CATEGORY_SOLE_TRADER) {
             return $company !== '' ? $company : null;
         }
 
