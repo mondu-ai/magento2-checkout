@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- Global, not frontend: admin order edits and REST/GraphQL placement go through them too.
+         A new order placed in the admin is skipped there and handled by CreateAsyncOrder. -->
     <event name="sales_order_place_before">
         <observer name="sales_order_place_before_mondu" instance="Mondu\Mondu\Observer\CreateOrder"/>
     </event>
@@ -12,5 +14,17 @@
     </event>
     <event name="sales_order_shipment_save_after">
         <observer name="mondu_shipment_after" instance="Mondu\Mondu\Observer\ShipOrder"/>
+    </event>
+    <event name="payment_method_assign_data_mondu">
+        <observer name="mondu_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
+    <event name="payment_method_assign_data_mondusepa">
+        <observer name="mondusepa_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
+    <event name="payment_method_assign_data_monduinstallment">
+        <observer name="monduinstallment_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
+    </event>
+    <event name="payment_method_assign_data_monduinstallmentbyinvoice">
+        <observer name="monduinstallmentbyinvoice_assign_data" instance="Mondu\Mondu\Observer\Payment\DataAssignObserver"/>
     </event>
 </config>

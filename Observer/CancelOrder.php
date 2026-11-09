@@ -11,6 +11,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Mondu\Mondu\Helpers\ContextHelper;
+use Mondu\Mondu\Helpers\FollowUpOperations;
 use Mondu\Mondu\Helpers\Logger\Logger as MonduFileLogger;
 use Mondu\Mondu\Helpers\PaymentMethod as PaymentMethodHelper;
 use Mondu\Mondu\Model\Request\Factory as RequestFactory;
@@ -29,6 +30,7 @@ class CancelOrder extends MonduObserver
      * @param ManagerInterface $messageManager
      * @param RequestFactory $requestFactory
      * @param OrderRepositoryInterface $orderRepository
+     * @param FollowUpOperations $followUpOperations
      */
     public function __construct(
         ContextHelper $contextHelper,
@@ -37,6 +39,7 @@ class CancelOrder extends MonduObserver
         private readonly ManagerInterface $messageManager,
         private readonly RequestFactory $requestFactory,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly FollowUpOperations $followUpOperations,
     ) {
         parent::__construct($contextHelper, $monduFileLogger, $paymentMethodHelper);
     }
@@ -52,6 +55,15 @@ class CancelOrder extends MonduObserver
     {
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
+
+        if ($this->followUpOperations->isDisabledFor($order)) {
+            $this->monduFileLogger->info(
+                'Follow-up operations to Mondu are switched off, cancellation not sent',
+                ['orderNumber' => $order->getIncrementId()]
+            );
+            return;
+        }
+
         $orderIncrementId = $order->getIncrementId();
         $monduId = $order->getMonduReferenceId();
         $currentState = $order->getState();

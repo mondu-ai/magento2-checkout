@@ -46,7 +46,7 @@ abstract class MonduObserver implements MonduObserverInterface
             ['orderNumber' => $orderIncrementId]
         );
 
-        if ($this->checkOrderPlacedWithMondu($order)) {
+        if ($this->shouldExecute($order)) {
             $this->_execute($observer);
         } else {
             $this->monduFileLogger->info(
@@ -65,12 +65,23 @@ abstract class MonduObserver implements MonduObserverInterface
     abstract public function _execute(Observer $observer): void;
 
     /**
+     * Whether the observer handles this order; by default only orders placed with Mondu.
+     *
+     * @param OrderInterface $order
+     * @return bool
+     */
+    protected function shouldExecute(OrderInterface $order): bool
+    {
+        return $this->checkOrderPlacedWithMondu($order);
+    }
+
+    /**
      * Check if order is placed with Mondu.
      *
      * @param OrderInterface $order
      * @return bool
      */
-    private function checkOrderPlacedWithMondu(OrderInterface $order): bool
+    protected function checkOrderPlacedWithMondu(OrderInterface $order): bool
     {
         $payment = $order->getPayment();
         return $this->paymentMethodHelper->isMondu($payment);

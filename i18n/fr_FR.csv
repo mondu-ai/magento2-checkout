@@ -62,8 +62,8 @@ Actions,Actions
 <strong>Payment reference:</strong> %1,<strong>Objet:</strong> %1.
 <strong>Payment term:</strong> %1 days,<strong>Date limite de paiement:</strong> %1 jours
 
-"Invoice (30 days)","Facture (30 jours)"
-"SEPA direct debit (30 days)","Prélèvement automatique SEPA (30 jours)"
+"Invoice","Facture"
+"SEPA direct debit","Prélèvement automatique SEPA"
 "Installments (3, 6, 12 months)","Paiement échelonnés (3, 6, 12 mois)"
 "Installments (3, 6, 12 months) via Bank Transfer","Paiement échelonnés (3, 6, 12 mois) par virement bancaire"
 "Instant Pay","Virement instantané"
@@ -107,3 +107,7 @@ Veuillez choisir un autre moyen de paiement pour finaliser votre achat."
 <strong>Bank:</strong> %1,<strong>Banque:</strong> %1
 <strong>Sort Code:</strong> %1,<strong>Code guichet:</strong> %1
 <strong>Account Number:</strong> %1,<strong>Numéro de compte:</strong> %1
+"Payment term","Date limite de paiement"
+"%1 days","%1 jours"
+"Skip follow-up operations","Ignorer les opérations de suivi"
+"Set to Yes if you send invoices and credit notes to Mondu from another system, e.g. your ERP. Shipping, cancelling and refunding a Mondu order in Magento then sends nothing to Mondu, and Magento no longer checks the Mondu order state before it ships the order. The cron job that ships orders in Mondu skips these orders as well.","Choisissez Oui si vous envoyez les factures et les avoirs à Mondu depuis un autre système, par exemple votre ERP. L'expédition, l'annulation et le remboursement d'une commande Mondu dans Magento n'envoient alors rien à Mondu, et Magento ne vérifie plus le statut de la commande Mondu avant l'expédition. La tâche cron qui expédie les commandes dans Mondu ignore également ces commandes."

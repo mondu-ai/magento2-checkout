@@ -102,6 +102,21 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for the merchant's payment terms (net terms per country).
+     *
+     * The terms can be narrowed to one order source and/or one payment method.
+     *
+     * @param array $filters e.g. ['source' => 'async', 'payment_method' => 'invoice']
+     * @return string
+     */
+    public function getPaymentTermsUrl(array $filters = []): string
+    {
+        $url = $this->build('payment_terms');
+
+        return $filters ? $url . '?' . http_build_query($filters) : $url;
+    }
+
+    /**
      * Returns the API URL for webhook registration.
      *
      * @return string
@@ -122,6 +137,17 @@ class UrlBuilder
     }
 
     /**
+     * Returns the API URL for updating external info on an async order.
+     *
+     * @param string $orderUid
+     * @return string
+     */
+    public function getUpdateExternalInfoUrl(string $orderUid): string
+    {
+        return $this->build("orders/{$orderUid}/update_external_info");
+    }
+
+    /**
      * Returns the API URL for listing plugin-triggered events.
      *
      * @return string
@@ -129,6 +155,16 @@ class UrlBuilder
     public function getPluginEventsUrl(): string
     {
         return $this->build('plugin/events');
+    }
+
+    /**
+     * Returns the API URL for creating an async order.
+     *
+     * @return string
+     */
+    public function getCreateAsyncOrderUrl(): string
+    {
+        return $this->build('orders/create_async');
     }
 
     /**
